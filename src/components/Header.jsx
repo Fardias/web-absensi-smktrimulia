@@ -31,22 +31,22 @@ const Header = ({ title, subtitle, showBackButton = false, backPath = '/siswa/ho
     };
 
     return (
-        <header className="bg-white shadow-sm border-b">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center py-4">
+        <header className="bg-white border-b shadow-sm">
+            <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between py-4">
                     <div className="flex items-center">
                         {showBackButton && (
                             <button
                                 onClick={() => navigate(backPath)}
-                                className="mr-4 p-2 text-gray-400 hover:text-gray-600 transition duration-200"
+                                className="p-2 mr-4 text-gray-400 transition duration-200 hover:text-gray-600"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
                         )}
-                        <div className="w-10 h-10 bg-[#003366] rounded-lg flex items-center justify-center mr-3">
-                            <span className="text-white font-bold text-lg">SMK</span>
+                        <div className="w-10 h-10 bg-[#003366] rounded-lg flex items-center justify-center mr-3 px-6">
+                            <span className="text-lg font-bold text-white">SMK</span>
                         </div>
                         <div>
                             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
@@ -63,7 +63,7 @@ const Header = ({ title, subtitle, showBackButton = false, backPath = '/siswa/ho
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200"
+                            className="px-4 py-2 text-white transition duration-200 bg-red-500 rounded-lg hover:bg-red-600"
                         >
                             Logout
                         </button>
