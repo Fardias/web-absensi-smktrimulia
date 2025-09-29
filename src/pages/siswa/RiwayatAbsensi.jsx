@@ -10,59 +10,129 @@ const RiwayatAbsensi = () => {
 
   useEffect(() => {
     if (user) {
-      absensiAPI.riwayat().then((data) => {
-        setRiwayatAbsen(data.data);
+      absensiAPI.riwayat().then((res) => {
+        setRiwayatAbsen(res.data);
         setLoading(false);
       });
     }
   }, [user]);
 
-  if (!user) {
-    return <Loading text="Memuat data user..." />;
-  }
+  const renderStatusBadge = (status) => {
+    console.log(status)
+    const statusClass = {
+      hadir: 'bg-green-100 text-green-700 ring-1 ring-green-200',
+      izin: 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200',
+      sakit: 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
+      alpha: 'bg-red-100 text-red-700 ring-1 ring-red-200',
+      terlambat: 'bg-orange-100 text-orange-700 ring-1 ring-orange-200',
+    };
 
-  if (loading) {
-    return <Loading text="Memuat riwayat absensi..." />;
-  }
+    return (
+      <span
+        className={`px-4 py-1.5 inline-flex text-xs font-bold rounded-full leading-5 
+          ${statusClass[status] || 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'}`}
+      >
+        {status}
+      </span>
+    );
+  };
 
-  console.log(riwayatAbsen);
+  if (!user) return <Loading text="Memuat data user..." />;
+
+  if (loading) return <Loading text="Memuat riwayat absensi..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header 
-        title="Riwayat Absensi" 
-        subtitle="SMK Trimulia" 
-        showBackButton={true}
+    <div className="min-h-screen">
+      <Header
+        title="Riwayat Absensi"
+        subtitle="SMK Trimulia"
+        showBackButton
         backPath="/siswa/home"
       />
 
-      {/* Main Content */}
       <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="mb-4 text-2xl font-bold text-gray-900">Riwayat Absensi</h2>
+        <div className="mb-12 text-center">
+          <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            Riwayat <span className="text-indigo-600">Kehadiran</span> Anda
+          </h2>
+          <p className="max-w-2xl mx-auto text-lg text-gray-600">
+            Rekam jejak kehadiran Anda di SMK Trimulia. Selalu pantau untuk hasil terbaik!
+          </p>
         </div>
-        <div className="mt-8">
-          {riwayatAbsen.responseStatus == true ? (
-            <table className="min-w-full text-center bg-white border border-gray-200 rounded shadow">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-center border-b">Tanggal</th>
-                  <th className="px-4 py-2 text-center border-b">Status</th>
-                  <th className="px-4 py-2 text-center border-b">Keterangan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {riwayatAbsen.responseData.map((absen, idx) => (
-                  <tr key={idx} className="text-center">
-                    <td className="px-4 py-2 text-center border-b">{absen.tanggal}</td>
-                    <td className="px-4 py-2 text-center border-b">{absen.status}</td>
-                    <td className="px-4 py-2 text-center border-b">{absen.keterangan || '-'}</td>
+
+        <div className="relative mt-8 overflow-hidden bg-white shadow-2xl rounded-xl ring-1 ring-gray-200">
+          {riwayatAbsen?.responseStatus ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {['Tanggal', 'Status', 'Keterangan'].map((col) => (
+                      <th
+                        key={col}
+                        scope="col"
+                        className="px-6 py-4 text-sm font-semibold tracking-wider text-center text-gray-700 uppercase"
+                      >
+                        {col}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {riwayatAbsen.responseData?.map((absen, idx) => (
+                    <tr
+                      key={idx}
+                      className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} 
+                        hover:bg-indigo-50 transition duration-200 ease-in-out`}
+                    >
+                      <td className="px-6 py-4 text-sm font-medium text-center text-gray-800 whitespace-nowrap">
+                        {absen.tanggal}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
+                        {renderStatusBadge(absen.status)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-center text-gray-600 whitespace-nowrap">
+                        {absen.keterangan || (
+                          <span className="italic text-gray-400">Tidak ada keterangan</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <p className="text-center text-gray-500">Belum ada riwayat absensi.</p>
+            // Kalo data absen kosong /  belum ada
+            <div className="p-8 text-center bg-white shadow-md rounded-xl">
+              <svg
+                className="w-16 h-16 mx-auto text-indigo-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  vectorEffect="non-scaling-stroke"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172A4 4 0 0111.313 15h2.378a4 4 0 012.141 1.172M17 12a5 5 0 
+                  11-10 0 5 5 0 0110 0z"
+                />
+              </svg>
+              <h3 className="mt-4 text-xl font-semibold text-gray-900">
+                Belum ada riwayat absensi
+              </h3>
+              <p className="mt-2 text-base text-gray-600">
+                Data kehadiran Anda belum tersedia. Silakan cek kembali nanti atau hubungi admin
+                jika ini adalah kesalahan.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center px-4 py-2 mt-6 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Segarkan Halaman
+              </button>
+            </div>
           )}
         </div>
       </main>
