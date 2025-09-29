@@ -18,7 +18,6 @@ const RiwayatAbsensi = () => {
   }, [user]);
 
   const renderStatusBadge = (status) => {
-    console.log(status)
     const statusClass = {
       hadir: 'bg-green-100 text-green-700 ring-1 ring-green-200',
       izin: 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200',
