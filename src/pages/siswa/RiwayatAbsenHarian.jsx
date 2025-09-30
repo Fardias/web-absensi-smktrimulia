@@ -33,8 +33,6 @@ const RiwayatAbsenHarian = () => {
         }
     }, [user]);
 
-    console.log(riwayat);
-
     if (loading) {
         return <p className="text-center text-gray-500">Memuat...</p>;
     }
