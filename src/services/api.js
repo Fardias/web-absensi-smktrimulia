@@ -128,6 +128,7 @@ export const absensiAPI = {
 	absenPulang: (data) => api.post('/absensi/pulang', data),
 	izinSakit: (data) => api.post('/absensi/izinsakit', data),
 	riwayat: () => api.get('/absensi/riwayat'),
+	riwayatAbsenHariIni: () => api.get('/absensi/hariini'),
 };
 
 // Admin API
