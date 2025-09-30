@@ -141,4 +141,9 @@ export const guruAPI = {
 	laporan: () => api.get('/guru/laporan'),
 };
 
+// Gabungan Admin dan Guru API
+export const generalAPI = {
+	totalSiswa: () => api.get('/total-siswa'),
+};
+
 export default api;
