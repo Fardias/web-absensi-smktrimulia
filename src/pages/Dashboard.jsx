@@ -12,22 +12,28 @@ const Dashboard = () => {
   const [totalSiswa, setTotalSiswa] = useState(0);
   const [hadirHariIni, setHadirHariIni] = useState(0);
   const [terlambat, setTerlambat] = useState(0);
-  const [izin, setIzin] = useState(0);
+  const [izinSakit, setIzinSakit] = useState(0);
 
   const animTotalSiswa = useCountUp(totalSiswa, 500);
   const animHadir = useCountUp(hadirHariIni, 500);
   const animTerlambat = useCountUp(terlambat, 500);
-  const animIzin = useCountUp(izin, 500);
+  const animIzin = useCountUp(izinSakit, 500);
 
-  const { handleTotalSiswa } = useDataSiswa();
+  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit } = useDataSiswa();
 
   useEffect(() => {
     const fetchTotalSiswa = async () => {
       try {
-        const result = await handleTotalSiswa();
-        if (result) {
-          setTotalSiswa(result);
-        }
+        const cTotalSiswa = await handleTotalSiswa();
+        const cHadirHariIni = await handleSiswaHadirHariIni();
+        const cTerlambat = await handleSiswaTerlambat();
+        const cIzinsakit = await handleSiswaIzinSakit();
+        
+        setHadirHariIni(cHadirHariIni || 0);
+        setTerlambat(cTerlambat || 0);
+        setIzinSakit(cIzinsakit || 0);
+        setTotalSiswa(cTotalSiswa);
+      
       } catch (err) {
         console.error('Error fetch total siswa:', err);
       }
