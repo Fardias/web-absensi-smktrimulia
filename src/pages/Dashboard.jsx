@@ -19,27 +19,33 @@ const Dashboard = () => {
   const animTerlambat = useCountUp(terlambat, 500);
   const animIzin = useCountUp(izinSakit, 500);
 
-  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit } = useDataSiswa();
+  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit, loading,error } = useDataSiswa();
 
   useEffect(() => {
-    const fetchTotalSiswa = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const cTotalSiswa = await handleTotalSiswa();
-        const cHadirHariIni = await handleSiswaHadirHariIni();
-        const cTerlambat = await handleSiswaTerlambat();
-        const cIzinsakit = await handleSiswaIzinSakit();
-        
+        const [
+          cTotalSiswa,
+          cHadirHariIni,
+          cTerlambat,
+          cIzinsakit
+        ] = await Promise.all([
+          handleTotalSiswa(),
+          handleSiswaHadirHariIni(),
+          handleSiswaTerlambat(),
+          handleSiswaIzinSakit()
+        ]);
+
+        setTotalSiswa(cTotalSiswa || 0);
         setHadirHariIni(cHadirHariIni || 0);
         setTerlambat(cTerlambat || 0);
         setIzinSakit(cIzinsakit || 0);
-        setTotalSiswa(cTotalSiswa);
-      
       } catch (err) {
-        console.error('Error fetch total siswa:', err);
+        console.error("Error fetch dashboard data:", err);
       }
     };
 
-    fetchTotalSiswa();
+    fetchDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -54,6 +60,24 @@ const Dashboard = () => {
 
   if (!user) {
     return <Loading text="Memuat data user..." />;
+  }
+
+  if(loading){
+    return <Loading text="Memuat data siswa..." />;
+  }
+
+  if(error){
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header title="Dashboard" subtitle="SMK Trimulia" />
+        <main className="flex items-center justify-center flex-grow">
+          <div className="p-6 text-red-700 bg-red-100 border border-red-400 rounded-lg">
+            <h2 className="mb-2 text-lg font-semibold">Terjadi Kesalahan</h2>
+            <p className="text-sm">Gagal memuat data siswa. Silakan coba lagi nanti.</p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
