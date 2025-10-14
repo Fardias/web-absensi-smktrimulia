@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { useDataSiswa } from '../hooks/useDataSiswa';
 import { useCountUp } from '../hooks';
 import { useNavigate } from 'react-router-dom';
+import { guruAPI } from "../services/api";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,6 +16,9 @@ const Dashboard = () => {
   const [hadirHariIni, setHadirHariIni] = useState(0);
   const [terlambat, setTerlambat] = useState(0);
   const [izinSakit, setIzinSakit] = useState(0);
+
+  const [aktivitas, setAktivitas] = useState([]);
+  const [loadingAktivitas, setLoadingAktivitas] = useState(true);
 
   const animTotalSiswa = useCountUp(totalSiswa, 500);
   const animHadir = useCountUp(hadirHariIni, 500);
@@ -60,6 +64,29 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchAktivitas = async () => {
+      try {
+        const response = await guruAPI.aktifitasTerbaru();
+        if (response.data.responseStatus) {
+          setAktivitas(response.data.responseData || []);
+        } else {
+          console.error("Gagal ambil aktivitas:", response.data.responseMessage);
+        }
+      } catch (error) {
+        console.error("Gagal memuat aktivitas:", error);
+      } finally {
+        setLoadingAktivitas(false);
+      }
+    };
+
+    fetchAktivitas();
+
+    // Polling otomatis setiap 5 detik
+    const interval = setInterval(fetchAktivitas, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (!user) {
     return <Loading text="Memuat data user..." />;
   }
@@ -81,6 +108,7 @@ const Dashboard = () => {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -341,33 +369,46 @@ const Dashboard = () => {
 
           {/* Aktivitas Terbaru */}
           <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
-              Aktivitas Terbaru
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                <div className="w-2 h-2 mr-3 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">Siswa baru melakukan absensi</p>
-                  <p className="text-xs text-gray-500">2 menit yang lalu</p>
-                </div>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Aktivitas Terbaru</h3>
+
+            {loadingAktivitas ? (
+              <p className="text-sm text-gray-500">Memuat aktivitas...</p>
+            ) : aktivitas.length === 0 ? (
+              <p className="text-sm text-gray-500">Belum ada aktivitas terbaru.</p>
+            ) : (
+              <div className="space-y-3">
+                {aktivitas.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center p-3 transition rounded-lg bg-gray-50 hover:bg-gray-100"
+                  >
+                    <div
+                      className={`w-2 h-2 mr-3 rounded-full ${item.aksi === "created"
+                        ? "bg-green-500"
+                        : item.aksi === "updated"
+                          ? "bg-yellow-500"
+                          : item.aksi === "deleted"
+                            ? "bg-red-500"
+                            : "bg-gray-400"
+                        }`}
+                    ></div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">{item.deskripsi}</p>
+                      <p className="text-xs text-gray-500">
+                        ID Akun: {item.akun_id || "-"} •{" "}
+                        {new Date(item.created_at).toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                <div className="w-2 h-2 mr-3 bg-yellow-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">Siswa terlambat masuk</p>
-                  <p className="text-xs text-gray-500">5 menit yang lalu</p>
-                </div>
-              </div>
-              <div className="flex items-center p-3 rounded-lg bg-gray-50">
-                <div className="w-2 h-2 mr-3 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">Laporan kehadiran diupdate</p>
-                  <p className="text-xs text-gray-500">10 menit yang lalu</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
+
+
         </div>
       </main>
     </div>
