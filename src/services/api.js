@@ -139,6 +139,10 @@ export const adminAPI = {
 // Guru API
 export const guruAPI = {
 	laporan: () => api.get('/guru/laporan'),
+	importSiswa: (formData, onUploadProgress) =>
+		api.post('/import-siswa', formData, {
+			onUploadProgress,
+		}),
 };
 
 // Gabungan Admin dan Guru API
