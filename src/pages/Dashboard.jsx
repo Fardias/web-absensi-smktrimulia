@@ -5,9 +5,11 @@ import { formatDate } from '../utils';
 import { useState, useEffect } from 'react';
 import { useDataSiswa } from '../hooks/useDataSiswa';
 import { useCountUp } from '../hooks';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [totalSiswa, setTotalSiswa] = useState(0);
   const [hadirHariIni, setHadirHariIni] = useState(0);
@@ -19,7 +21,7 @@ const Dashboard = () => {
   const animTerlambat = useCountUp(terlambat, 500);
   const animIzin = useCountUp(izinSakit, 500);
 
-  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit, loading,error } = useDataSiswa();
+  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit, loading, error } = useDataSiswa();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -62,11 +64,11 @@ const Dashboard = () => {
     return <Loading text="Memuat data user..." />;
   }
 
-  if(loading){
+  if (loading) {
     return <Loading text="Memuat data siswa..." />;
   }
 
-  if(error){
+  if (error) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header title="Dashboard" subtitle="SMK Trimulia" />
@@ -198,8 +200,6 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
             <h3 className="mb-4 text-lg font-semibold text-gray-900">Aksi Cepat</h3>
@@ -287,6 +287,28 @@ const Dashboard = () => {
                         />
                       </svg>
                       Laporan Kehadiran
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => navigate('/import-siswa')}
+                    className="w-full p-3 text-left text-gray-700 transition duration-200 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    <div className="flex items-center">
+                      <svg
+                        className="w-5 h-5 mr-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        {/* Icon Import Data: Upload */}
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"
+                        />
+                      </svg>
+                      Import Data Siswa
                     </div>
                   </button>
                 </>
