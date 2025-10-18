@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function SideBar({ defaultCollapsed = false }) {
     const [collapsed, setCollapsed] = useState(defaultCollapsed);
     const [openMenu, setOpenMenu] = useState(null);
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logout();
@@ -14,14 +15,14 @@ export default function SideBar({ defaultCollapsed = false }) {
     };
 
     const items = [
-        { key: "home", label: "Beranda", href: "/beranda", icon: HomeIcon },
+        { key: "home", label: "Beranda", href: "/dashboard", icon: HomeIcon },
         {
             key: "absensi",
             label: "Absensi",
             icon: CheckIcon,
             children: [
-                { key: "absen-hari-ini", label: "Absen Hari Ini", href: "/absensi/hari-ini" },
-                { key: "izin-sakit", label: "Izin / Sakit", href: "/absensi/izin" },
+                { key: "absen-hari-ini", label: "Absen Hari Ini", href: "/dashboard/absen-hari-ini" },
+                { key: "izin-sakit", label: "Izin / Sakit", href: "/dashboard/siswa-izinsakit" },
             ],
         },
         { key: "jadwal", label: "Jadwal", href: "/jadwal", icon: CalendarIcon },
@@ -30,12 +31,19 @@ export default function SideBar({ defaultCollapsed = false }) {
             label: "Siswa",
             icon: UsersIcon,
             children: [
-                { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" }
-            ]
+                { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
+            ],
         },
         { key: "profil", label: "Profil", href: "/profil", icon: UserIcon },
         { key: "logout", label: "Logout", href: "#", icon: LogoutIcon, onClick: handleLogout },
     ];
+
+    // cek apakah path aktif
+    const isActive = (href) => location.pathname === href;
+
+    // cek apakah submenu aktif
+    const isChildActive = (children) =>
+        children?.some((child) => location.pathname === child.href);
 
     return (
         <aside
@@ -99,87 +107,108 @@ export default function SideBar({ defaultCollapsed = false }) {
 
             {/* Navigasi */}
             <nav style={{ marginTop: 12, flex: 1 }}>
-                {items.map((item) => (
-                    <div key={item.key}>
-                        {/* Menu utama */}
-                        <div
-                            onClick={() => {
-                                if (item.children) {
-                                    setOpenMenu(openMenu === item.key ? null : item.key);
-                                } else if (item.key === "logout") {
-                                    item.onClick?.();
-                                } else {
-                                    navigate(item.href);
-                                }
-                            }}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "10px 8px",
-                                color: "#cfe6ff",
-                                borderRadius: 8,
-                                margin: "6px 4px",
-                                cursor: "pointer",
-                                transition: "background .12s",
-                            }}
-                            onMouseEnter={(e) =>
-                                (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
-                            }
-                            onMouseLeave={(e) =>
-                                (e.currentTarget.style.background = "transparent")
-                            }
-                        >
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                <div
-                                    style={{
-                                        width: 28,
-                                        display: "flex",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <item.icon />
+                {items.map((item) => {
+                    const activeMain = isActive(item.href) || isChildActive(item.children);
+                    return (
+                        <div key={item.key}>
+                            {/* Menu utama */}
+                            <div
+                                onClick={() => {
+                                    if (item.children) {
+                                        setOpenMenu(openMenu === item.key ? null : item.key);
+                                    } else if (item.key === "logout") {
+                                        item.onClick?.();
+                                    } else {
+                                        navigate(item.href);
+                                    }
+                                }}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "10px 8px",
+                                    borderRadius: 8,
+                                    margin: "6px 4px",
+                                    cursor: "pointer",
+                                    transition: "background .12s",
+                                    background: activeMain
+                                        ? "rgba(59,130,246,0.25)"
+                                        : "transparent",
+                                    color: activeMain ? "#fff" : "#cfe6ff",
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!activeMain)
+                                        e.currentTarget.style.background =
+                                            "rgba(255,255,255,0.05)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!activeMain)
+                                        e.currentTarget.style.background = "transparent";
+                                }}
+                            >
+                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                    <div
+                                        style={{
+                                            width: 28,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        <item.icon />
+                                    </div>
+                                    {!collapsed && (
+                                        <span style={{ fontSize: 14, fontWeight: activeMain ? 600 : 400 }}>
+                                            {item.label}
+                                        </span>
+                                    )}
                                 </div>
-                                {!collapsed && <span style={{ fontSize: 14 }}>{item.label}</span>}
+                                {item.children && !collapsed && (
+                                    <span style={{ fontSize: 12 }}>
+                                        {openMenu === item.key ? "▾" : "▸"}
+                                    </span>
+                                )}
                             </div>
-                            {item.children && !collapsed && (
-                                <span style={{ fontSize: 12 }}>
-                                    {openMenu === item.key ? "▾" : "▸"}
-                                </span>
+
+                            {/* Submenu */}
+                            {item.children && openMenu === item.key && !collapsed && (
+                                <div style={{ marginLeft: 28 }}>
+                                    {item.children.map((child) => (
+                                        <div
+                                            key={child.key}
+                                            onClick={() => navigate(child.href)}
+                                            style={{
+                                                padding: "8px 8px",
+                                                borderRadius: 6,
+                                                margin: "4px 0",
+                                                fontSize: 13,
+                                                cursor: "pointer",
+                                                background: isActive(child.href)
+                                                    ? "rgba(59,130,246,0.3)"
+                                                    : "transparent",
+                                                color: isActive(child.href)
+                                                    ? "#fff"
+                                                    : "#bcd7ff",
+                                                transition: "background .12s",
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (!isActive(child.href))
+                                                    e.currentTarget.style.background =
+                                                        "rgba(255,255,255,0.05)";
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!isActive(child.href))
+                                                    e.currentTarget.style.background =
+                                                        "transparent";
+                                            }}
+                                        >
+                                            {child.label}
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
-
-                        {/* Submenu */}
-                        {item.children && openMenu === item.key && !collapsed && (
-                            <div style={{ marginLeft: 28 }}>
-                                {item.children.map((child) => (
-                                    <div
-                                        key={child.key}
-                                        onClick={() => navigate(child.href)}
-                                        style={{
-                                            padding: "8px 8px",
-                                            borderRadius: 6,
-                                            margin: "4px 0",
-                                            fontSize: 13,
-                                            color: "#bcd7ff",
-                                            cursor: "pointer",
-                                            transition: "background .12s",
-                                        }}
-                                        onMouseEnter={(e) =>
-                                        (e.currentTarget.style.background =
-                                            "rgba(255,255,255,0.05)")
-                                        }
-                                        onMouseLeave={(e) =>
-                                            (e.currentTarget.style.background = "transparent")
-                                        }
-                                    >
-                                        {child.label}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))}
+                    );
+                })}
             </nav>
 
             {/* Footer Versi */}
