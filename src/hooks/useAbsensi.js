@@ -42,7 +42,38 @@ export const useAbsensi = () => {
       }
    };
 
-   const handleIzinSakit = async (formData) => {
+   const handleSakit = async (formData) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+         const response = await absensiAPI.izinSakit(formData);
+
+         return {
+            success: true,
+            data: response.data,
+         };
+      } catch (error) {
+         const errorData = error.response?.data;
+         setError(
+            errorData?.message ||
+            errorData?.responseMessage ||
+            'Terjadi kesalahan pada server'
+         );
+         return {
+            success: false,
+            message:
+               errorData?.message ||
+               errorData?.responseMessage ||
+               'Terjadi kesalahan pada server',
+            errors: errorData?.errors || null,
+         };
+      } finally {
+         setLoading(false);
+      }
+   };
+   
+   const handleIzin = async (formData) => {
       setLoading(true);
       setError(null);
 
@@ -76,7 +107,8 @@ export const useAbsensi = () => {
 
    return {
       handleAbsen,
-      handleIzinSakit,
+      handleSakit,
+      handleIzin,
       loading,
       error
    };

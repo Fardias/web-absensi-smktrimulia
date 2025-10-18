@@ -5,10 +5,11 @@ import { useAbsensi } from '../../hooks';
 import toast, { Toaster } from 'react-hot-toast';
 
 const IzinSakit = () => {
-   const { handleIzinSakit, loading } = useAbsensi();
+   const { handleIzin, handleSakit, loading } = useAbsensi();
    const { user } = useAuth();
 
    const today = new Date().toISOString().split('T')[0];
+   const [selectedType, setSelectedType] = useState('izin'); // "izin" atau "sakit"
 
    const [formData, setFormData] = useState({
       tanggal: today,
@@ -18,16 +19,13 @@ const IzinSakit = () => {
 
    const [errors, setErrors] = useState({});
 
-   if (!user) {
-      return <Loading text="Memuat data user..." />;
-   }
+   if (!user) return <Loading text="Memuat data user..." />;
 
    const handleChange = (e) => {
       const { name, value, files } = e.target;
-
       if (name === 'bukti') {
          setFormData({ ...formData, bukti: files[0] });
-         setErrors({ ...errors, bukti: null }); 
+         setErrors({ ...errors, bukti: null });
       } else {
          setFormData({ ...formData, [name]: value });
          setErrors({ ...errors, [name]: null });
@@ -37,11 +35,9 @@ const IzinSakit = () => {
    const handleSubmit = async (e) => {
       e.preventDefault();
 
-      // Validasi manual
       let newErrors = {};
       if (!formData.keterangan.trim()) newErrors.keterangan = "Keterangan wajib diisi";
       if (!formData.bukti) newErrors.bukti = "Bukti wajib diupload";
-
       setErrors(newErrors);
 
       if (Object.keys(newErrors).length > 0) {
@@ -52,17 +48,26 @@ const IzinSakit = () => {
       const data = new FormData();
       data.append('tanggal', formData.tanggal);
       data.append('keterangan', formData.keterangan);
-      if (formData.bukti) {
-         data.append('bukti', formData.bukti);
-      }
+      data.append('bukti', formData.bukti);
 
-      const loadingToastId = toast.loading('Mengirim pengajuan...');
+      const loadingToastId = toast.loading(
+         selectedType === 'izin' ? 'Mengirim pengajuan izin...' : 'Mengirim pengajuan sakit...'
+      );
 
       try {
-         const result = await handleIzinSakit(data);
+         const result =
+            selectedType === 'izin'
+               ? await handleIzin(data)
+               : await handleSakit(data);
 
          if (result.success) {
-            toast.success('Pengajuan izin/sakit berhasil dikirim ✅', { id: loadingToastId });
+            toast.success(
+               selectedType === 'izin'
+                  ? 'Pengajuan izin berhasil dikirim ✅'
+                  : 'Pengajuan sakit berhasil dikirim ✅',
+               { id: loadingToastId }
+            );
+
             setFormData({
                tanggal: today,
                keterangan: '',
@@ -70,28 +75,54 @@ const IzinSakit = () => {
             });
             setErrors({});
          } else {
-            toast.error(result.message || 'Gagal mengirim pengajuan izin/sakit ❌', { id: loadingToastId });
+            toast.error(result.message || 'Gagal mengirim pengajuan ❌', { id: loadingToastId });
          }
       } catch (err) {
          toast.error('Terjadi kesalahan saat mengirim pengajuan ❌', { id: loadingToastId });
-         console.error("Error submitting form:", err);
+         console.error(err);
       }
    };
 
    return (
       <div className="min-h-screen bg-gray-50">
          <Header
-            title="Izin/Sakit"
+            title="Izin / Sakit"
             subtitle="SMK Trimulia"
-            showBackButton={true}
+            showBackButton
             backPath="/siswa/home"
          />
 
          <main className="max-w-2xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
             <div className="p-8 bg-white shadow-lg rounded-2xl">
                <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">
-                  Form Izin / Sakit
+                  Form Pengajuan Izin / Sakit
                </h2>
+
+               {/* PILIHAN JENIS */}
+               <div className="flex justify-center mb-8">
+                  <div className="flex p-1 space-x-2 bg-gray-100 rounded-lg">
+                     <button
+                        type="button"
+                        onClick={() => setSelectedType('izin')}
+                        className={`px-4 py-2 rounded-md font-medium transition-all duration-200 
+                           ${selectedType === 'izin'
+                              ? 'bg-indigo-600 text-white shadow'
+                              : 'text-gray-700 hover:bg-gray-200'}`}
+                     >
+                        Izin
+                     </button>
+                     <button
+                        type="button"
+                        onClick={() => setSelectedType('sakit')}
+                        className={`px-4 py-2 rounded-md font-medium transition-all duration-200 
+                           ${selectedType === 'sakit'
+                              ? 'bg-indigo-600 text-white shadow'
+                              : 'text-gray-700 hover:bg-gray-200'}`}
+                     >
+                        Sakit
+                     </button>
+                  </div>
+               </div>
 
                <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Tanggal */}
@@ -103,23 +134,26 @@ const IzinSakit = () => {
                         type="date"
                         name="tanggal"
                         value={formData.tanggal}
-                        onChange={handleChange}
-                        className="p-2 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         readOnly
+                        className="p-2 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                      />
                   </div>
 
                   {/* Keterangan */}
                   <div className="flex flex-col">
                      <label className="mb-1 text-sm font-medium text-gray-700">
-                        Keterangan
+                        {selectedType === 'izin' ? 'Alasan Izin' : 'Keterangan Sakit'}
                      </label>
                      <textarea
                         name="keterangan"
                         value={formData.keterangan}
                         onChange={handleChange}
                         rows="4"
-                        placeholder="Tulis alasan izin atau sakit..."
+                        placeholder={
+                           selectedType === 'izin'
+                              ? 'Tulis alasan izin...'
+                              : 'Tulis keterangan sakit...'
+                        }
                         className={`p-2 rounded-lg shadow-sm sm:text-sm focus:ring-indigo-500 focus:border-indigo-500 ${errors.keterangan ? "border-red-500" : "border-gray-300"
                            }`}
                      />
@@ -131,7 +165,9 @@ const IzinSakit = () => {
                   {/* Upload File */}
                   <div className="flex flex-col">
                      <label className="mb-2 text-sm font-medium text-gray-700">
-                        Upload File
+                        {selectedType === 'izin'
+                           ? 'Upload Bukti (opsional: surat izin, dll)'
+                           : 'Upload Surat Dokter / Bukti Sakit'}
                      </label>
                      <input
                         type="file"
@@ -150,7 +186,6 @@ const IzinSakit = () => {
                         <p className="mt-1 text-xs text-red-600">{errors.bukti}</p>
                      )}
 
-                     {/* Preview file */}
                      {formData.bukti && (
                         <div className="mt-3">
                            {formData.bukti.type.startsWith("image/") ? (
@@ -175,7 +210,11 @@ const IzinSakit = () => {
                         disabled={loading}
                         className="w-full px-4 py-3 font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                      >
-                        {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
+                        {loading
+                           ? 'Mengirim...'
+                           : selectedType === 'izin'
+                              ? 'Kirim Pengajuan Izin'
+                              : 'Kirim Pengajuan Sakit'}
                      </button>
                   </div>
                </form>
