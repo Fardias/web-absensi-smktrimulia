@@ -129,7 +129,7 @@ export const absensiAPI = {
 	izinSakit: (data) => api.post('/absensi/izinsakit', data),
 	riwayat: () => api.get('/absensi/riwayat'),
 	riwayatAbsenHariIni: () => api.get('/absensi/hariini'),
-};
+};																
 
 // Admin API
 export const adminAPI = {
@@ -140,10 +140,10 @@ export const adminAPI = {
 export const guruAPI = {
 	laporan: () => api.get('/guru/laporan'),
 	importSiswa: (formData, onUploadProgress) =>
-		api.post('/import-siswa', formData, {onUploadProgress}),
+		api.post('/import-siswa', formData, { onUploadProgress }),
 	aktifitasTerbaru: () => api.get('/aktivitas-terbaru'),
 	getSiswaIzinSakit: () => api.get('/absensi/siswaIzinSakit'),
-
+	updateAbsensiStatus: (data) => api.post(`/absensi/updateStatus`, data),
 };
 
 // Gabungan Admin dan Guru API
