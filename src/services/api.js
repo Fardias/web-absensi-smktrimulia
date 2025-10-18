@@ -142,6 +142,7 @@ export const guruAPI = {
 	importSiswa: (formData, onUploadProgress) =>
 		api.post('/import-siswa', formData, {onUploadProgress}),
 	aktifitasTerbaru: () => api.get('/aktivitas-terbaru'),
+	getSiswaIzinSakit: () => api.get('/absensi/siswaIzinSakit'),
 
 };
 
