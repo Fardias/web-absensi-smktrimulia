@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Header } from "../../components";
 import { CloudUpload, CheckCircle, XCircle } from "lucide-react";
 import { guruAPI } from "../../services/api";
+import Sidebar from "../../components/Sidebar"; // pastikan kamu punya komponen Sidebar.js
 
 const ImportSiswa = () => {
     const [file, setFile] = useState(null);
@@ -56,11 +56,18 @@ const ImportSiswa = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#f7faff] to-[#e9efff] flex flex-col">
-            <Header title="Import Data Siswa" subtitle="SMK Trimulia" />
+        <div className="flex min-h-screen bg-gray-50">
+            {/* Sidebar */}
+            <Sidebar />
 
-            <main className="flex flex-col items-center justify-center flex-grow px-4 py-10">
-                <div className="relative w-full max-w-md p-8 bg-white border border-gray-200 shadow-xl rounded-2xl">
+            {/* Main Content */}
+            <main className="flex-1 p-8">
+                <h1 className="text-3xl font-bold text-[#003366] mb-2">
+                    Import Data Siswa
+                </h1>
+                <p className="mb-8 text-gray-500">Upload file Excel (.xlsx / .xls / .csv)</p>
+
+                <div className="relative w-full max-w-md p-8 bg-white border border-gray-200 shadow-lg rounded-2xl">
                     <div className="flex flex-col items-center mb-6">
                         <div className="p-4 bg-[#003366]/10 rounded-full">
                             <CloudUpload className="w-10 h-10 text-[#003366]" />
@@ -69,7 +76,7 @@ const ImportSiswa = () => {
                             Import Data Siswa
                         </h2>
                         <p className="mt-1 text-sm text-center text-gray-500">
-                            Upload file Excel (.xlsx / .xls / .csv)
+                            Pastikan format file sesuai template
                         </p>
                     </div>
 
