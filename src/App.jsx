@@ -180,6 +180,7 @@ import AbsenPulang from './pages/siswa/AbsenPulang';
 import RiwayatAbsensi from './pages/siswa/RiwayatAbsensi';
 import IzinSakit from './pages/siswa/IzinSakit';
 import ImportSiswa from './pages/gurket/ImportSiswa';
+import SiswaIzinSakit from './pages/gurket/SiswaIzinSakit';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -256,12 +257,20 @@ const AppRoutes = () => {
         }
       />
 
-      {/* ✅ Route untuk Import Data Siswa */}
       <Route
-        path="/import-siswa"
+        path="/dashboard/import-siswa"
         element={
           <ProtectedRoute allowedRoles={['gurket']}>
             <ImportSiswa />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/siswa-izinsakit"
+        element={
+          <ProtectedRoute allowedRoles={['gurket']}>
+            <SiswaIzinSakit />
           </ProtectedRoute>
         }
       />
