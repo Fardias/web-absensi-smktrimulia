@@ -49,6 +49,7 @@ const IzinSakit = () => {
       data.append('tanggal', formData.tanggal);
       data.append('keterangan', formData.keterangan);
       data.append('bukti', formData.bukti);
+      data.append('jenis_absen', selectedType);
 
       const loadingToastId = toast.loading(
          selectedType === 'izin' ? 'Mengirim pengajuan izin...' : 'Mengirim pengajuan sakit...'
