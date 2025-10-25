@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -14,7 +14,7 @@ export default function SideBar({ defaultCollapsed = false }) {
         navigate("/login");
     };
 
-    const items = [
+    const items = useMemo(() => [
         { key: "home", label: "Beranda", href: "/dashboard", icon: HomeIcon },
         {
             key: "absensi",
@@ -23,6 +23,7 @@ export default function SideBar({ defaultCollapsed = false }) {
             children: [
                 { key: "absen-hari-ini", label: "Absen Hari Ini", href: "/dashboard/absen-hari-ini" },
                 { key: "izin-sakit", label: "Izin / Sakit", href: "/dashboard/siswa-izinsakit" },
+                { key: "lihat-absensi", label: "Lihat Absensi", href: "/dashboard/lihat-absensi" },
             ],
         },
         { key: "jadwal", label: "Jadwal", href: "/jadwal", icon: CalendarIcon },
@@ -36,7 +37,7 @@ export default function SideBar({ defaultCollapsed = false }) {
         },
         { key: "profil", label: "Profil", href: "/profil", icon: UserIcon },
         { key: "logout", label: "Logout", href: "#", icon: LogoutIcon, onClick: handleLogout },
-    ];
+    ], []);
 
     // cek apakah path aktif
     const isActive = (href) => location.pathname === href;
@@ -44,6 +45,15 @@ export default function SideBar({ defaultCollapsed = false }) {
     // cek apakah submenu aktif
     const isChildActive = (children) =>
         children?.some((child) => location.pathname === child.href);
+
+    useEffect(() => {
+        const activeParent = items.find(
+            (item) => item.children && item.children.some((child) => location.pathname === child.href)
+        );
+        if (activeParent) {
+            setOpenMenu(activeParent.key);
+        }
+    }, [location.pathname, items]);
 
     return (
         <aside

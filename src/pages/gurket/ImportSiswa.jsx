@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CloudUpload, CheckCircle, XCircle } from "lucide-react";
 import { guruAPI } from "../../services/api";
-import Sidebar from "../../components/Sidebar"; // pastikan kamu punya komponen Sidebar.js
+import Sidebar from "../../components/SideBar";
 
 const ImportSiswa = () => {
     const [file, setFile] = useState(null);
@@ -57,7 +57,6 @@ const ImportSiswa = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar */}
             <Sidebar />
 
             {/* Main Content */}
