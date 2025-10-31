@@ -185,8 +185,8 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Kontak
 
-- **Developer**: [Nama Developer]
-- **Email**: [email@example.com]
+- **Developer**: Altaf Fattah Amanullah | Fardias Alfathan
+- **Email**: altaf.fattah05@gmail.com | 
 - **Project Link**: [https://github.com/username/web-absensi-smktrimulia](https://github.com/username/web-absensi-smktrimulia)
 
 ---
