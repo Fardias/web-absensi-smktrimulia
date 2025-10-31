@@ -1,16 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { SideBar } from "../../components";
-
-// src/pages/gurket/LihatAbsensi.jsx
-
-/**
- * Tampilan untuk melihat daftar siswa yang hadir, terlambat, izin, sakit, alfa
- * per kelas & per hari.
- *
- * Catatan:
- * - Ganti `fetchAttendance` dengan panggilan API nyata sesuai backend Anda.
- * - File ini sengaja dibuat tanpa dependency UI eksternal agar mudah dipakai.
- */
 
 const STATUS = {
     HADIR: "hadir",
@@ -31,15 +19,12 @@ const statusMeta = {
 const sampleClasses = ["X-A", "X-B", "XI-A", "XI-B", "XII-A"];
 
 const mockFetchAttendance = ({ kelas, tanggal }) => {
-    // Mock data generator: dalam aplikasi nyata, replace ini dengan fetch/axios
-    // Mengembalikan promise agar komponen bisa menunggu seperti fetch nyata.
     return new Promise((resolve) => {
         const names = [
             "Ahmad", "Budi", "Citra", "Dewi", "Eko", "Fajar", "Gita", "Hendra",
             "Ika", "Joko", "Kiki", "Lina", "Maya", "Nando", "Oka", "Putri",
         ];
         const students = names.map((n, i) => {
-            // deterministic pseudo-random berdasarkan tanggal & kelas agar stabil
             const seed = (tanggal || "") + (kelas || "") + i;
             const code = seed.split("").reduce((s, ch) => s + ch.charCodeAt(0), 0);
             const r = code % 100;
@@ -67,7 +52,7 @@ const mockFetchAttendance = ({ kelas, tanggal }) => {
 
         setTimeout(() => resolve(students), 350);
     });
-}
+};
 
 const LihatAbsensi = () => {
     const [kelas, setKelas] = useState(sampleClasses[0]);
@@ -128,7 +113,9 @@ const LihatAbsensi = () => {
             r.note || "",
         ]);
         const csv =
-            [header, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+            [header, ...rows]
+                .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+                .join("\n");
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -139,161 +126,242 @@ const LihatAbsensi = () => {
     }
 
     return (
+        <div className="flex flex-col p-6 md:p-8">
+            <h2 className="mb-6 text-2xl font-bold text-gray-800">Lihat Absensi</h2>
+            <div className="mb-4 text-gray-600">
+                Daftar siswa per kelas & per hari — pilih kelas dan tanggal untuk melihat rekap.
+            </div>
 
-        <div className="flex min-h-screen bg-gray-100">
-            <SideBar />
-            <div className="flex flex-col flex-1 p-6 md:p-8">
-                <h2 className="mb-6 text-2xl font-bold text-gray-800">Lihat Absensi</h2>
-                <div className="mb-4 text-gray-600">
-                    Daftar siswa per kelas & per hari — pilih kelas dan tanggal untuk melihat rekap.
-                </div>
+            <div className="flex items-center gap-3 mb-4">
+                <label className="flex flex-col text-sm">
+                    Kelas
+                    <select
+                        value={kelas}
+                        onChange={(e) => setKelas(e.target.value)}
+                        className="p-2 mt-1 border rounded"
+                    >
+                        {sampleClasses.map((k) => (
+                            <option key={k} value={k}>
+                                {k}
+                            </option>
+                        ))}
+                    </select>
+                </label>
 
-                <div className="flex items-center gap-3 mb-4">
-                    <label className="flex flex-col text-sm">
-                        Kelas
-                        <select value={kelas} onChange={(e) => setKelas(e.target.value)} className="p-2 mt-1 border rounded">
-                            {sampleClasses.map((k) => (
-                                <option key={k} value={k}>
-                                    {k}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                <label style={{ display: "flex", flexDirection: "column", fontSize: 13 }}>
+                    Tanggal
+                    <input
+                        type="date"
+                        value={tanggal}
+                        onChange={(e) => setTanggal(e.target.value)}
+                        style={{ padding: 8, marginTop: 6 }}
+                    />
+                </label>
 
-                    <label style={{ display: "flex", flexDirection: "column", fontSize: 13 }}>
-                        Tanggal
-                        <input
-                            type="date"
-                            value={tanggal}
-                            onChange={(e) => setTanggal(e.target.value)}
-                            style={{ padding: 8, marginTop: 6 }}
-                        />
-                    </label>
+                <button onClick={load} style={{ padding: "8px 12px", marginTop: 18 }}>
+                    Muat ulang
+                </button>
 
-                    <button onClick={load} style={{ padding: "8px 12px", marginTop: 18 }}>
-                        Muat ulang
+                <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                    <button onClick={exportCSV} style={{ padding: "8px 12px", marginTop: 18 }}>
+                        Export CSV
                     </button>
-
-                    <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                        <button onClick={exportCSV} style={{ padding: "8px 12px", marginTop: 18 }}>
-                            Export CSV
-                        </button>
-                    </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                    {Object.keys(statusMeta).map((st) => (
-                        <button
-                            key={st}
-                            onClick={() => toggleFilter(st)}
-                            style={{
-                                padding: "8px 10px",
-                                borderRadius: 8,
-                                border: filterStatus === st ? `2px solid ${statusMeta[st].color}` : "1px solid #ddd",
-                                background: "#fff",
-                                display: "flex",
-                                gap: 8,
-                                alignItems: "center",
-                                cursor: "pointer",
-                            }}
-                            title={statusMeta[st].label}
-                        >
-                            <span
-                                style={{
-                                    width: 10,
-                                    height: 10,
-                                    borderRadius: 6,
-                                    background: statusMeta[st].color,
-                                    display: "inline-block",
-                                }}
-                            />
-                            <strong style={{ fontSize: 13 }}>{statusMeta[st].label}</strong>
-                            <span style={{ color: "#666", fontSize: 13 }}>({counts[st] || 0})</span>
-                        </button>
-                    ))}
-
-                    <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-                        <input
-                            placeholder="Cari nama atau NIS..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            style={{ padding: 8, border: "1px solid #ddd", borderRadius: 8, minWidth: 220 }}
-                        />
-                    </div>
-                </div>
-
-                <div style={{ border: "1px solid #eee", borderRadius: 8, overflow: "hidden" }}>
-                    <div style={{ padding: 12, borderBottom: "1px solid #f3f3f3", display: "flex", alignItems: "center" }}>
-                        <div style={{ fontSize: 14, color: "#333" }}>
-                            Rekap: <strong>{kelas}</strong> — <strong>{tanggal}</strong>
-                        </div>
-                        <div style={{ marginLeft: "auto", color: "#666", fontSize: 13 }}>
-                            Total siswa: <strong>{attendance.length}</strong>
-                        </div>
-                    </div>
-
-                    {loading ? (
-                        <div style={{ padding: 24, textAlign: "center", color: "#666" }}>Memuat data...</div>
-                    ) : attendance.length === 0 ? (
-                        <div style={{ padding: 24, textAlign: "center", color: "#666" }}>Belum ada data absensi.</div>
-                    ) : filtered.length === 0 ? (
-                        <div style={{ padding: 24, textAlign: "center", color: "#666" }}>Tidak ada hasil untuk filter saat ini.</div>
-                    ) : (
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                            <thead style={{ background: "#fafafa", textAlign: "left", fontSize: 13 }}>
-                                <tr>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0", width: 50 }}>No</th>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0", width: 140 }}>NIS</th>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0" }}>Nama</th>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0", width: 120 }}>Status</th>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0", width: 120 }}>Waktu</th>
-                                    <th style={{ padding: "10px 12px", borderBottom: "1px solid #f0f0f0" }}>Catatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((s, idx) => (
-                                    <tr key={s.id} style={{ borderBottom: "1px solid #fbfbfb" }}>
-                                        <td style={{ padding: "10px 12px" }}>{idx + 1}</td>
-                                        <td style={{ padding: "10px 12px" }}>{s.nis}</td>
-                                        <td style={{ padding: "10px 12px" }}>{s.name}</td>
-                                        <td style={{ padding: "10px 12px" }}>
-                                            <span
-                                                style={{
-                                                    display: "inline-flex",
-                                                    gap: 8,
-                                                    alignItems: "center",
-                                                    padding: "6px 8px",
-                                                    borderRadius: 999,
-                                                    background: `${statusMeta[s.status].color}22`,
-                                                    color: statusMeta[s.status].color,
-                                                    fontWeight: 600,
-                                                    fontSize: 13,
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        width: 10,
-                                                        height: 10,
-                                                        borderRadius: 6,
-                                                        background: statusMeta[s.status].color,
-                                                        display: "inline-block",
-                                                    }}
-                                                />
-                                                {statusMeta[s.status].label}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: "10px 12px" }}>{s.time}</td>
-                                        <td style={{ padding: "10px 12px" }}>{s.note}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
                 </div>
             </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                {Object.keys(statusMeta).map((st) => (
+                    <button
+                        key={st}
+                        onClick={() => toggleFilter(st)}
+                        style={{
+                            padding: "8px 10px",
+                            borderRadius: 8,
+                            border:
+                                filterStatus === st
+                                    ? `2px solid ${statusMeta[st].color}`
+                                    : "1px solid #ddd",
+                            background: "#fff",
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "center",
+                            cursor: "pointer",
+                        }}
+                        title={statusMeta[st].label}
+                    >
+                        <span
+                            style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: 6,
+                                background: statusMeta[st].color,
+                                display: "inline-block",
+                            }}
+                        />
+                        <strong style={{ fontSize: 13 }}>{statusMeta[st].label}</strong>
+                        <span style={{ color: "#666", fontSize: 13 }}>
+                            ({counts[st] || 0})
+                        </span>
+                    </button>
+                ))}
+
+                <div
+                    style={{
+                        marginLeft: "auto",
+                        display: "flex",
+                        gap: 8,
+                        alignItems: "center",
+                    }}
+                >
+                    <input
+                        placeholder="Cari nama atau NIS..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        style={{
+                            padding: 8,
+                            border: "1px solid #ddd",
+                            borderRadius: 8,
+                            minWidth: 220,
+                        }}
+                    />
+                </div>
+            </div>
+
+            <div style={{ border: "1px solid #eee", borderRadius: 8, overflow: "hidden" }}>
+                <div
+                    style={{
+                        padding: 12,
+                        borderBottom: "1px solid #f3f3f3",
+                        display: "flex",
+                        alignItems: "center",
+                    }}
+                >
+                    <div style={{ fontSize: 14, color: "#333" }}>
+                        Rekap: <strong>{kelas}</strong> — <strong>{tanggal}</strong>
+                    </div>
+                    <div style={{ marginLeft: "auto", color: "#666", fontSize: 13 }}>
+                        Total siswa: <strong>{attendance.length}</strong>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div style={{ padding: 24, textAlign: "center", color: "#666" }}>
+                        Memuat data...
+                    </div>
+                ) : attendance.length === 0 ? (
+                    <div style={{ padding: 24, textAlign: "center", color: "#666" }}>
+                        Belum ada data absensi.
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div style={{ padding: 24, textAlign: "center", color: "#666" }}>
+                        Tidak ada hasil untuk filter saat ini.
+                    </div>
+                ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead
+                            style={{
+                                background: "#fafafa",
+                                textAlign: "left",
+                                fontSize: 13,
+                            }}
+                        >
+                            <tr>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        width: 50,
+                                    }}
+                                >
+                                    No
+                                </th>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        width: 140,
+                                    }}
+                                >
+                                    NIS
+                                </th>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                    }}
+                                >
+                                    Nama
+                                </th>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        width: 120,
+                                    }}
+                                >
+                                    Status
+                                </th>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                        width: 120,
+                                    }}
+                                >
+                                    Waktu
+                                </th>
+                                <th
+                                    style={{
+                                        padding: "10px 12px",
+                                        borderBottom: "1px solid #f0f0f0",
+                                    }}
+                                >
+                                    Catatan
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map((s, idx) => (
+                                <tr key={s.id} style={{ borderBottom: "1px solid #fbfbfb" }}>
+                                    <td style={{ padding: "10px 12px" }}>{idx + 1}</td>
+                                    <td style={{ padding: "10px 12px" }}>{s.nis}</td>
+                                    <td style={{ padding: "10px 12px" }}>{s.name}</td>
+                                    <td style={{ padding: "10px 12px" }}>
+                                        <span
+                                            style={{
+                                                display: "inline-flex",
+                                                gap: 8,
+                                                alignItems: "center",
+                                                padding: "6px 8px",
+                                                borderRadius: 999,
+                                                background: `${statusMeta[s.status].color}22`,
+                                                color: statusMeta[s.status].color,
+                                                fontWeight: 600,
+                                                fontSize: 13,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: 6,
+                                                    background: statusMeta[s.status].color,
+                                                    display: "inline-block",
+                                                }}
+                                            />
+                                            {statusMeta[s.status].label}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: "10px 12px" }}>{s.time}</td>
+                                    <td style={{ padding: "10px 12px" }}>{s.note}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
         </div>
-    
     );
-}
+};
 
 export default LihatAbsensi;

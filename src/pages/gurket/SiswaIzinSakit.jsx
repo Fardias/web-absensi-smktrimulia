@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { guruAPI } from "../../services/api";
-import { SideBar } from "../../components";
 
 export default function SiswaIzinSakit() {
     const [items, setItems] = useState([]);
@@ -81,9 +80,7 @@ export default function SiswaIzinSakit() {
         );
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
-            <SideBar />
-            <div className="flex flex-col flex-1 p-6 md:p-8">
+        <div className="flex flex-col p-6 md:p-8">
                 <h2 className="mb-6 text-2xl font-bold text-gray-800">
                     Daftar Siswa Izin / Sakit
                 </h2>
@@ -239,7 +236,6 @@ export default function SiswaIzinSakit() {
                         })}
                     </div>
                 )}
-            </div>
         </div>
     );
 }

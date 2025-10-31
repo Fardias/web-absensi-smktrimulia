@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
 import { AbsensiModal, Header, TimeCard, LocationCard, Loading } from '../../components';
 
+
 const AbsenDatang = () => {
     const { user } = useAuth();
     const { handleAbsen } = useAbsensi();

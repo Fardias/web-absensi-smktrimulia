@@ -11,7 +11,6 @@ const SiswaHome = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
   const navigate = useNavigate();
-
   const handleAbsenWrapper = async (data) => {
     return await handleAbsen(modalType, data);
   };

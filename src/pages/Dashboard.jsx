@@ -112,7 +112,6 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <SideBar />
       <div className="flex flex-col flex-1 ">
 
         {/* Main Content */}

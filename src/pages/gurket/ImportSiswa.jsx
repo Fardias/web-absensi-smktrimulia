@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { CloudUpload, CheckCircle, XCircle } from "lucide-react";
 import { guruAPI } from "../../services/api";
-import Sidebar from "../../components/SideBar";
 
 const ImportSiswa = () => {
     const [file, setFile] = useState(null);
@@ -56,11 +55,8 @@ const ImportSiswa = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
-            <Sidebar />
-
+        <div className="p-8">
             {/* Main Content */}
-            <main className="flex-1 p-8">
                 <h1 className="text-3xl font-bold text-[#003366] mb-2">
                     Import Data Siswa
                 </h1>
@@ -149,7 +145,6 @@ const ImportSiswa = () => {
                         </div>
                     )}
                 </div>
-            </main>
         </div>
     );
 };
