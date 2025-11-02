@@ -1,18 +1,24 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Layout } from './components';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Layout } from "./components";
 
 // Pages
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import SiswaHome from './pages/siswa/Home';
-import AbsenDatang from './pages/siswa/AbsenDatang';
-import AbsenPulang from './pages/siswa/AbsenPulang';
-import RiwayatAbsensi from './pages/siswa/RiwayatAbsensi';
-import IzinSakit from './pages/siswa/IzinSakit';
-import ImportSiswa from './pages/gurket/ImportSiswa';
-import SiswaIzinSakit from './pages/gurket/SiswaIzinSakit';
-import LihatAbsensi from './pages/gurket/LihatAbsensi';
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import SiswaHome from "./pages/siswa/Home";
+import AbsenDatang from "./pages/siswa/AbsenDatang";
+import AbsenPulang from "./pages/siswa/AbsenPulang";
+import RiwayatAbsensi from "./pages/siswa/RiwayatAbsensi";
+import IzinSakit from "./pages/siswa/IzinSakit";
+import ImportSiswa from "./pages/gurket/ImportSiswa";
+import SiswaIzinSakit from "./pages/gurket/SiswaIzinSakit";
+import LihatAbsensi from "./pages/gurket/LihatAbsensi";
+import { LihatAbsensiHariIni } from "./pages/gurket/LihatAbsensiHariIni";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -42,7 +48,12 @@ const Unauthorized = () => (
   <div className="flex items-center justify-center min-h-screen bg-gray-50">
     <div className="text-center">
       <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full">
-        <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-10 h-10 text-red-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -56,7 +67,9 @@ const Unauthorized = () => (
         </svg>
       </div>
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Akses Ditolak</h1>
-      <p className="mb-4 text-gray-600">Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+      <p className="mb-4 text-gray-600">
+        Anda tidak memiliki izin untuk mengakses halaman ini.
+      </p>
       <button
         onClick={() => window.history.back()}
         className="bg-[#003366] text-white px-4 py-2 rounded-lg hover:bg-[#002244] transition duration-200"
@@ -76,14 +89,23 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route
         path="/login"
-        element={user ? <Navigate to={user.role === 'siswa' ? '/siswa/home' : '/dashboard'} replace /> : <Login />}
+        element={
+          user ? (
+            <Navigate
+              to={user.role === "siswa" ? "/siswa/home" : "/dashboard"}
+              replace
+            />
+          ) : (
+            <Login />
+          )
+        }
       />
 
       {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'gurket', 'walas']}>
+          <ProtectedRoute allowedRoles={["admin", "gurket", "walas"]}>
             <Layout>
               <Dashboard />
             </Layout>
@@ -94,7 +116,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/import-siswa"
         element={
-          <ProtectedRoute allowedRoles={['gurket']}>
+          <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
               <ImportSiswa />
             </Layout>
@@ -103,9 +125,20 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/dashboard/absensi-hari-ini"
+        element={
+          <ProtectedRoute allowedRoles={["gurket"]}>
+            <Layout>
+              <LihatAbsensiHariIni />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/dashboard/siswa-izinsakit"
         element={
-          <ProtectedRoute allowedRoles={['gurket']}>
+          <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
               <SiswaIzinSakit />
             </Layout>
@@ -116,7 +149,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/lihat-absensi"
         element={
-          <ProtectedRoute allowedRoles={['gurket']}>
+          <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
               <LihatAbsensi />
             </Layout>
@@ -128,7 +161,7 @@ const AppRoutes = () => {
       <Route
         path="/siswa/home"
         element={
-          <ProtectedRoute allowedRoles={['siswa']}>
+          <ProtectedRoute allowedRoles={["siswa"]}>
             <Layout>
               <SiswaHome />
             </Layout>
@@ -138,7 +171,7 @@ const AppRoutes = () => {
       <Route
         path="/siswa/absen-datang"
         element={
-          <ProtectedRoute allowedRoles={['siswa']}>
+          <ProtectedRoute allowedRoles={["siswa"]}>
             <Layout>
               <AbsenDatang />
             </Layout>
@@ -148,7 +181,7 @@ const AppRoutes = () => {
       <Route
         path="/siswa/absen-pulang"
         element={
-          <ProtectedRoute allowedRoles={['siswa']}>
+          <ProtectedRoute allowedRoles={["siswa"]}>
             <Layout>
               <AbsenPulang />
             </Layout>
@@ -158,7 +191,7 @@ const AppRoutes = () => {
       <Route
         path="/siswa/riwayat"
         element={
-          <ProtectedRoute allowedRoles={['siswa']}>
+          <ProtectedRoute allowedRoles={["siswa"]}>
             <Layout>
               <RiwayatAbsensi />
             </Layout>
@@ -168,7 +201,7 @@ const AppRoutes = () => {
       <Route
         path="/siswa/izin"
         element={
-          <ProtectedRoute allowedRoles={['siswa']}>
+          <ProtectedRoute allowedRoles={["siswa"]}>
             <Layout>
               <IzinSakit />
             </Layout>
@@ -189,7 +222,12 @@ const AppRoutes = () => {
           <div className="flex items-center justify-center min-h-screen bg-gray-50">
             <div className="text-center">
               <div className="flex items-center justify-center w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full">
-                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-10 h-10 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -200,8 +238,12 @@ const AppRoutes = () => {
                   />
                 </svg>
               </div>
-              <h1 className="mb-2 text-2xl font-bold text-gray-900">Halaman Tidak Ditemukan</h1>
-              <p className="mb-4 text-gray-600">Halaman yang Anda cari tidak ada.</p>
+              <h1 className="mb-2 text-2xl font-bold text-gray-900">
+                Halaman Tidak Ditemukan
+              </h1>
+              <p className="mb-4 text-gray-600">
+                Halaman yang Anda cari tidak ada.
+              </p>
               <button
                 onClick={() => window.history.back()}
                 className="bg-[#003366] text-white px-4 py-2 rounded-lg hover:bg-[#002244] transition duration-200"

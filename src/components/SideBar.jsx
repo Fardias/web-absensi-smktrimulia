@@ -25,7 +25,7 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
           {
             key: "absen-hari-ini",
             label: "Absen Hari Ini",
-            href: "/dashboard/absen-hari-ini",
+            href: "/dashboard/absensi-hari-ini",
           },
           {
             key: "izin-sakit",
