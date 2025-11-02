@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { guruAPI } from "../../services/api";
+import { Loading } from "../../components";
 
 export default function SiswaIzinSakit() {
     const [items, setItems] = useState([]);
@@ -63,7 +64,7 @@ export default function SiswaIzinSakit() {
         }
     }
 
-    if (loading) return <div className="p-5 text-base">Memuat data...</div>;
+    if (loading) return <Loading text="Memuat data user..." />;
     if (error)
         return (
             <div className="p-5 text-red-600">
