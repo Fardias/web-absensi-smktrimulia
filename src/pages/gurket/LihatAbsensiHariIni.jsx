@@ -42,7 +42,7 @@ export const LihatAbsensiHariIni = () => {
   if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
-    <div className="p-4">
+    <div className="flex flex-col p-6 md:p-8">
       <h1 className="text-2xl font-bold mb-4">Absensi Siswa Hari Ini</h1>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">

@@ -19,6 +19,7 @@ import ImportSiswa from "./pages/gurket/ImportSiswa";
 import SiswaIzinSakit from "./pages/gurket/SiswaIzinSakit";
 import LihatAbsensi from "./pages/gurket/LihatAbsensi";
 import { LihatAbsensiHariIni } from "./pages/gurket/LihatAbsensiHariIni";
+import KelolaDataSiswa from "./pages/gurket/KelolaDataSiswa";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -152,6 +153,17 @@ const AppRoutes = () => {
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
               <LihatAbsensi />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/kelola-siswa"
+        element={
+          <ProtectedRoute allowedRoles={["gurket"]}>
+            <Layout>
+              <KelolaDataSiswa />
             </Layout>
           </ProtectedRoute>
         }

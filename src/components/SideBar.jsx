@@ -50,6 +50,11 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
             label: "Import Data Siswa",
             href: "/dashboard/import-siswa",
           },
+          {
+            key: "kelola-siswa",
+            label: "Kelola Data Siswa",
+            href: "/dashboard/kelola-siswa",
+          },
         ],
       },
       { key: "profil", label: "Profil", href: "/profil", icon: UserIcon },
