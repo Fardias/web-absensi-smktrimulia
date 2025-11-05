@@ -162,9 +162,7 @@ const AppRoutes = () => {
         path="/siswa/home"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <Layout>
               <SiswaHome />
-            </Layout>
           </ProtectedRoute>
         }
       />
@@ -172,9 +170,7 @@ const AppRoutes = () => {
         path="/siswa/absen-datang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <Layout>
               <AbsenDatang />
-            </Layout>
           </ProtectedRoute>
         }
       />
@@ -182,9 +178,7 @@ const AppRoutes = () => {
         path="/siswa/absen-pulang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <Layout>
               <AbsenPulang />
-            </Layout>
           </ProtectedRoute>
         }
       />
@@ -192,9 +186,7 @@ const AppRoutes = () => {
         path="/siswa/riwayat"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <Layout>
               <RiwayatAbsensi />
-            </Layout>
           </ProtectedRoute>
         }
       />
@@ -202,9 +194,7 @@ const AppRoutes = () => {
         path="/siswa/izin"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <Layout>
               <IzinSakit />
-            </Layout>
           </ProtectedRoute>
         }
       />
