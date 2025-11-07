@@ -56,7 +56,7 @@ export default function LihatAbsensi() {
         label: `${k.tingkat}-${k.jurusan}-${k.paralel}`,
       }));
       setKelasList(list);
-      if (list.length > 0 && !kelas) setKelas(list[0].id); // pilih kelas pertama sebagai default
+      if (list.length > 0 && !kelas) setKelas(list[0].id);
     } catch (err) {
       console.error("Gagal ambil kelas:", err);
       setError("Gagal memuat daftar kelas.");
