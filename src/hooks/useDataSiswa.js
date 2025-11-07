@@ -47,12 +47,12 @@ export const useDataSiswa = () => {
                 return null;
             }
 
-            if (!responseData || typeof responseData.siswa_hadir_hariini !== 'number') {
+            if (!responseData || typeof responseData.total_hadir !== 'number') {
                 setError('Invalid data received');
                 return null;
             }
 
-            return responseData.siswa_hadir_hariini;
+            return responseData.total_hadir;
         } catch (error) {
             console.error('Error fetching siswa hadir hari ini:', error);
             setError('Failed to fetch siswa hadir hari ini');
@@ -72,11 +72,11 @@ export const useDataSiswa = () => {
                 setError(responseMessage || 'Failed to fetch siswa terlambat');
                 return null;
             }
-            if (!responseData || typeof responseData.siswa_terlambat_hariini !== 'number') {
+            if (!responseData || typeof responseData.total_terlambat !== 'number') {
                 setError('Invalid data received');
                 return null;
             }
-            return responseData.siswa_terlambat_hariini;
+            return responseData.total_terlambat;
         } catch (error) {
             console.error('Error fetching siswa terlambat:', error);
             setError('Failed to fetch siswa terlambat');
@@ -98,12 +98,12 @@ export const useDataSiswa = () => {
                 return null;
             }
 
-            if (!responseData || typeof responseData.siswa_izin_sakit_hariini !== 'number') {
+            if (!responseData || typeof responseData.total_izin_sakit !== 'number') {
                 setError('Invalid data received');
                 return null;
             }
 
-            return responseData.siswa_izin_sakit_hariini;
+            return responseData.total_izin_sakit;
         } catch (error) {
             console.error('Error fetching siswa izin:', error);
             setError('Failed to fetch siswa izin');
