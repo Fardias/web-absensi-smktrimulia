@@ -2,8 +2,6 @@ import React, { useState } from "react";
 
 const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => {
   const [showPassword, setShowPassword] = useState(false);
-  console.log(formData);
-
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 p-4">
@@ -15,12 +13,10 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* NIS */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              NIS
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">NIS</label>
             <input
               name="nis"
-              value={formData.nis}
+              value={formData.nis || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
@@ -28,12 +24,10 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Nama */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Nama
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Nama</label>
             <input
               name="nama"
-              value={formData.nama}
+              value={formData.nama || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
@@ -41,15 +35,14 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Jenis Kelamin */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Jenis Kelamin
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Jenis Kelamin</label>
             <select
               name="jenkel"
-              value={formData.jenkel}
+              value={formData.jenkel || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             >
+              <option value="">Pilih Jenis Kelamin</option>
               <option value="L">Laki-laki</option>
               <option value="P">Perempuan</option>
             </select>
@@ -57,12 +50,10 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Tingkat */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Tingkat
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Tingkat</label>
             <select
               name="tingkat"
-              value={formData.kelas.tingkat}
+              value={formData.tingkat || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             >
@@ -75,12 +66,10 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Jurusan */}
           <div className="md:col-span-2 flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Jurusan
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
             <input
               name="jurusan"
-              value={formData.kelas.jurusan}
+              value={formData.jurusan || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
@@ -88,12 +77,10 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Username */}
           <div className="md:col-span-2 flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Username
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Username</label>
             <input
               name="username"
-              value={formData.username}
+              value={formData.username || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             />
@@ -101,9 +88,7 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
 
           {/* Password */}
           <div className="md:col-span-2 flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">
-              Password Baru
-            </label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Password Baru</label>
             <div className="relative">
               <input
                 name="password"

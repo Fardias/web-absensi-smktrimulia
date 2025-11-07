@@ -34,8 +34,9 @@ const KelolaDataSiswa = () => {
       nis: siswa.nis,
       nama: siswa.nama,
       jenkel: siswa.jenkel,
-      kelas: siswa.kelas,
-      username: siswa.akun.username,
+      tingkat: siswa.kelas?.tingkat || "",
+      jurusan: siswa.kelas?.jurusan?.nama_jurusan || "",
+      username: siswa.akun?.username || "",
     });
   };
 
@@ -48,7 +49,6 @@ const KelolaDataSiswa = () => {
     try {
       const response = await guruAPI.updateSiswa(editingSiswa, formData);
       if (response.status === 200 && response.data.responseStatus) {
-        // Refresh list
         const updated = await guruAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
         setEditingSiswa(null);
@@ -65,9 +65,9 @@ const KelolaDataSiswa = () => {
     setFormData({});
   };
 
+  // 🔹 Loading & Error state
   if (loading) return <Loading text="Loading data siswa..." />;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
-
 
   return (
     <div className="flex flex-col p-6 md:p-8">
@@ -82,7 +82,6 @@ const KelolaDataSiswa = () => {
         />
       )}
 
-      {/* Table styled like LihatAbsensi.jsx */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
           <thead className="bg-gray-100 text-gray-700">
@@ -102,9 +101,11 @@ const KelolaDataSiswa = () => {
                 <td className="px-4 py-3 text-sm">{siswa.nis}</td>
                 <td className="px-4 py-3 text-sm">{siswa.nama}</td>
                 <td className="px-4 py-3 text-sm">{siswa.jenkel}</td>
-                <td className="px-4 py-3 text-sm">{siswa.kelas.tingkat}</td>
-                <td className="px-4 py-3 text-sm">{siswa.kelas.jurusan}</td>
-                <td className="px-4 py-3 text-sm">{siswa.akun.username}</td>
+                <td className="px-4 py-3 text-sm">{siswa.kelas?.tingkat || "-"}</td>
+                <td className="px-4 py-3 text-sm">
+                  {siswa.kelas?.jurusan?.nama_jurusan || "-"}
+                </td>
+                <td className="px-4 py-3 text-sm">{siswa.akun?.username || "-"}</td>
                 <td className="px-4 py-3 text-sm">
                   <button
                     onClick={() => handleEdit(siswa)}
