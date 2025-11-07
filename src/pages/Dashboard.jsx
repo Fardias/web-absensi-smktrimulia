@@ -1,10 +1,10 @@
 // Dashboard.jsx
-import { useAuth } from '../contexts/AuthContext';
-import { Header, Loading, SideBar } from '../components';
-import { formatDate } from '../utils';
-import { useState, useEffect } from 'react';
-import { useDataSiswa } from '../hooks/useDataSiswa';
-import { useCountUp } from '../hooks';
+import { useAuth } from "../contexts/AuthContext";
+import { Header, Loading, SideBar } from "../components";
+import { formatDate } from "../utils";
+import { useState, useEffect } from "react";
+import { useDataSiswa } from "../hooks/useDataSiswa";
+import { useCountUp } from "../hooks";
 import { guruAPI } from "../services/api";
 
 const Dashboard = () => {
@@ -23,22 +23,25 @@ const Dashboard = () => {
   const animTerlambat = useCountUp(terlambat, 500);
   const animIzin = useCountUp(izinSakit, 500);
 
-  const { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit, loading, error } = useDataSiswa();
+  const {
+    handleTotalSiswa,
+    handleSiswaHadirHariIni,
+    handleSiswaTerlambat,
+    handleSiswaIzinSakit,
+    loading,
+    error,
+  } = useDataSiswa();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [
-          cTotalSiswa,
-          cHadirHariIni,
-          cTerlambat,
-          cIzinsakit
-        ] = await Promise.all([
-          handleTotalSiswa(),
-          handleSiswaHadirHariIni(),
-          handleSiswaTerlambat(),
-          handleSiswaIzinSakit()
-        ]);
+        const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzinsakit] =
+          await Promise.all([
+            handleTotalSiswa(),
+            handleSiswaHadirHariIni(),
+            handleSiswaTerlambat(),
+            handleSiswaIzinSakit(),
+          ]);
 
         setTotalSiswa(cTotalSiswa || 0);
         setHadirHariIni(cHadirHariIni || 0);
@@ -55,10 +58,14 @@ const Dashboard = () => {
 
   const getRoleDisplayName = (role) => {
     switch (role) {
-      case 'admin': return 'Administrator';
-      case 'gurket': return 'Guru Piket';
-      case 'walas': return 'Wali Kelas';
-      default: return role;
+      case "admin":
+        return "Administrator";
+      case "gurket":
+        return "Guru Piket";
+      case "walas":
+        return "Wali Kelas";
+      default:
+        return role;
     }
   };
 
@@ -69,7 +76,10 @@ const Dashboard = () => {
         if (response.data.responseStatus) {
           setAktivitas(response.data.responseData || []);
         } else {
-          console.error("Gagal ambil aktivitas:", response.data.responseMessage);
+          console.error(
+            "Gagal ambil aktivitas:",
+            response.data.responseMessage
+          );
         }
       } catch (error) {
         console.error("Gagal memuat aktivitas:", error);
@@ -94,23 +104,12 @@ const Dashboard = () => {
   }
 
   if (error) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header title="Dashboard" subtitle="SMK Trimulia" />
-        <main className="flex items-center justify-center flex-grow">
-          <div className="p-6 text-red-700 bg-red-100 border border-red-400 rounded-lg">
-            <h2 className="mb-2 text-lg font-semibold">Terjadi Kesalahan</h2>
-            <p className="text-sm">Gagal memuat data siswa. Silakan coba lagi nanti.</p>
-          </div>
-        </main>
-      </div>
-    );
+    return <Error />;
   }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex flex-col flex-1 ">
-
         {/* Main Content */}
         <main className="px-4 py-8 max-w-7xl sm:px-6 lg:px-14">
           {/* Welcome Section */}
@@ -119,7 +118,8 @@ const Dashboard = () => {
               Selamat datang, {user.username}!
             </h2>
             <p className="text-gray-600">
-              Dashboard {getRoleDisplayName(user.role)} - {formatDate(new Date())}
+              Dashboard {getRoleDisplayName(user.role)} -{" "}
+              {formatDate(new Date())}
             </p>
           </div>
 
@@ -144,8 +144,12 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Siswa</p>
-                  <p className="text-2xl font-bold text-gray-900">{animTotalSiswa}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Siswa
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {animTotalSiswa}
+                  </p>
                 </div>
               </div>
             </div>
@@ -169,8 +173,12 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Hadir Hari Ini</p>
-                  <p className="text-2xl font-bold text-gray-900">{animHadir}</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Hadir Hari Ini
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {animHadir}
+                  </p>
                 </div>
               </div>
             </div>
@@ -195,7 +203,9 @@ const Dashboard = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Terlambat</p>
-                  <p className="text-2xl font-bold text-gray-900">{animTerlambat}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {animTerlambat}
+                  </p>
                 </div>
               </div>
             </div>
@@ -219,23 +229,27 @@ const Dashboard = () => {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Izin/Sakit</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Izin/Sakit
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">{animIzin}</p>
                 </div>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            
-
             {/* Aktivitas Terbaru */}
             <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">Aktivitas Terbaru</h3>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                Aktivitas Terbaru
+              </h3>
 
               {loadingAktivitas ? (
                 <p className="text-sm text-gray-500">Memuat aktivitas...</p>
               ) : aktivitas.length === 0 ? (
-                <p className="text-sm text-gray-500">Belum ada aktivitas terbaru.</p>
+                <p className="text-sm text-gray-500">
+                  Belum ada aktivitas terbaru.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {aktivitas.map((item, index) => (
@@ -244,23 +258,29 @@ const Dashboard = () => {
                       className="flex items-center p-3 transition rounded-lg bg-gray-50 hover:bg-gray-100"
                     >
                       <div
-                        className={`w-2 h-2 mr-3 rounded-full ${item.aksi === "created"
-                          ? "bg-green-500"
-                          : item.aksi === "updated"
+                        className={`w-2 h-2 mr-3 rounded-full ${
+                          item.aksi === "created"
+                            ? "bg-green-500"
+                            : item.aksi === "updated"
                             ? "bg-yellow-500"
                             : item.aksi === "deleted"
-                              ? "bg-red-500"
-                              : "bg-gray-400"
-                          }`}
+                            ? "bg-red-500"
+                            : "bg-gray-400"
+                        }`}
                       ></div>
                       <div className="flex-1">
-                        <p className="text-sm text-gray-900">{item.deskripsi}</p>
+                        <p className="text-sm text-gray-900">
+                          {item.deskripsi}
+                        </p>
                         <p className="text-xs text-gray-500">
                           ID Akun: {item.akun_id || "-"} •{" "}
-                          {new Date(item.created_at).toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(item.created_at).toLocaleTimeString(
+                            "id-ID",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
                         </p>
                       </div>
                     </div>
@@ -271,8 +291,8 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
-      </div>
-      );
+    </div>
+  );
 };
 
-      export default Dashboard;
+export default Dashboard;

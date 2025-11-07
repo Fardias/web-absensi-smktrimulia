@@ -1,6 +1,7 @@
 import React from 'react'
 import { guruAPI } from '../../services/api'
 import { Loading } from '../../components';
+import Error from '../../components/Error';
 export const LihatAbsensiHariIni = () => {
   const [absensi, setAbsensi] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -39,7 +40,7 @@ export const LihatAbsensiHariIni = () => {
   };
 
   if (loading) return <Loading text="Memuat data siswa..." />;
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
+  if (error) return <Error message={error} />;
 
   return (
     <div className="flex flex-col p-6 md:p-8">
