@@ -75,6 +75,7 @@ export const guruAPI = {
 	lihatAbsensiSiswa: (params) => api.get('/absensi/lihat', { params }),
 	lihatAbsensiHariIni: () => api.get('/absensi/hari-ini'),
 	getDataSiswa: () => api.get('/kelola-datasiswa'),
+	getRencanaAbsensi: () => api.get('/absensi/rencana'),
 };
 
 // Gabungan Admin dan Guru API
