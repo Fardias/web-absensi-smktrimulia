@@ -17,7 +17,7 @@ export const useGeolocation = () => {
           setLoading(false);
         },
         (error) => {
-          setError('Tidak dapat mengakses lokasi. Pastikan GPS aktif.');
+          setError(error.message);
           setLoading(false);
         }
       );

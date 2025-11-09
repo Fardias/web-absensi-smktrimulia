@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { guruAPI, utilityAPI } from "../../services/api";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const STATUS = {
   HADIR: "hadir",
@@ -83,9 +86,7 @@ export default function LihatAbsensi() {
       setAttendance(formatted);
     } catch (err) {
       console.error("Gagal ambil absensi:", err);
-      setError(
-        "Gagal memuat data absensi. Periksa koneksi atau konfigurasi API."
-      );
+      setError("Gagal memuat data absensi. Periksa koneksi atau konfigurasi API.");
     } finally {
       setLoading(false);
     }
@@ -126,25 +127,54 @@ export default function LihatAbsensi() {
     setFilterStatus((prev) => (prev === st ? null : st));
   }
 
-  function exportCSV() {
-    const header = ["NIS", "Nama", "Status", "Waktu", "Catatan"];
-    const rows = attendance.map((r) => [
+  // ✅ EXPORT EXCEL
+  function exportExcel() {
+    const sheetData = [
+      ["NIS", "Nama", "Status", "Waktu", "Catatan"],
+      ...attendance.map((r) => [
+        r.nis,
+        r.name,
+        statusMeta[r.status]?.label || r.status,
+        r.time,
+        r.note || "",
+      ]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Absensi");
+    XLSX.writeFile(wb, `absensi_${kelas}_${tanggal}.xlsx`);
+  }
+
+  // ✅ EXPORT PDF
+  function exportPDF() {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("Laporan Absensi Siswa", 14, 15);
+    doc.setFontSize(11);
+    doc.text(
+      `Kelas: ${kelasList.find((k) => k.id === Number(kelas))?.label || "-"} | Tanggal: ${tanggal}`,
+      14,
+      23
+    );
+
+    const tableData = attendance.map((r) => [
       r.nis,
       r.name,
       statusMeta[r.status]?.label || r.status,
       r.time,
       r.note || "",
     ]);
-    const csv = [header, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `absensi_${kelas}_${tanggal}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+
+    doc.autoTable({
+      head: [["NIS", "Nama", "Status", "Waktu", "Catatan"]],
+      body: tableData,
+      startY: 30,
+      theme: "striped",
+      headStyles: { fillColor: [41, 128, 185] },
+      styles: { fontSize: 9 },
+    });
+
+    doc.save(`absensi_${kelas}_${tanggal}.pdf`);
   }
 
   return (
@@ -190,12 +220,20 @@ export default function LihatAbsensi() {
           Muat ulang
         </button>
 
-        <button
-          onClick={exportCSV}
-          className="ml-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-        >
-          Export CSV
-        </button>
+        <div className="ml-auto flex gap-2">
+          <button
+            onClick={exportExcel}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Export Excel
+          </button>
+          <button
+            onClick={exportPDF}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Export PDF
+          </button>
+        </div>
       </div>
 
       {/* Status Filters */}

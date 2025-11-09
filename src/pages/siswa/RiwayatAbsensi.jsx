@@ -2,21 +2,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Header, Loading } from '../../components';
 import { absensiAPI } from '../../services/api';
 import { useEffect, useState } from 'react';
-
 const RiwayatAbsensi = () => {
   const { user } = useAuth();
   const [riwayatAbsen, setRiwayatAbsen] = useState(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (user) {
       absensiAPI.riwayat().then((res) => {
+        console.log(res.data);  
         setRiwayatAbsen(res.data);
         setLoading(false);
       });
     }
   }, [user]);
-
   const renderStatusBadge = (status) => {
     const statusClass = {
       hadir: 'bg-green-100 text-green-700 ring-1 ring-green-200',
@@ -25,7 +23,6 @@ const RiwayatAbsensi = () => {
       alpha: 'bg-red-100 text-red-700 ring-1 ring-red-200',
       terlambat: 'bg-orange-100 text-orange-700 ring-1 ring-orange-200',
     };
-
     return (
       <span
         className={`px-4 py-1.5 inline-flex text-xs font-bold rounded-full leading-5 
@@ -35,11 +32,9 @@ const RiwayatAbsensi = () => {
       </span>
     );
   };
-
   if (!user) return <Loading text="Memuat data user..." />;
-
   if (loading) return <Loading text="Memuat riwayat absensi..." />;
-
+  
   return (
     <div className="min-h-screen">
       <Header
@@ -48,7 +43,6 @@ const RiwayatAbsensi = () => {
         showBackButton
         backPath="/siswa/home"
       />
-
       <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
@@ -58,7 +52,6 @@ const RiwayatAbsensi = () => {
             Rekam jejak kehadiran Anda di SMK Trimulia. Selalu pantau untuk hasil terbaik!
           </p>
         </div>
-
         <div className="relative mt-8 overflow-hidden bg-white shadow-2xl rounded-xl ring-1 ring-gray-200">
           {riwayatAbsen?.responseStatus ? (
             <div className="overflow-x-auto">
@@ -84,7 +77,7 @@ const RiwayatAbsensi = () => {
                         hover:bg-indigo-50 transition duration-200 ease-in-out`}
                     >
                       <td className="px-6 py-4 text-sm font-medium text-center text-gray-800 whitespace-nowrap">
-                        {absen.tanggal}
+                        {absen.rencana_absensi.tanggal}
                       </td>
                       <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                         {renderStatusBadge(absen.status)}

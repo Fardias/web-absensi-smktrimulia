@@ -7,7 +7,6 @@ const RiwayatAbsenHarian = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
 
-    // Objek untuk memetakan status ke kelas warna Tailwind
     const statusColors = {
         hadir: 'bg-green-100 text-green-700',
         izin: 'bg-yellow-100 text-yellow-700',
@@ -18,18 +17,21 @@ const RiwayatAbsenHarian = () => {
 
     useEffect(() => {
         if (user) {
-            absensiAPI.riwayatAbsenHariIni().then((res) => {
-                if (res.data.responseStatus) {
-                    setRiwayat(res.data.responseData);
-                } else {
+            absensiAPI
+                .riwayatAbsenHariIni()
+                .then((res) => {
+                    if (res.data.responseStatus) {
+                        setRiwayat(res.data.responseData);
+                    } else {
+                        setRiwayat(null);
+                    }
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error('Error fetching daily attendance history:', error);
                     setRiwayat(null);
-                }
-                setLoading(false);
-            }).catch(error => {
-                console.error("Error fetching daily attendance history:", error);
-                setRiwayat(null);
-                setLoading(false);
-            });
+                    setLoading(false);
+                });
         }
     }, [user]);
 
@@ -37,14 +39,16 @@ const RiwayatAbsenHarian = () => {
         return <p className="text-center text-gray-500">Memuat...</p>;
     }
 
-    // Tentukan kelas warna berdasarkan status riwayat
     const cardClasses = riwayat
-        ? `p-6 text-center shadow rounded-xl ${statusColors[riwayat.status.toLowerCase()] || 'bg-gray-100 text-gray-700'}`
-        : 'p-6 text-center shadow rounded-xl bg-gray-100 text-gray-700'; // Default jika tidak ada riwayat atau status tidak dikenali
+        ? `p-6 text-center shadow rounded-xl ${
+              statusColors[riwayat.status.toLowerCase()] ||
+              'bg-gray-100 text-gray-700'
+          }`
+        : 'p-6 text-center shadow rounded-xl bg-gray-100 text-gray-700';
 
     return (
         <>
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 text-center">
                 Status Absensi Hari Ini
             </h3>
 
@@ -65,31 +69,63 @@ const RiwayatAbsenHarian = () => {
                             />
                         </svg>
                     </div>
-                    <p className="text-lg text-gray-500">Belum ada absensi hari ini</p>
+                    <p className="text-lg text-gray-500">
+                        Belum ada absensi hari ini
+                    </p>
                     <p className="mt-1 text-sm text-gray-400">
                         Silakan lakukan absensi datang terlebih dahulu
                     </p>
                 </div>
             ) : (
-                <div className={cardClasses}> {/* Gunakan cardClasses di sini */}
-                    <p className="text-xl font-semibold capitalize">
-                        Status: {riwayat.status}
+                <div className={cardClasses}>
+                    <p className="text-2xl font-bold capitalize mb-2">
+                        {riwayat.status}
                     </p>
-                    <p className="mt-1 text-sm text-gray-600">
-                        Tanggal: {riwayat.tanggal}
+                    <p className="text-sm text-gray-600 mb-4">
+                        Tanggal: {riwayat.rencana_absensi?.tanggal || '-'}
                     </p>
 
-                    {/* Jika ada jam datang / pulang */}
-                    {riwayat.jam_datang && (
-                        <p className="text-sm text-gray-600">Datang: {riwayat.jam_datang}</p>
-                    )}
-                    {riwayat.jam_pulang && (
-                        <p className="text-sm text-gray-600">Pulang: {riwayat.jam_pulang}</p>
-                    )}
+                    {/* 🕒 Jam Datang & Pulang (kiri kanan) */}
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                        {/* Kiri: Jam Datang */}
+                        <div className="flex flex-col items-center justify-center border-r border-gray-300">
+                            <p className="text-base font-medium text-gray-700">
+                                Jam Datang
+                            </p>
+                            {riwayat.jam_datang ? (
+                                <p className="text-3xl font-bold text-green-700 mt-1">
+                                    {riwayat.jam_datang}
+                                </p>
+                            ) : (
+                                <p className="text-gray-400 italic mt-1">
+                                    Belum absen
+                                </p>
+                            )}
+                        </div>
 
-                    {/* Jika ada bukti upload */}
+                        {/* Kanan: Jam Pulang */}
+                        <div className="flex flex-col items-center justify-center">
+                            <p className="text-base font-medium text-gray-700">
+                                Jam Pulang
+                            </p>
+                            {riwayat.jam_pulang ? (
+                                <p className="text-3xl font-bold text-blue-700 mt-1">
+                                    {riwayat.jam_pulang}
+                                </p>
+                            ) : (
+                                <p className="text-gray-400 italic mt-1">
+                                    Belum absen
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Bukti Upload */}
                     {riwayat.bukti && (
-                        <div className="mt-3">
+                        <div className="mt-6">
+                            <p className="text-base font-medium text-gray-700 mb-2">
+                                Bukti Absensi:
+                            </p>
                             {riwayat.bukti.match(/\.(jpg|jpeg|png)$/i) ? (
                                 <img
                                     src={riwayat.bukti}
@@ -103,12 +139,11 @@ const RiwayatAbsenHarian = () => {
                                     rel="noopener noreferrer"
                                     className="text-blue-600 underline"
                                 >
-                                    Lihat bukti
+                                    Lihat Bukti
                                 </a>
                             )}
                         </div>
                     )}
-
                 </div>
             )}
         </>
