@@ -14,7 +14,7 @@ const Layout = ({ children }) => {
       <main
         className={`
           flex-1 transition-all duration-200 overflow-y-auto
-          ${collapsed ? "ml-[72px]" : "ml-[240px]"}
+          ${collapsed ? "ml-[72px]" : "ml-[260px] mt-4"}
         `}
       >
         {children}
