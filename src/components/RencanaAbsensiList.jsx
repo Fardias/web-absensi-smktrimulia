@@ -1,4 +1,3 @@
-import React from "react";
 
 const RencanaAbsensiList = ({ data }) => {
   // Group data by tanggal
@@ -44,13 +43,13 @@ const RencanaAbsensiList = ({ data }) => {
           </h2>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {records.map((r) => (
+            {records.map((r, idx) => (
               <div
-                key={`${r.tanggal}-${r.kelas.kelas_id}`}
+                key={`${r.tanggal}-${r.kelas.kelas_id}-${idx}`}
                 className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
               >
                 <p className="font-medium text-gray-800">
-                  {r.kelas.tingkat} {r.kelas.paralel} - {r.kelas.jurusan}
+                  {r.kelas.tingkat} {r.kelas.paralel} - {r.kelas.jurusan.nama_jurusan}
                 </p>
                 <p className="text-sm mt-1">
                   <span className="font-semibold text-gray-600">Status:</span>{" "}

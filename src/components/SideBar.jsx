@@ -11,7 +11,7 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
   const location = useLocation();
 
   const handleLogout = () => {
-    logout();
+    logout(); 
     navigate("/login");
   };
 

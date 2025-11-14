@@ -3,6 +3,7 @@ import React from "react";
 const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit, kelasList }) => {
   if (!show) return null;
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-fadeIn">
