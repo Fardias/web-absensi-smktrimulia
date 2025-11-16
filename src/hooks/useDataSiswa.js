@@ -86,24 +86,21 @@ export const useDataSiswa = () => {
         }
     }
 
-    const handleSiswaIzinSakit = async () => {
+    const handleSiswaIzinHariIni = async () => {
         setLoading(true);
         setError(null);
-
         try {
             const response = await generalAPI.siswaIzinHariIni();
-            const { responseStatus, responseMessage, responseData } = response.data;    
+            const { responseStatus, responseMessage, responseData } = response.data;
             if (!responseStatus) {
                 setError(responseMessage || 'Failed to fetch siswa izin');
                 return null;
             }
-
-            if (!responseData || typeof responseData.total_izin_sakit !== 'number') {
+            if (!responseData || typeof responseData.total_izin !== 'number') {
                 setError('Invalid data received');
                 return null;
             }
-
-            return responseData.total_izin_sakit;
+            return responseData.total_izin;
         } catch (error) {
             console.error('Error fetching siswa izin:', error);
             setError('Failed to fetch siswa izin');
@@ -113,6 +110,30 @@ export const useDataSiswa = () => {
         }
     }
 
+    const handleSiswaSakitHariIni = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await generalAPI.siswaSakitHariIni();
+            const { responseStatus, responseMessage, responseData } = response.data;
+            if (!responseStatus) {
+                setError(responseMessage || 'Failed to fetch siswa sakit');
+                return null;
+            }
+            if (!responseData || typeof responseData.total_sakit !== 'number') {
+                setError('Invalid data received');
+                return null;
+            }
+            return responseData.total_sakit;
+        } catch (error) {
+            console.error('Error fetching siswa sakit:', error);
+            setError('Failed to fetch siswa sakit');
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }
 
-    return { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinSakit, loading, error };
+
+    return { handleTotalSiswa, handleSiswaHadirHariIni, handleSiswaTerlambat, handleSiswaIzinHariIni, handleSiswaSakitHariIni, loading, error };
 };

@@ -21,6 +21,10 @@ import LihatAbsensi from "./pages/gurket/LihatAbsensi";
 import { LihatAbsensiHariIni } from "./pages/gurket/LihatAbsensiHariIni";
 import KelolaDataSiswa from "./pages/gurket/KelolaDataSiswa";
 import RencanaAbsensi from "./pages/gurket/RencanaAbsensi";
+import AdminRekap from "./pages/admin/Rekap";
+import AdminPengaturan from "./pages/admin/Pengaturan";
+import RekapWalas from "./pages/walas/RekapWalas";
+import Profil from "./pages/Profil";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -176,6 +180,51 @@ const AppRoutes = () => {
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
               <RencanaAbsensi />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin (Kepala Sekolah) Routes */}
+      <Route
+        path="/dashboard/rekap"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <AdminRekap />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      {/* Wali Kelas Routes */}
+      <Route
+        path="/dashboard/rekap-walas"
+        element={
+          <ProtectedRoute allowedRoles={["walas"]}>
+            <Layout>
+              <RekapWalas />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/pengaturan"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <AdminPengaturan />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Profil Route */}
+      <Route
+        path="/profil"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas", "siswa"]}>
+            <Layout>
+              <Profil />
             </Layout>
           </ProtectedRoute>
         }

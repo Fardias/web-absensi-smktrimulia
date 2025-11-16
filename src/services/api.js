@@ -61,12 +61,15 @@ export const absensiAPI = {
 
 // Admin API
 export const adminAPI = {
-	rekap: () => api.get('/admin/rekap'),
+  rekap: (params) => api.get('/admin/rekap', { params }),
+  getSettings: () => api.get('/admin/pengaturan'),
+  updateSettings: (data) => api.put('/admin/pengaturan', data),
 };
 
 // Guru API
 export const guruAPI = {
 	laporan: () => api.get('/guru/laporan'),
+	walasInfo: () => api.get('/walas/info'),
 	importSiswa: (formData, onUploadProgress) =>
 		api.post('/import-siswa', formData, { onUploadProgress }),
 	aktifitasTerbaru: () => api.get('/aktivitas-terbaru'),
@@ -75,20 +78,22 @@ export const guruAPI = {
 	lihatAbsensiSiswa: (params) => api.get('/absensi/lihat', { params }),
 	lihatAbsensiHariIni: () => api.get('/absensi/hari-ini'),
 	getDataSiswa: () => api.get('/kelola-datasiswa'),
+	updateSiswa: (siswaId, data) => api.post('/kelola-datasiswa/update', { siswa_id: siswaId, ...data }),
 	getRencanaAbsensi: () => api.get('/absensi/rencana'),
 	createRencanaAbsensi: (data) => api.post('/absensi/rencana', data),
 };
 
 // Gabungan Admin dan Guru API
 export const generalAPI = {
-	totalSiswa: () => api.get('/total-siswa'),
-	siswaHadirHariIni: () => api.get('/hadir-hariini'),
-	siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),
-	siswaIzinHariIni: () => api.get('/izinsakit-hariini'),
+    totalSiswa: () => api.get('/total-siswa'),
+    siswaHadirHariIni: () => api.get('/hadir-hariini'),
+    siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),
+    siswaIzinHariIni: () => api.get('/izin-hariini'),
+    siswaSakitHariIni: () => api.get('/sakit-hariini'),
 };
 
 export const utilityAPI = {
-	listKelas: () => api.get('/utillity/getListKelas'),
+    listKelas: () => api.get('/utility/kelas'),
 };
 
 

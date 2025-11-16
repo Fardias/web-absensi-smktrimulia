@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { guruAPI } from "../../services/api";
 import { Loading } from "../../components";
 import EditSiswaForm from "../../components/EditSiswaForm";
@@ -9,6 +9,13 @@ const KelolaDataSiswa = () => {
   const [error, setError] = useState(null);
   const [editingSiswa, setEditingSiswa] = useState(null);
   const [formData, setFormData] = useState({});
+  const [search, setSearch] = useState("");
+  const [filterJenkel, setFilterJenkel] = useState("");
+  const [filterTingkat, setFilterTingkat] = useState("");
+  const [filterJurusan, setFilterJurusan] = useState("");
+  const [filterParalel, setFilterParalel] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
   useEffect(() => {
     const fetchDataSiswa = async () => {
@@ -65,7 +72,57 @@ const KelolaDataSiswa = () => {
     setFormData({});
   };
 
-  // 🔹 Loading & Error state
+  const tingkatOptions = useMemo(() => {
+    const vals = siswaList.map((s) => s.kelas?.tingkat).filter(Boolean);
+    return Array.from(new Set(vals));
+  }, [siswaList]);
+
+  const jurusanOptions = useMemo(() => {
+    const vals = siswaList
+      .map((s) => s.kelas?.jurusan?.nama_jurusan || s.kelas?.jurusan)
+      .filter(Boolean);
+    return Array.from(new Set(vals));
+  }, [siswaList]);
+
+  const paralelOptions = useMemo(() => {
+    const vals = siswaList.map((s) => s.kelas?.paralel).filter(Boolean);
+    return Array.from(new Set(vals));
+  }, [siswaList]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
+
+  const filteredList = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return siswaList.filter((s) => {
+      if (filterJenkel && (s.jenkel || "").toString() !== filterJenkel) return false;
+      const tingkat = s.kelas?.tingkat ? String(s.kelas.tingkat) : "";
+      if (filterTingkat && tingkat !== filterTingkat) return false;
+      const jurusanVal = s.kelas?.jurusan?.nama_jurusan || s.kelas?.jurusan || "";
+      if (filterJurusan && String(jurusanVal) !== filterJurusan) return false;
+      const paralelVal = s.kelas?.paralel ? String(s.kelas.paralel) : "";
+      if (filterParalel && paralelVal !== filterParalel) return false;
+      if (!q) return true;
+      const nama = (s.nama || "").toLowerCase();
+      const nis = (s.nis || "").toLowerCase();
+      return nama.includes(q) || nis.includes(q);
+    });
+  }, [siswaList, search, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedList = filteredList.slice(startIndex, startIndex + pageSize);
+
+  const resetFilter = () => {
+    setSearch("");
+    setFilterJenkel("");
+    setFilterTingkat("");
+    setFilterJurusan("");
+    setFilterParalel("");
+  };
+
+  // Loading & Error state
   if (loading) return <Loading text="Loading data siswa..." />;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
@@ -82,6 +139,73 @@ const KelolaDataSiswa = () => {
         />
       )}
 
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari Nama atau NIS"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          />
+        </div>
+        <div>
+          <select
+            value={filterJenkel}
+            onChange={(e) => setFilterJenkel(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">Semua Jenkel</option>
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+        </div>
+        <div>
+          <select
+            value={filterTingkat}
+            onChange={(e) => setFilterTingkat(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">Semua Tingkat</option>
+            {tingkatOptions.map((opt) => (
+              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <select
+            value={filterJurusan}
+            onChange={(e) => setFilterJurusan(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">Semua Jurusan</option>
+            {jurusanOptions.map((opt) => (
+              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <select
+            value={filterParalel}
+            onChange={(e) => setFilterParalel(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2"
+          >
+            <option value="">Semua Paralel</option>
+            {paralelOptions.map((opt) => (
+              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <button
+            onClick={resetFilter}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
           <thead className="bg-gray-100 text-gray-700">
@@ -91,12 +215,12 @@ const KelolaDataSiswa = () => {
               <th className="px-4 py-3 text-left text-sm font-semibold">Jenis Kelamin</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Tingkat</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Jurusan</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Username</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold">Paralel</th>
               <th className="px-4 py-3 text-left text-sm font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {siswaList.map((siswa) => (
+            {paginatedList.map((siswa) => (
               <tr key={siswa.siswa_id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm">{siswa.nis}</td>
                 <td className="px-4 py-3 text-sm">{siswa.nama}</td>
@@ -105,7 +229,9 @@ const KelolaDataSiswa = () => {
                 <td className="px-4 py-3 text-sm">
                   {siswa.kelas?.jurusan?.nama_jurusan || "-"}
                 </td>
-                <td className="px-4 py-3 text-sm">{siswa.akun?.username || "-"}</td>
+                <td className="px-4 py-3 text-sm">
+                  {siswa.kelas?.paralel || "-"}
+                </td>
                 <td className="px-4 py-3 text-sm">
                   <button
                     onClick={() => handleEdit(siswa)}
@@ -118,6 +244,30 @@ const KelolaDataSiswa = () => {
             ))}
           </tbody>
         </table>
+        <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-700">
+          <div>
+            Menampilkan {paginatedList.length} dari {filteredList.length} data
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="px-3 py-1 border rounded"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </button>
+            <span>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              className="px-3 py-1 border rounded"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
