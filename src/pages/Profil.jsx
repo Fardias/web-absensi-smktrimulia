@@ -6,7 +6,6 @@ export default function Profil() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Profil" subtitle="SMK Trimulia" />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Informasi Akun</h3>
