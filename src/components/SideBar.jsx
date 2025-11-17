@@ -5,7 +5,7 @@ import { createSidebarItems, iconComponents } from "./sidebarConfig.jsx";
 
 export default function SideBar({ defaultCollapsed = false, onToggle }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const [openMenu, setOpenMenu] = useState(null);
+  const [openMenus, setOpenMenus] = useState(new Set());
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,23 +27,35 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
         item.children &&
         item.children.some((child) => location.pathname === child.href)
     );
-    if (activeParent) setOpenMenu(activeParent.key);
+    if (activeParent) {
+      setOpenMenus((prev) => {
+        const next = new Set(prev);
+        next.add(activeParent.key);
+        return next;
+      });
+    }
   }, [location.pathname, items]);
 
   const toggleSidebar = () => {
     setCollapsed((prev) => {
       const newState = !prev;
-      if (newState) setOpenMenu(null); // ⬅ submenu otomatis tertutup kalau sidebar collapse
+      if (newState) setOpenMenus(new Set()); // tutup semua submenu saat collapse
       return newState;
     });
-
     if (onToggle) onToggle();
   };
 
-
   const handleMenuClick = (item) => {
     if (item.children) {
-      setOpenMenu((prev) => (prev === item.key ? null : item.key));
+      setOpenMenus((prev) => {
+        const next = new Set(prev);
+        if (next.has(item.key)) {
+          next.delete(item.key);
+        } else {
+          next.add(item.key);
+        }
+        return next;
+      });
       return;
     }
     if (item.key === "logout") {
@@ -94,23 +106,34 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
               <div
                 onClick={() => {
                   if (item.children) {
-                    setOpenMenu((prev) => (prev === item.key ? null : item.key));
+                    setOpenMenus((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(item.key)) {
+                        next.delete(item.key);
+                      } else {
+                        next.add(item.key);
+                      }
+                      return next;
+                    });
                   } else {
                     handleMenuClick(item);
                   }
                 }}
                 className={`flex items-center justify-between px-2 py-2.5 rounded-md cursor-pointer transition-colors 
-                ${activeMain
+                ${
+                  activeMain
                     ? "bg-blue-600/30 text-white"
                     : "text-slate-300 hover:bg-white/5"
-                  }`}
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-7 flex justify-center">
                     {iconComponents[item.icon]()}
                   </div>
                   {!collapsed && (
-                    <span className={`text-sm ${activeMain ? "font-semibold" : ""}`}>
+                    <span
+                      className={`text-sm ${activeMain ? "font-semibold" : ""}`}
+                    >
                       {item.label}
                     </span>
                   )}
@@ -119,31 +142,30 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
                 {/* Arrow submenu */}
                 {item.children && !collapsed && (
                   <div className="text-xs">
-                    {openMenu === item.key ? "▾" : "▸"}
+                    {openMenus.has(item.key) ? "▾" : "▸"}
                   </div>
                 )}
-
               </div>
 
               {/* Submenu */}
-              {item.children && !collapsed && openMenu === item.key && (
+              {item.children && !collapsed && openMenus.has(item.key) && (
                 <div className="ml-7 mt-1">
                   {item.children.map((child) => (
                     <div
                       key={child.key}
                       onClick={() => navigate(child.href)}
                       className={`px-2 py-2 rounded-md text-sm cursor-pointer transition 
-          ${isActive(child.href)
+                      ${
+                        isActive(child.href)
                           ? "bg-blue-600/40 text-white"
                           : "text-slate-400 hover:bg-white/5"
-                        }`}
+                      }`}
                     >
                       {child.label}
                     </div>
                   ))}
                 </div>
               )}
-
             </div>
           );
         })}
@@ -156,4 +178,3 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
     </aside>
   );
 }
-
