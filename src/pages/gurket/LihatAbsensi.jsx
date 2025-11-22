@@ -293,42 +293,31 @@ export default function LihatAbsensi() {
             Tidak ada hasil untuk filter saat ini.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700 text-left">
+          <table className="table-base">
+            <thead className="table-thead">
               <tr>
-                <th className="p-3 border-b w-12">No</th>
-                <th className="p-3 border-b w-32">NIS</th>
-                <th className="p-3 border-b">Nama</th>
-                <th className="p-3 border-b w-32">Status</th>
-                <th className="p-3 border-b w-32">Waktu</th>
-                <th className="p-3 border-b">Catatan</th>
+                <th className="table-th">No</th>
+                <th className="table-th">NIS</th>
+                <th className="table-th">Nama</th>
+                <th className="table-th">Status</th>
+                <th className="table-th">Waktu</th>
+                <th className="table-th">Catatan</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="table-tbody">
               {filtered.map((s, idx) => (
-                <tr
-                  key={s.id}
-                  className="hover:bg-gray-50 border-b last:border-none transition"
-                >
-                  <td className="p-3">{idx + 1}</td>
-                  <td className="p-3">{s.nis}</td>
-                  <td className="p-3">{s.name}</td>
-                  <td className="p-3">
-                    <span
-                      className={`inline-flex items-center gap-2 px-2 py-1 rounded-full font-medium ${
-                        statusMeta[s.status]?.color
-                      }`}
-                    >
-                      <span
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          statusMeta[s.status]?.dot
-                        }`}
-                      />
+                <tr key={s.id} className="table-tr hover:bg-gray-50 transition">
+                  <td className="table-td">{idx + 1}</td>
+                  <td className="table-td">{s.nis}</td>
+                  <td className="table-td">{s.name}</td>
+                  <td className="table-td">
+                    <span className={`inline-flex items-center gap-2 px-2 py-1 rounded-full font-medium ${statusMeta[s.status]?.color}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full ${statusMeta[s.status]?.dot}`} />
                       {statusMeta[s.status]?.label || s.status}
                     </span>
                   </td>
-                  <td className="p-3">{s.time}</td>
-                  <td className="p-3">{s.note}</td>
+                  <td className="table-td">{s.time}</td>
+                  <td className="table-td">{s.note}</td>
                 </tr>
               ))}
             </tbody>

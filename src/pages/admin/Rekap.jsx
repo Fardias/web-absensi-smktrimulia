@@ -206,31 +206,31 @@ export default function AdminRekap() {
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="table-base">
+              <thead className="table-thead">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Kelas</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Hadir</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Terlambat</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Izin</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Sakit</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Alfa</th>
+                  <th className="table-th">Kelas</th>
+                  <th className="table-th">Hadir</th>
+                  <th className="table-th">Terlambat</th>
+                  <th className="table-th">Izin</th>
+                  <th className="table-th">Sakit</th>
+                  <th className="table-th">Alfa</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="table-tbody">
                 {rekap.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-gray-500 text-sm">Tidak ada data rekap.</td>
+                    <td colSpan={6} className="table-empty">Tidak ada data rekap.</td>
                   </tr>
                 ) : (
                   rekap.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.kelas_nama || row.kelas || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.hadir || 0}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.terlambat || 0}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.izin || 0}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.sakit || 0}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.alfa || 0}</td>
+                    <tr key={idx} className="table-tr hover:bg-gray-50">
+                      <td className="table-td">{row.kelas_nama || row.kelas || '-'}</td>
+                      <td className="table-td">{row.hadir || 0}</td>
+                      <td className="table-td">{row.terlambat || 0}</td>
+                      <td className="table-td">{row.izin || 0}</td>
+                      <td className="table-td">{row.sakit || 0}</td>
+                      <td className="table-td">{row.alfa || 0}</td>
                     </tr>
                   ))
                 )}

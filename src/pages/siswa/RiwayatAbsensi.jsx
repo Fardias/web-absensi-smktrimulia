@@ -55,34 +55,22 @@ const RiwayatAbsensi = () => {
         <div className="relative mt-8 overflow-hidden bg-white shadow-2xl rounded-xl ring-1 ring-gray-200">
           {riwayatAbsen?.responseStatus ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="table-base">
+                <thead className="table-thead">
                   <tr>
                     {['Tanggal', 'Status', 'Keterangan'].map((col) => (
-                      <th
-                        key={col}
-                        scope="col"
-                        className="px-6 py-4 text-sm font-semibold tracking-wider text-center text-gray-700 uppercase"
-                      >
+                      <th key={col} className="table-th">
                         {col}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                <tbody className="table-tbody">
                   {riwayatAbsen.responseData?.map((absen, idx) => (
-                    <tr
-                      key={idx}
-                      className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} 
-                        hover:bg-indigo-50 transition duration-200 ease-in-out`}
-                    >
-                      <td className="px-6 py-4 text-sm font-medium text-center text-gray-800 whitespace-nowrap">
-                        {absen.rencana_absensi.tanggal}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
-                        {renderStatusBadge(absen.status)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-center text-gray-600 whitespace-nowrap">
+                    <tr key={idx} className="table-tr hover:bg-indigo-50 transition duration-200 ease-in-out">
+                      <td className="table-td">{absen.rencana_absensi.tanggal}</td>
+                      <td className="table-td">{renderStatusBadge(absen.status)}</td>
+                      <td className="table-td">
                         {absen.keterangan || (
                           <span className="italic text-gray-400">Tidak ada keterangan</span>
                         )}

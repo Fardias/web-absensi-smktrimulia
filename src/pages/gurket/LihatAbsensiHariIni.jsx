@@ -120,30 +120,30 @@ export const LihatAbsensiHariIni = () => {
         {' '}• Status: {status ? status : 'Semua'}
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
-          <thead className="bg-gray-50">
+        <table className="table-base">
+          <thead className="table-thead">
             <tr>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">No</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">NIS</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Nama</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Kelas</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Jam Datang</th>
-              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Jam Pulang</th>
+              <th className="table-th">No</th>
+              <th className="table-th">NIS</th>
+              <th className="table-th">Nama</th>
+              <th className="table-th">Kelas</th>
+              <th className="table-th">Status</th>
+              <th className="table-th">Jam Datang</th>
+              <th className="table-th">Jam Pulang</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="table-tbody">
             {filtered.map((item, idx) => (
-              <tr key={item.absensi_id ?? `${item.nis}-${idx}`} className="border-t">
-                <td className="px-4 py-2 text-sm text-gray-900">{idx + 1}</td>
-                <td className="px-4 py-2 text-sm text-gray-900">{item.nis}</td>
-                <td className="px-4 py-2 text-sm text-gray-900">{item.nama}</td>
-                <td className="px-4 py-2 text-sm text-gray-900">
+              <tr key={item.absensi_id ?? `${item.nis}-${idx}`} className="table-tr">
+                <td className="table-td">{idx + 1}</td>
+                <td className="table-td">{item.nis}</td>
+                <td className="table-td">{item.nama}</td>
+                <td className="table-td">
                   {item.tingkat} {item.jurusan?.nama_jurusan ?? item.jurusan} {item.paralel}
                 </td>
-                <td className="px-4 py-2">{getStatusBadge(item.status)}</td>
-                <td className="px-4 py-2 text-sm text-gray-900">{item.jam_datang || '-'}</td>
-                <td className="px-4 py-2 text-sm text-gray-900">{item.jam_pulang || '-'}</td>
+                <td className="table-td">{getStatusBadge(item.status)}</td>
+                <td className="table-td">{item.jam_datang || '-'}</td>
+                <td className="table-td">{item.jam_pulang || '-'}</td>
               </tr>
             ))}
           </tbody>

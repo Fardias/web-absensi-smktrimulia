@@ -207,36 +207,29 @@ const KelolaDataSiswa = () => {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-          <thead className="bg-gray-100 text-gray-700">
+        <table className="table-base">
+          <thead className="table-thead">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-semibold">NIS</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Nama</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Jenis Kelamin</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Tingkat</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Jurusan</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Paralel</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold">Aksi</th>
+              <th className="table-th">NIS</th>
+              <th className="table-th">Nama</th>
+              <th className="table-th">Jenis Kelamin</th>
+              <th className="table-th">Tingkat</th>
+              <th className="table-th">Jurusan</th>
+              <th className="table-th">Paralel</th>
+              <th className="table-th">Aksi</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="table-tbody">
             {paginatedList.map((siswa) => (
-              <tr key={siswa.siswa_id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm">{siswa.nis}</td>
-                <td className="px-4 py-3 text-sm">{siswa.nama}</td>
-                <td className="px-4 py-3 text-sm">{siswa.jenkel}</td>
-                <td className="px-4 py-3 text-sm">{siswa.kelas?.tingkat || "-"}</td>
-                <td className="px-4 py-3 text-sm">
-                  {siswa.kelas?.jurusan?.nama_jurusan || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {siswa.kelas?.paralel || "-"}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <button
-                    onClick={() => handleEdit(siswa)}
-                    className="text-blue-600 hover:underline"
-                  >
+              <tr key={siswa.siswa_id} className="table-tr hover:bg-gray-50">
+                <td className="table-td">{siswa.nis}</td>
+                <td className="table-td">{siswa.nama}</td>
+                <td className="table-td">{siswa.jenkel}</td>
+                <td className="table-td">{siswa.kelas?.tingkat || "-"}</td>
+                <td className="table-td">{siswa.kelas?.jurusan?.nama_jurusan || "-"}</td>
+                <td className="table-td">{siswa.kelas?.paralel || "-"}</td>
+                <td className="table-td">
+                  <button onClick={() => handleEdit(siswa)} className="text-blue-600 hover:underline">
                     Edit
                   </button>
                 </td>

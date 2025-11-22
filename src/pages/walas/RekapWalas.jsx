@@ -31,7 +31,7 @@ export default function RekapWalas() {
       const res = await guruAPI.walasInfo();
       const data = res?.data?.responseData || res?.data?.data || null;
       setWalasInfo(data);
-    } catch (e) {
+    } catch {
       setWalasInfo(null);
     }
   };
@@ -44,7 +44,7 @@ export default function RekapWalas() {
       const payload = res?.data?.responseData || res?.data || {};
       const arr = payload?.absensi || [];
       setList(Array.isArray(arr) ? arr : []);
-    } catch (e) {
+    } catch {
       setError("Gagal memuat rekap kelas wali.");
       setList([]);
     } finally {
@@ -95,26 +95,26 @@ export default function RekapWalas() {
             ) : error ? (
               <p className="p-4 text-sm text-red-600">{error}</p>
             ) : list.length === 0 ? (
-              <p className="p-4 text-sm text-gray-500">Tidak ada data absensi untuk tanggal ini.</p>
+              <p className="table-empty">Tidak ada data absensi untuk tanggal ini.</p>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="table-base">
+                <thead className="table-thead">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">NIS</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Nama</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Jam Datang</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Jam Pulang</th>
+                    <th className="table-th">NIS</th>
+                    <th className="table-th">Nama</th>
+                    <th className="table-th">Status</th>
+                    <th className="table-th">Jam Datang</th>
+                    <th className="table-th">Jam Pulang</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="table-tbody">
                   {list.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.nis || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.nama || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900 capitalize">{row.status || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.jam_datang || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{row.jam_pulang || '-'}</td>
+                    <tr key={idx} className="table-tr hover:bg-gray-50">
+                      <td className="table-td">{row.nis || '-'}</td>
+                      <td className="table-td">{row.nama || '-'}</td>
+                      <td className="table-td capitalize">{row.status || '-'}</td>
+                      <td className="table-td">{row.jam_datang || '-'}</td>
+                      <td className="table-td">{row.jam_pulang || '-'}</td>
                     </tr>
                   ))}
                 </tbody>

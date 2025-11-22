@@ -84,7 +84,7 @@ const Dashboard = () => {
         const res = await guruAPI.walasInfo();
         const data = res?.data?.responseData || res?.data?.data || null;
         setWalasInfo(data);
-      } catch (e) {
+      } catch {
         // silently fail
         setWalasInfo(null);
       }
@@ -142,7 +142,7 @@ const Dashboard = () => {
           return { label: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`, rate };
         });
         setTrendData(trend);
-      } catch (e) {
+      } catch {
         setGlobalStats({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0, total: 0 });
         setTrendData([]);
       }
@@ -158,7 +158,7 @@ const Dashboard = () => {
       const payload = res?.data?.responseData || res?.data || {};
       const list = payload?.absensi || [];
       setSiswaList(Array.isArray(list) ? list : []);
-    } catch (e) {
+    } catch {
       setSiswaList([]);
     } finally {
       setListLoading(false);
@@ -558,28 +558,28 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500">Tidak ada data untuk status ini.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="table-base">
+                    <thead className="table-thead">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">NIS</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Nama</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Kelas</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Jam Datang</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Jam Pulang</th>
+                        <th className="table-th">NIS</th>
+                        <th className="table-th">Nama</th>
+                        <th className="table-th">Kelas</th>
+                        <th className="table-th">Status</th>
+                        <th className="table-th">Jam Datang</th>
+                        <th className="table-th">Jam Pulang</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="table-tbody">
                       {siswaList.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-sm text-gray-900">{row.nis || '-'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">{row.nama || '-'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">
+                        <tr key={idx} className="table-tr hover:bg-gray-50">
+                          <td className="table-td">{row.nis || '-'}</td>
+                          <td className="table-td">{row.nama || '-'}</td>
+                          <td className="table-td">
                             {row.tingkat ? `Kelas ${row.tingkat} ${row.jurusan || ''} ${row.paralel || ''}` : '-'}
                           </td>
-                          <td className="px-4 py-2 text-sm text-gray-900 capitalize">{row.status || '-'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">{row.jam_datang || '-'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-900">{row.jam_pulang || '-'}</td>
+                          <td className="table-td capitalize">{row.status || '-'}</td>
+                          <td className="table-td">{row.jam_datang || '-'}</td>
+                          <td className="table-td">{row.jam_pulang || '-'}</td>
                         </tr>
                       ))}
                     </tbody>
