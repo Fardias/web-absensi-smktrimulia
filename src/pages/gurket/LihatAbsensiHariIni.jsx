@@ -2,6 +2,7 @@ import React from 'react'
 import { guruAPI, utilityAPI } from '../../services/api'
 import { Loading } from '../../components';
 import Error from '../../components/Error';
+
 export const LihatAbsensiHariIni = () => {
   const [absensi, setAbsensi] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -16,9 +17,12 @@ export const LihatAbsensiHariIni = () => {
       try {
         const res = await utilityAPI.listKelas();
         const data = res?.data?.responseData ?? [];
-        const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat}-${k.jurusan}-${k.paralel}` }));
+        const list = data.map((k) => ({
+          id: k.kelas_id,
+          label: `${k.tingkat}-${(k.jurusan?.nama_jurusan ?? k.jurusan)}-${k.paralel}`,
+        }));
         setKelasList(list);
-      } catch (err) {
+      } catch {
         setKelasList([]);
       }
     };
@@ -82,7 +86,7 @@ export const LihatAbsensiHariIni = () => {
             {kelasList.map((k) => (
               <option key={k.id} value={k.id}>{k.label} (ID: {k.id})</option>
             ))}
-          </select>
+           </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Status Kehadiran</label>
@@ -130,12 +134,12 @@ export const LihatAbsensiHariIni = () => {
           </thead>
           <tbody>
             {filtered.map((item, idx) => (
-              <tr key={item.absensi_id} className="border-t">
+              <tr key={item.absensi_id ?? `${item.nis}-${idx}`} className="border-t">
                 <td className="px-4 py-2 text-sm text-gray-900">{idx + 1}</td>
                 <td className="px-4 py-2 text-sm text-gray-900">{item.nis}</td>
                 <td className="px-4 py-2 text-sm text-gray-900">{item.nama}</td>
                 <td className="px-4 py-2 text-sm text-gray-900">
-                  {item.tingkat} {item.jurusan} {item.paralel}
+                  {item.tingkat} {item.jurusan?.nama_jurusan ?? item.jurusan} {item.paralel}
                 </td>
                 <td className="px-4 py-2">{getStatusBadge(item.status)}</td>
                 <td className="px-4 py-2 text-sm text-gray-900">{item.jam_datang || '-'}</td>

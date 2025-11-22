@@ -37,18 +37,22 @@ const IzinSakit = () => {
 
       let newErrors = {};
       if (!formData.keterangan.trim()) newErrors.keterangan = "Keterangan wajib diisi";
-      if (!formData.bukti) newErrors.bukti = "Bukti wajib diupload";
+      // HAPUS: bukti wajib diupload
+      // if (!formData.bukti) newErrors.bukti = "Bukti wajib diupload";
       setErrors(newErrors);
 
       if (Object.keys(newErrors).length > 0) {
-         toast.error("Harap lengkapi semua field ❌");
+         toast.error("Harap lengkapi keterangan ❌");
          return;
       }
 
       const data = new FormData();
       data.append('tanggal', formData.tanggal);
       data.append('keterangan', formData.keterangan);
-      data.append('bukti', formData.bukti);
+      // Kirim bukti hanya jika ada
+      if (formData.bukti) {
+        data.append('bukti', formData.bukti);
+      }
       data.append('jenis_absen', selectedType);
 
       const loadingToastId = toast.loading(
@@ -168,7 +172,7 @@ const IzinSakit = () => {
                      <label className="mb-2 text-sm font-medium text-gray-700">
                         {selectedType === 'izin'
                            ? 'Upload Bukti (opsional: surat izin, dll)'
-                           : 'Upload Surat Dokter / Bukti Sakit'}
+                           : 'Upload Bukti (opsional: surat dokter/bukti sakit)'}
                      </label>
                      <input
                         type="file"
@@ -181,8 +185,9 @@ const IzinSakit = () => {
                            ${errors.bukti ? "border border-red-500" : ""}`}
                      />
                      <p className="mt-1 text-xs text-gray-500">
-                        Format: JPG, PNG, atau PDF (maks 2MB).
+                        Opsional. Format: JPG, PNG, atau PDF (maks 2MB).
                      </p>
+                     {/* Tidak akan muncul error untuk bukti karena sudah opsional */}
                      {errors.bukti && (
                         <p className="mt-1 text-xs text-red-600">{errors.bukti}</p>
                      )}

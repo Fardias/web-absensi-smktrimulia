@@ -10,12 +10,15 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
+  const handleLogout = React.useCallback(() => {
     logout();
     navigate("/login");
-  };
+  }, [logout, navigate]);
 
-  const items = createSidebarItems(handleLogout, user?.role);
+  const items = React.useMemo(
+    () => createSidebarItems(handleLogout, user?.role),
+    [handleLogout, user?.role]
+  );
 
   const isActive = (href) => location.pathname === href;
   const isChildActive = (children) =>
@@ -29,6 +32,8 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
     );
     if (activeParent) {
       setOpenMenus((prev) => {
+        // Jika sudah terbuka, jangan update agar tidak memicu render ulang
+        if (prev.has(activeParent.key)) return prev;
         const next = new Set(prev);
         next.add(activeParent.key);
         return next;
