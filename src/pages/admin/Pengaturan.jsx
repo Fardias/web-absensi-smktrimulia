@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Header, Loading, Notification } from "../../components";
+import { Loading, Notification } from "../../components";
 import Swal from "sweetalert2";
 import { adminAPI } from "../../services/api";
 import MapsLinkInput from "../../components/MapasLinkInput";

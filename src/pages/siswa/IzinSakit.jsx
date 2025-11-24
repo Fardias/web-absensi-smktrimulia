@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { Header, Loading } from '../../components';
+import { Loading } from '../../components';
 import { useState } from 'react';
 import { useAbsensi } from '../../hooks';
 import toast, { Toaster } from 'react-hot-toast';

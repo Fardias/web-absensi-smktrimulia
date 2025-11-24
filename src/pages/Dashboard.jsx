@@ -1,6 +1,6 @@
 // Dashboard.jsx
 import { useAuth } from "../contexts/AuthContext";
-import { Header, Loading, SideBar } from "../components";
+import { Loading, SideBar } from "../components";
 import { formatDate } from "../utils";
 import { useState, useEffect } from "react";
 import { useDataSiswa } from "../hooks/useDataSiswa";

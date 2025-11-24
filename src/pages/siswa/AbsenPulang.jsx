@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
-import { AbsensiModal, Header, TimeCard, LocationCard, Loading } from '../../components';
+import { AbsensiModal, TimeCard, LocationCard, Loading } from '../../components';
 
 const AbsenPulang = () => {
     const { user } = useAuth();

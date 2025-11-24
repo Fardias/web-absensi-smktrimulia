@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
-import { AbsensiModal, Header, TimeCard, LocationCard, Loading } from '../../components';
+import { AbsensiModal, TimeCard, LocationCard, Loading } from '../../components';
 import RiwayatAbsenHarian from '../siswa/RiwayatAbsenHarian';
 
 const SiswaHome = () => {
@@ -26,10 +26,6 @@ const SiswaHome = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header
-        title="Absensi Siswa"
-        subtitle="SMK Trimulia"
-      />
 
       {/* Main Content */}
       <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">

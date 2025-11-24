@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Header, Loading } from "../../components";
+import { Loading } from "../../components";
 import { adminAPI, utilityAPI } from "../../services/api";
 
 const STATUS = { HADIR: "hadir", TERLAMBAT: "terlambat", IZIN: "izin", SAKIT: "sakit", ALFA: "alfa" };

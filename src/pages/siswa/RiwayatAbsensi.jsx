@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { Header, Loading } from '../../components';
+import { Loading } from '../../components';
 import { absensiAPI } from '../../services/api';
 import { useEffect, useState } from 'react';
 const RiwayatAbsensi = () => {
