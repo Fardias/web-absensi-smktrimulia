@@ -25,6 +25,11 @@ import AdminRekap from "./pages/admin/Rekap";
 import AdminPengaturan from "./pages/admin/Pengaturan";
 import RekapWalas from "./pages/walas/RekapWalas";
 import Profil from "./pages/Profil";
+import Jurusan from "./pages/admin/Jurusan";
+import Kelas from "./pages/admin/Kelas";
+import WaliKelas from "./pages/admin/WaliKelas";
+import GuruPiket from "./pages/admin/GuruPiket";
+import JadwalPiket from "./pages/admin/JadwalPiket";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -213,6 +218,59 @@ const AppRoutes = () => {
             <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <AdminPengaturan />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/jurusan"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <Jurusan />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/kelas"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <Kelas />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/wali-kelas"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <WaliKelas />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/guru-piket"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <GuruPiket />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/jadwal-piket"
+        element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <JadwalPiket />
             </Layout>
           </ProtectedRoute>
         }

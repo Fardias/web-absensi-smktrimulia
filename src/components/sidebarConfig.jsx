@@ -4,7 +4,19 @@ export const createSidebarItems = (handleLogout, role) => {
     return [
       { key: "home", label: "Beranda", href: "/dashboard", icon: "HomeIcon" },
       { key: "rekap", label: "Rekap", href: "/dashboard/rekap", icon: "CalendarIcon" },
-      { key: "pengaturan", label: "Pengaturan", href: "/dashboard/pengaturan", icon: "SettingsIcon" },
+      {
+        key: "kelola sekolah",
+        label: "Kelola Sekolah",
+        icon: "SchoolIcon",
+        children: [
+          { key: "jurusan", label: "Jurusan", href: "/dashboard/jurusan" },
+          { key: "kelas", label: "Kelas", href: "/dashboard/kelas" },
+          { key: "wali-kelas", label: "Wali Kelas", href: "/dashboard/wali-kelas" },
+          { key: "guru-piket", label: "Guru Piket", href: "/dashboard/guru-piket" }
+          ,{ key: "jadwal-piket", label: "Jadwal Piket", href: "/dashboard/jadwal-piket" }
+        ],
+      },
+      { key: "pengaturan", label: "Pengaturan Sistem", href: "/dashboard/pengaturan", icon: "SettingsIcon" },
       { key: "profil", label: "Profil", href: "/profil", icon: "UserIcon" },
       { key: "logout", label: "Logout", href: "#", icon: "LogoutIcon", onClick: handleLogout },
     ];
@@ -34,10 +46,9 @@ export const createSidebarItems = (handleLogout, role) => {
         { key: "rencana-absensi", label: "Rencana Absensi", href: "/dashboard/rencana-absensi" }
       ],
     },
-    { key: "jadwal", label: "Jadwal", href: "/jadwal", icon: "CalendarIcon" },
     {
       key: "siswa",
-      label: "Siswa",
+      label: "Kelola Siswa",
       icon: "UsersIcon",
       children: [
         { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
@@ -49,12 +60,11 @@ export const createSidebarItems = (handleLogout, role) => {
   ];
 };
 
-// Mapping nama icon ke komponen icon
 export const iconComponents = {
   SettingsIcon: () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="#cfe6ff" strokeWidth="1.6"/>
-      <path d="M19.4 15a1.6 1.6 0 0 0 .32 1.76l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.76-.32 1.6 1.6 0 0 0-1 1.46V21a2 2 0 0 1-4 0v-.05a1.6 1.6 0 0 0-1-1.46 1.6 1.6 0 0 0-1.76.32l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.76 1.6 1.6 0 0 0-1.46-1H3a2 2 0 0 1 0-4h.05a1.6 1.6 0 0 0 1.46-1 1.6 1.6 0 0 0-.32-1.76l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.76.32 1.6 1.6 0 0 0 1-1.46V3a2 2 0 0 1 4 0v.05a1.6 1.6 0 0 0 1 1.46 1.6 1.6 0 0 0 1.76-.32l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.76 1.6 1.6 0 0 0 1.46 1H21a2 2 0 0 1 0 4h-.05a1.6 1.6 0 0 0-1.46 1Z" stroke="#cfe6ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="#cfe6ff" strokeWidth="1.6" />
+      <path d="M19.4 15a1.6 1.6 0 0 0 .32 1.76l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.6 1.6 0 0 0-1.76-.32 1.6 1.6 0 0 0-1 1.46V21a2 2 0 0 1-4 0v-.05a1.6 1.6 0 0 0-1-1.46 1.6 1.6 0 0 0-1.76.32l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.6 1.6 0 0 0 .32-1.76 1.6 1.6 0 0 0-1.46-1H3a2 2 0 0 1 0-4h.05a1.6 1.6 0 0 0 1.46-1 1.6 1.6 0 0 0-.32-1.76l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.6 1.6 0 0 0 1.76.32 1.6 1.6 0 0 0 1-1.46V3a2 2 0 0 1 4 0v.05a1.6 1.6 0 0 0 1 1.46 1.6 1.6 0 0 0 1.76-.32l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.6 1.6 0 0 0-.32 1.76 1.6 1.6 0 0 0 1.46 1H21a2 2 0 0 1 0 4h-.05a1.6 1.6 0 0 0-1.46 1Z" stroke="#cfe6ff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   HomeIcon: () => (
@@ -153,4 +163,10 @@ export const iconComponents = {
       />
     </svg>
   ),
+  // school
+  SchoolIcon: () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-school-icon lucide-school"><path d="M14 21v-3a2 2 0 0 0-4 0v3" /><path d="M18 5v16" /><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6" /><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11" /><path d="M6 5v16" /><circle cx="12" cy="9" r="2" /></svg>
+
+  )
+
 };

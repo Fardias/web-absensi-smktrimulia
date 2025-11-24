@@ -230,7 +230,7 @@ const Dashboard = () => {
           {/* Welcome Section */}
           <div className="mb-8">
             <h2 className="mb-2 text-2xl font-bold text-gray-900">
-              Selamat datang, {user.username}!
+              Selamat datang, {getRoleDisplayName(user.role)}👋
             </h2>
             <p className="text-gray-600">
               Dashboard {getRoleDisplayName(user.role)} -{" "}

@@ -48,6 +48,9 @@ export const authAPI = {
 	logout: () => api.post('/logout'),
 	refresh: () => api.post('/refresh'),
 	me: () => api.get('/me'),
+	profile: () => api.get('/profil'),
+	updateProfile: (data) => api.put('/profil', data),
+	resetPassword: (data) => api.post('/akun/reset-password', data),
 };
 
 // Absensi API
@@ -57,13 +60,45 @@ export const absensiAPI = {
 	izinSakit: (data) => api.post('/absensi/izinsakit', data),
 	riwayat: () => api.get('/absensi/riwayat'),
 	riwayatAbsenHariIni: () => api.get('/absensi/hariini'),
-};																
+};
 
 // Admin API
 export const adminAPI = {
-  rekap: (params) => api.get('/admin/rekap', { params }),
-  getSettings: () => api.get('/admin/pengaturan'),
-  updateSettings: (data) => api.put('/admin/pengaturan', data),
+  	rekap: (params) => api.get('/admin/rekap', { params }),
+  	getSettings: () => api.get('/admin/pengaturan'),
+  	updateSettings: (data) => api.put('/admin/pengaturan', data),
+  	updateMyProfile: (data) => api.put('/admin/profil', data),
+	getJurusan: (params) => api.get('/admin/jurusan', { params }),
+	createJurusan: (data) => api.post('/admin/jurusan', data),
+	updateJurusan: (id, data) => api.put(`/admin/jurusan/${id}`, data),
+	deleteJurusan: (id) => api.delete(`/admin/jurusan/${id}`),
+
+	// Kelas CRUD
+	getKelas: () => api.get('/admin/kelas'),
+	createKelas: (data) => api.post('/admin/kelas', data),
+	updateKelas: (id, data) => api.put(`/admin/kelas/${id}`, data),
+	deleteKelas: (id) => api.delete(`/admin/kelas/${id}`),
+	getWalas: () => api.get('/admin/walas'),
+
+	// Wali Kelas CRUD
+	getWaliKelas: () => api.get('/admin/wali-kelas'),
+	createWaliKelas: (data) => api.post('/admin/wali-kelas', data),
+	updateWaliKelas: (id, data) => api.put(`/admin/wali-kelas/${id}`, data),
+	deleteWaliKelas: (id) => api.delete(`/admin/wali-kelas/${id}`),
+	getAkunWalas: () => api.get('/admin/akun-walas'),
+
+	// Guru Piket CRUD
+	getGuruPiket: () => api.get('/admin/guru-piket'),
+	createGuruPiket: (data) => api.post('/admin/guru-piket', data),
+	updateGuruPiket: (id, data) => api.put(`/admin/guru-piket/${id}`, data),
+	deleteGuruPiket: (id) => api.delete(`/admin/guru-piket/${id}`),
+	getAkunGuruPiket: () => api.get('/admin/akun-gurket'),
+
+	// Jadwal Piket CRUD
+	getJadwalPiket: () => api.get('/admin/jadwal-piket'),
+	createJadwalPiket: (data) => api.post('/admin/jadwal-piket', data),
+	updateJadwalPiket: (id, data) => api.put(`/admin/jadwal-piket/${id}`, data),
+	deleteJadwalPiket: (id) => api.delete(`/admin/jadwal-piket/${id}`),
 };
 
 // Guru API
@@ -85,15 +120,15 @@ export const guruAPI = {
 
 // Gabungan Admin dan Guru API
 export const generalAPI = {
-    totalSiswa: () => api.get('/total-siswa'),
-    siswaHadirHariIni: () => api.get('/hadir-hariini'),
-    siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),
-    siswaIzinHariIni: () => api.get('/izin-hariini'),
-    siswaSakitHariIni: () => api.get('/sakit-hariini'),
+	totalSiswa: () => api.get('/total-siswa'),
+	siswaHadirHariIni: () => api.get('/hadir-hariini'),
+	siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),
+	siswaIzinHariIni: () => api.get('/izin-hariini'),
+	siswaSakitHariIni: () => api.get('/sakit-hariini'),
 };
 
 export const utilityAPI = {
-    listKelas: () => api.get('/utility/kelas'),
+	listKelas: () => api.get('/utility/kelas'),
 };
 
 

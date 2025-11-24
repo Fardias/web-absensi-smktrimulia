@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Header, Notification } from "../../components";
+import { Header, Loading, Notification } from "../../components";
+import Swal from "sweetalert2";
 import { adminAPI } from "../../services/api";
 import MapsLinkInput from "../../components/MapasLinkInput";
 
@@ -32,7 +33,8 @@ export default function AdminPengaturan() {
   };
 
 
-  const loadSettings = async () => {
+  const loadSettings = async (showAlert = false) => {
+    setLoading(true);
     try {
       const res = await adminAPI.getSettings();
       const s = res?.data?.responseData || res?.data || {};
@@ -45,8 +47,14 @@ export default function AdminPengaturan() {
         jam_pulang: s.jam_pulang ? String(s.jam_pulang).slice(0, 5) : prev.jam_pulang,
         toleransi_telat: s.toleransi_telat ?? prev.toleransi_telat,
       }));
+      if (showAlert) {
+        Swal.fire({ icon: "success", title: "Berhasil", text: "Pengaturan berhasil direset dari server" });
+      }
     } catch (e) {
-      // ignore, use defaults
+      const msg = e?.response?.data?.message || "Gagal memuat pengaturan dari server";
+      if (showAlert) Swal.fire({ icon: "error", title: "Gagal", text: msg });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,10 +102,18 @@ export default function AdminPengaturan() {
   };
 
 
-  // INIT MAP — hanya sekali saat mount
+  // INIT DATA & MAP — load data lalu init map setelah loading selesai
   useEffect(() => {
-    loadSettings().then(() => initMap());
+    loadSettings();
   }, []);
+
+  const initDoneRef = useRef(false);
+  useEffect(() => {
+    if (!loading && !initDoneRef.current) {
+      initMap();
+      initDoneRef.current = true;
+    }
+  }, [loading]);
 
 
   useEffect(() => {
@@ -131,13 +147,20 @@ export default function AdminPengaturan() {
       };
       await adminAPI.updateSettings(payload);
       setNotification({ type: "success", message: "Pengaturan berhasil disimpan." });
+      Swal.fire({ icon: "success", title: "Berhasil", text: "Pengaturan berhasil disimpan" });
     } catch (e) {
-      setNotification({ type: "error", message: "Gagal menyimpan pengaturan. Periksa API backend." });
+      const msg = e?.response?.data?.message || "Gagal menyimpan pengaturan. Periksa API backend.";
+      setNotification({ type: "error", message: msg });
+      Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
       setLoading(false);
       setTimeout(() => setNotification(null), 2000);
     }
   };
+
+  if (loading && !mapRef.current) {
+    return <Loading text="Memuat pengaturan..." />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -197,7 +220,7 @@ export default function AdminPengaturan() {
 
               <div className="flex gap-2 mt-2">
                 <button disabled={loading} onClick={saveSettings} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">Simpan</button>
-                <button disabled={loading} onClick={() => loadSettings()} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Reset dari server</button>
+                <button disabled={loading} onClick={() => loadSettings(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Reset dari server</button>
               </div>
             </div>
           </div>

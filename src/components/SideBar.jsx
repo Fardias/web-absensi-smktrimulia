@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createSidebarItems, iconComponents } from "./sidebarConfig.jsx";
+import Swal from "sweetalert2";
 
 export default function SideBar({ defaultCollapsed = false, onToggle }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -10,9 +11,21 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = React.useCallback(() => {
-    logout();
-    navigate("/login");
+  const handleLogout = React.useCallback(async () => {
+    const result = await Swal.fire({
+      title: "Konfirmasi Logout",
+      text: "Anda yakin ingin keluar dari aplikasi?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#003366",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, keluar",
+      cancelButtonText: "Batal",
+    });
+    if (result.isConfirmed) {
+      logout();
+      navigate("/login");
+    }
   }, [logout, navigate]);
 
   const items = React.useMemo(
@@ -73,7 +86,7 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
   return (
     <aside
       className={`fixed top-0 left-0 flex flex-col bg-slate-900 text-slate-100 transition-all duration-200 
-      ${collapsed ? "w-[72px]" : "w-[240px]"} h-screen p-3 z-20`}
+      ${collapsed ? "w-[72px]" : "w-[260px]"} h-screen p-3 z-20`}
     >
       {/* Header */}
       <div className="flex items-center gap-3 p-2">
@@ -82,7 +95,7 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
         </div>
         {!collapsed && (
           <div className="font-bold text-base whitespace-nowrap">
-            SMK Trimulia
+            SISENUS SMK TRIMULIA 
           </div>
         )}
       </div>
@@ -178,7 +191,7 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
 
       {/* Footer */}
       <div className="text-xs text-blue-300 px-2 py-2">
-        {!collapsed ? "Versi 1.0 — © SMK Trimulia" : "v1.0"}
+        {/* {!collapsed ? "Versi 1.0 — © SMK Trimulia" : "v1.0"} */}
       </div>
     </aside>
   );
