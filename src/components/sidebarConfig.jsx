@@ -48,7 +48,7 @@ export const createSidebarItems = (handleLogout, role) => {
     },
     {
       key: "siswa",
-      label: "Kelola Siswa",
+      label: "Siswa",
       icon: "UsersIcon",
       children: [
         { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
