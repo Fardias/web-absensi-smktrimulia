@@ -17,6 +17,7 @@ export default function AdminPengaturan() {
   const [notification, setNotification] = useState(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const circleRef = useRef(null);
 
 
   const extractLatLngFromGoogleMapsUrl = (url) => {
@@ -93,12 +94,26 @@ export default function AdminPengaturan() {
     markerRef.current.on("dragend", (e) => {
       const { lat, lng } = e.target.getLatLng();
       setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      if (circleRef.current) circleRef.current.setLatLng([lat, lng]);
     });
     mapRef.current.on("click", (e) => {
       const { lat, lng } = e.latlng;
       markerRef.current.setLatLng([lat, lng]);
       setForm((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      if (circleRef.current) circleRef.current.setLatLng([lat, lng]);
     });
+
+    if (circleRef.current) {
+      circleRef.current.remove();
+      circleRef.current = null;
+    }
+    circleRef.current = L.circle([form.latitude, form.longitude], {
+      radius: Number(form.radius_meter) || 0,
+      color: "#4A90E2",
+      weight: 2,
+      fillColor: "#4A90E2",
+      fillOpacity: 0.15,
+    }).addTo(mapRef.current);
   };
 
 
@@ -125,9 +140,16 @@ export default function AdminPengaturan() {
     // Pindahkan map dan marker ke lokasi baru
     markerRef.current.setLatLng([form.latitude, form.longitude]);
     mapRef.current.setView([form.latitude, form.longitude], 17);
+    if (circleRef.current) circleRef.current.setLatLng([form.latitude, form.longitude]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
 
   }, [form.latitude, form.longitude]);
+
+  useEffect(() => {
+    if (!mapRef.current || !circleRef.current) return;
+    const newRadius = Number(form.radius_meter) || 0;
+    circleRef.current.setRadius(newRadius);
+  }, [form.radius_meter]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -164,7 +186,7 @@ export default function AdminPengaturan() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-     
+
       <Notification notification={notification} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
