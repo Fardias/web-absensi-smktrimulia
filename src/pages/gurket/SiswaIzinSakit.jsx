@@ -161,11 +161,11 @@ export default function SiswaIzinSakit() {
                                     <div className="flex flex-col flex-grow p-5">
                                         <div className="flex items-start justify-between mb-3">
                                             <div>
-                                                <div>
+                                                {/* <div>
                                                     <span className={`text-sm font-medium ${jenisTextClass}`}>
                                                         {String(it.jenis_absen ?? "—").toUpperCase()}
                                                     </span>
-                                                </div>
+                                                </div> */}
                                                 <div className="text-lg font-semibold leading-tight text-gray-900">
                                                     {siswa.nama ?? "—"}
                                                 </div>
@@ -173,9 +173,9 @@ export default function SiswaIzinSakit() {
                                                     NIS: {siswa.nis ?? "—"} • Kelas:{" "}
                                                     {siswa.kelas_id ?? "—"}
                                                 </div>
-                                                <div className="mt-2 text-sm text-gray-600">
+                                                {/* <div className="mt-2 text-sm text-gray-600">
                                                     Tanggal: {it.tanggal ?? "—"}
-                                                </div>
+                                                </div> */}
                                             </div>
 
                                             <span

@@ -113,6 +113,7 @@ export const guruAPI = {
 	lihatAbsensiSiswa: (params) => api.get('/absensi/lihat', { params }),
 	lihatAbsensiHariIni: () => api.get('/absensi/hari-ini'),
 	getDataSiswa: () => api.get('/kelola-datasiswa'),
+	createSiswa: (data) => api.post('/kelola-datasiswa/create', data),
 	updateSiswa: (siswaId, data) => api.post('/kelola-datasiswa/update', { siswa_id: siswaId, ...data }),
 	getRencanaAbsensi: () => api.get('/absensi/rencana'),
 	createRencanaAbsensi: (data) => api.post('/absensi/rencana', data),

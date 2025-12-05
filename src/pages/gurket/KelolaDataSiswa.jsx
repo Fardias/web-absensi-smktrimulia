@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { guruAPI } from "../../services/api";
+import Swal from "sweetalert2";
+import { guruAPI, utilityAPI } from "../../services/api";
 import { Loading } from "../../components";
 import EditSiswaForm from "../../components/EditSiswaForm";
 
@@ -16,6 +17,9 @@ const KelolaDataSiswa = () => {
   const [filterParalel, setFilterParalel] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+  const [kelasList, setKelasList] = useState([]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newSiswa, setNewSiswa] = useState({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
 
   useEffect(() => {
     const fetchDataSiswa = async () => {
@@ -33,6 +37,20 @@ const KelolaDataSiswa = () => {
       }
     };
     fetchDataSiswa();
+  }, []);
+
+  useEffect(() => {
+    const fetchKelas = async () => {
+      try {
+        const res = await utilityAPI.listKelas();
+        const data = res?.data?.responseData ?? [];
+        const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel}` }));
+        setKelasList(list);
+      } catch {
+        setKelasList([]);
+      }
+    };
+    fetchKelas();
   }, []);
 
   const handleEdit = (siswa) => {
@@ -59,11 +77,13 @@ const KelolaDataSiswa = () => {
         const updated = await guruAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
         setEditingSiswa(null);
+        Swal.fire({ icon: "success", title: "Berhasil", text: "Data siswa berhasil diperbarui" });
       } else {
-        alert(response.data.responseMessage || "Gagal memperbarui data");
+        Swal.fire({ icon: "error", title: "Gagal", text: response.data.responseMessage || "Gagal memperbarui data" });
       }
-    } catch {
-      alert("Terjadi kesalahan saat menyimpan data");
+    } catch (e) {
+      const msg = e?.response?.data?.responseMessage || "Terjadi kesalahan saat menyimpan data";
+      Swal.fire({ icon: "error", title: "Gagal", text: msg });
     }
   };
 
@@ -122,13 +142,87 @@ const KelolaDataSiswa = () => {
     setFilterParalel("");
   };
 
+  const createSiswa = async () => {
+    try {
+      const payload = { ...newSiswa, kelas_id: Number(newSiswa.kelas_id) };
+      const res = await guruAPI.createSiswa(payload);
+      if (res.status === 200 && res.data.responseStatus) {
+        const updated = await guruAPI.getDataSiswa();
+        setSiswaList(updated.data.responseData);
+        setShowCreate(false);
+        setNewSiswa({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
+        Swal.fire({ icon: "success", title: "Berhasil", text: "Siswa berhasil ditambahkan. Password default: TRI12345" });
+      } else {
+        Swal.fire({ icon: "error", title: "Gagal", text: res.data.responseMessage || "Gagal menambah siswa" });
+      }
+    } catch (e) {
+      const msg = e?.response?.data?.responseMessage || "Terjadi kesalahan saat menambah siswa";
+      Swal.fire({ icon: "error", title: "Gagal", text: msg });
+    }
+  };
+
   // Loading & Error state
   if (loading) return <Loading text="Loading data siswa..." />;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
   return (
     <div className="flex flex-col p-6 md:p-8">
-      <h1 className="text-2xl font-bold mb-4">Kelola Data Siswa</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Kelola Data Siswa</h1>
+        <button onClick={() => setShowCreate((v) => !v)} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+          {showCreate ? "Tutup" : "Tambah Siswa"}
+        </button>
+      </div>
+
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowCreate(false)} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Tambah Siswa</h3>
+              <button onClick={() => setShowCreate(false)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg">Tutup</button>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <input
+                type="text"
+                value={newSiswa.nis}
+                onChange={(e) => setNewSiswa((p) => ({ ...p, nis: e.target.value }))}
+                placeholder="NIS"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              />
+              <input
+                type="text"
+                value={newSiswa.nama}
+                onChange={(e) => setNewSiswa((p) => ({ ...p, nama: e.target.value }))}
+                placeholder="Nama"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              />
+              <select
+                value={newSiswa.jenkel}
+                onChange={(e) => setNewSiswa((p) => ({ ...p, jenkel: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              >
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+              <select
+                value={newSiswa.kelas_id}
+                onChange={(e) => setNewSiswa((p) => ({ ...p, kelas_id: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              >
+                <option value="">Pilih Kelas</option>
+                {kelasList.map((k) => (
+                  <option key={k.id} value={k.id}>{k.label}</option>
+                ))}
+              </select>
+              <div className="flex items-center justify-end gap-2 mt-2">
+                <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Batal</button>
+                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Simpan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {editingSiswa && (
         <EditSiswaForm

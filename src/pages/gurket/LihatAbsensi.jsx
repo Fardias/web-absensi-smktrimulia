@@ -80,7 +80,7 @@ export default function LihatAbsensi() {
         name: item.nama,
         status: item.status || item.jenis_absen,
         time: item.jam_datang || "-",
-        note: "",
+        note: item.keterangan || "",
       }));
 
       setAttendance(formatted);

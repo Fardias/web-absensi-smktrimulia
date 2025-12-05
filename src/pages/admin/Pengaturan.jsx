@@ -18,6 +18,10 @@ export default function AdminPengaturan() {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const circleRef = useRef(null);
+  const initAttemptsRef = useRef(0);
+  const [mapProgress, setMapProgress] = useState(0);
+  const [mapOverlayVisible, setMapOverlayVisible] = useState(true);
+  const tileStatsRef = useRef({ started: 0, loaded: 0 });
 
 
   const extractLatLngFromGoogleMapsUrl = (url) => {
@@ -77,7 +81,11 @@ export default function AdminPengaturan() {
       let loaded = 0;
       function checkDone() {
         loaded++;
-        if (loaded === 2) resolve();
+        if (loaded === 1) setMapProgress((p) => Math.max(p, 50));
+        if (loaded === 2) {
+          setMapProgress((p) => Math.max(p, 70));
+          resolve();
+        }
       }
     });
   };
@@ -87,9 +95,46 @@ export default function AdminPengaturan() {
     await injectLeaflet();
     const L = window.L;
     if (!L) return;
-    if (mapRef.current) mapRef.current.remove();
-    mapRef.current = L.map("map-picker").setView([form.latitude, form.longitude], 17);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(mapRef.current);
+    const container = document.getElementById("map-picker");
+    if (!container) {
+      if (initAttemptsRef.current < 5) {
+        initAttemptsRef.current += 1;
+        setTimeout(initMap, 100);
+      }
+      return;
+    }
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+    mapRef.current = L.map(container).setView([form.latitude, form.longitude], 17);
+    setMapProgress((p) => Math.max(p, 80));
+    const tl = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
+    tl.on("tileloadstart", () => {
+      tileStatsRef.current.started += 1;
+      const { started, loaded } = tileStatsRef.current;
+      const ratio = loaded / Math.max(started, 1);
+      const pct = 80 + Math.floor(ratio * 19);
+      setMapProgress((p) => Math.max(p, Math.min(99, pct)));
+    });
+    tl.on("tileload", () => {
+      tileStatsRef.current.loaded += 1;
+      const { started, loaded } = tileStatsRef.current;
+      const ratio = loaded / Math.max(started, 1);
+      const pct = 80 + Math.floor(ratio * 19);
+      setMapProgress((p) => Math.max(p, Math.min(99, pct)));
+    });
+    tl.on("load", () => {
+      setMapProgress(100);
+      setTimeout(() => setMapOverlayVisible(false), 300);
+    });
+    tl.on("tileerror", () => {
+      const { started, loaded } = tileStatsRef.current;
+      const ratio = loaded / Math.max(started, 1);
+      const pct = 80 + Math.floor(ratio * 19);
+      setMapProgress((p) => Math.max(p, Math.min(99, pct)));
+    });
+    tl.addTo(mapRef.current);
     markerRef.current = L.marker([form.latitude, form.longitude], { draggable: true }).addTo(mapRef.current);
     markerRef.current.on("dragend", (e) => {
       const { lat, lng } = e.target.getLatLng();
@@ -151,6 +196,20 @@ export default function AdminPengaturan() {
     circleRef.current.setRadius(newRadius);
   }, [form.radius_meter]);
 
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      markerRef.current = null;
+      if (circleRef.current) {
+        circleRef.current.remove();
+        circleRef.current = null;
+      }
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -204,8 +263,23 @@ export default function AdminPengaturan() {
             />
 
 
-
-            <div id="map-picker" className="w-full h-[380px] rounded-lg overflow-hidden border"></div>
+            <div className="relative">
+              <div id="map-picker" className="w-full h-[380px] rounded-lg overflow-hidden border"></div>
+              {mapOverlayVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                  <div className="w-72 bg-white rounded-lg shadow p-4 text-center">
+                    <div className="text-sm font-medium text-gray-700">Memuat peta...</div>
+                    <div className="mt-2 h-2 w-full bg-gray-200 rounded">
+                      <div
+                        className="h-2 bg-blue-600 rounded"
+                        style={{ width: `${mapProgress}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 text-xs text-gray-600">{mapProgress}%</div>
+                  </div>
+                </div>
+              )}
+            </div>
             <p className="mt-3 text-sm text-gray-600">Klik pada peta atau seret marker untuk mengatur lokasi. Latitude dan longitude akan terisi otomatis.</p>
           </div>
 
@@ -227,7 +301,7 @@ export default function AdminPengaturan() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Masuk</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Datang</label>
                   <input type="time" name="jam_masuk" value={form.jam_masuk} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
                 <div>
@@ -236,7 +310,7 @@ export default function AdminPengaturan() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Toleransi Terlambat (menit)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Toleransi Terlambat Jam Datang (menit)</label>
                 <input type="number" min="0" name="toleransi_telat" value={form.toleransi_telat} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
               </div>
 
