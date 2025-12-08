@@ -1,38 +1,123 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
-import { AbsensiModal, TimeCard, LocationCard, Loading } from '../../components';
+import { TimeCard, Loading } from '../../components';
+import { generalAPI } from '../../services/api';
+import { PersonStanding, School } from 'lucide-react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 const AbsenPulang = () => {
     const { user } = useAuth();
     const { handleAbsen } = useAbsensi();
-    const [showModal, setShowModal] = useState(false);
+    const [result, setResult] = useState(null);
+    const [location, setLocation] = useState(null);
+    const [pengaturan, setPengaturan] = useState(null);
+    const mapRef = useRef(null);
+    const markerSchoolRef = useRef(null);
+    const markerUserRef = useRef(null);
+    const circleRef = useRef(null);
     const navigate = useNavigate();
 
-    const handleAbsenWrapper = async (data) => {
-        return await handleAbsen('pulang', data);
+    const handleAbsenWrapper = async () => {
+        if (!location) return;
+        const res = await handleAbsen('pulang', { latitude: location.latitude, longitude: location.longitude });
+        setResult(res);
     };
 
     if (!user) {
         return <Loading text="Memuat data user..." />;
     }
 
+    useEffect(() => {
+        generalAPI.getPengaturan().then((res) => setPengaturan(res.data)).catch(() => setPengaturan(null));
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+            });
+        }
+    }, []);
+
+    const injectLeaflet = () => {
+        return new Promise((resolve) => {
+            if (window.L) return resolve();
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            css.onload = check;
+            document.head.appendChild(css);
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = check;
+            document.body.appendChild(script);
+            let loaded = 0;
+            function check() { loaded += 1; if (loaded === 2) resolve(); }
+        });
+    };
+
+    useEffect(() => {
+        const init = async () => {
+            await injectLeaflet();
+            const L = window.L;
+            const container = document.getElementById('absen-map-pulang');
+            if (!container || !L) return;
+            if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+            const center = pengaturan ? [pengaturan.latitude, pengaturan.longitude] : [-6.2, 106.8];
+            mapRef.current = L.map(container).setView(center, 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapRef.current);
+            if (pengaturan) {
+                const schoolIcon = L.divIcon({
+                    html: renderToStaticMarkup(<School size={36} color="#357ABD" />),
+                    className: 'school-marker-icon',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                });
+                if (markerSchoolRef.current) markerSchoolRef.current.remove();
+                markerSchoolRef.current = L.marker(center, { icon: schoolIcon }).addTo(mapRef.current);
+                if (circleRef.current) circleRef.current.remove();
+                circleRef.current = L.circle(center, { radius: Number(pengaturan.radius_meter) || 0, color: '#4A90E2', weight: 2, fillColor: '#4A90E2', fillOpacity: 0.15 }).addTo(mapRef.current);
+            }
+            if (location) {
+                const user = [location.latitude, location.longitude];
+                const userIcon = L.divIcon({
+                    html: renderToStaticMarkup(<PersonStanding size={36} color="#357ABD" />),
+                    className: 'user-marker-icon',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                });
+                if (markerUserRef.current) markerUserRef.current.remove();
+                markerUserRef.current = L.marker(user, { icon: userIcon }).addTo(mapRef.current);
+            }
+            const bounds = [];
+            if (pengaturan) bounds.push(center);
+            if (location) bounds.push([location.latitude, location.longitude]);
+            if (bounds.length >= 2) { mapRef.current.fitBounds(bounds, { padding: [20, 20] }); }
+        };
+        init();
+        return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } markerSchoolRef.current = null; markerUserRef.current = null; circleRef.current = null; };
+    }, [pengaturan, location]);
+
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header
-                title="Absen Pulang"
-                subtitle="SMK Trimulia"
-                showBackButton={true}
-                backPath="/siswa/home"
-            />
+            <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between text-white">
+                        <div>
+                            <p className="text-2xl font-bold">Absen Pulang</p>
+                            <p className="text-sm opacity-90">SMK Trimulia</p>
+                        </div>
+                        <button onClick={() => navigate('/siswa/home')} className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded">Kembali</button>
+                    </div>
+                </div>
+            </div>
 
             {/* Main Content */}
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Time and Location Card */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <TimeCard title="Waktu Saat Ini" showDate={true} />
-                    <LocationCard />
+                    <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                        <div id="absen-map-pulang" className="w-full h-64 rounded-md overflow-hidden border" />
+                    </div>
                 </div>
 
                 {/* Absen Button */}
@@ -52,7 +137,7 @@ const AbsenPulang = () => {
                     </p>
 
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={handleAbsenWrapper}
                         className="bg-[#f0ca30] text-[#003366] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#e6b82a] transition duration-200 shadow-lg"
                     >
                         Absen Pulang
@@ -82,13 +167,14 @@ const AbsenPulang = () => {
                 </div>
             </main>
 
-            {/* Modal */}
-            <AbsensiModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                type="pulang"
-                onAbsen={handleAbsenWrapper}
-            />
+            {result && (
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+                    <div className={`rounded-xl p-6 border ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <div className={`text-lg font-semibold mb-2 ${result.success ? 'text-green-700' : 'text-red-700'}`}>{result.success ? 'Berhasil' : 'Gagal'}</div>
+                        <div className={`${result.success ? 'text-green-600' : 'text-red-600'}`}>{result.message}</div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

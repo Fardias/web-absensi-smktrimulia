@@ -1,18 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { generalAPI } from '../services/api';
 
 const AbsensiModal = ({ isOpen, onClose, type, onAbsen }) => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [location, setLocation] = useState(null);
+    const [pengaturan, setPengaturan] = useState(null);
+    const mapRef = useRef(null);
+    const markerSchoolRef = useRef(null);
+    const markerUserRef = useRef(null);
+    const circleRef = useRef(null);
     // const [distance, setDistance] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
-            // Reset state ketika modal dibuka
             setResult(null);
             setLoading(false);
-
-            // Ambil lokasi user
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
@@ -21,13 +24,109 @@ const AbsensiModal = ({ isOpen, onClose, type, onAbsen }) => {
                             longitude: position.coords.longitude
                         });
                     },
-                    (error) => {
-                        console.error('Error getting location:', error);
-                    }
+                    () => {}
                 );
             }
+            generalAPI.getPengaturan().then((res) => {
+                setPengaturan(res.data);
+            }).catch(() => {
+                setPengaturan(null);
+            }).finally(() => {
+                initMap();
+            });
         }
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+            markerSchoolRef.current = null;
+            markerUserRef.current = null;
+            circleRef.current = null;
+        };
     }, [isOpen]);
+
+    const injectLeaflet = () => {
+        return new Promise((resolve) => {
+            if (window.L) return resolve();
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            css.onload = check;
+            document.head.appendChild(css);
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = check;
+            document.body.appendChild(script);
+            let loaded = 0;
+            function check() {
+                loaded += 1;
+                if (loaded === 2) resolve();
+            }
+        });
+    };
+
+    const initMap = async () => {
+        await injectLeaflet();
+        const L = window.L;
+        const container = document.getElementById('absen-map');
+        if (!container || !L) return;
+        if (mapRef.current) {
+            mapRef.current.remove();
+            mapRef.current = null;
+        }
+        const center = pengaturan ? [pengaturan.latitude, pengaturan.longitude] : [-6.2, 106.8];
+        mapRef.current = L.map(container).setView(center, 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapRef.current);
+        if (pengaturan) {
+            if (markerSchoolRef.current) markerSchoolRef.current.remove();
+            markerSchoolRef.current = L.marker(center).addTo(mapRef.current);
+            if (circleRef.current) circleRef.current.remove();
+            circleRef.current = L.circle(center, {
+                radius: Number(pengaturan.radius_meter) || 0,
+                color: '#4A90E2',
+                weight: 2,
+                fillColor: '#4A90E2',
+                fillOpacity: 0.15,
+            }).addTo(mapRef.current);
+        }
+        if (location) {
+            const user = [location.latitude, location.longitude];
+            if (markerUserRef.current) markerUserRef.current.remove();
+            markerUserRef.current = L.marker(user).addTo(mapRef.current);
+        }
+        const bounds = [];
+        if (pengaturan) bounds.push(center);
+        if (location) bounds.push([location.latitude, location.longitude]);
+        if (bounds.length >= 2) {
+            mapRef.current.fitBounds(bounds, { padding: [20, 20] });
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen && mapRef.current) {
+            const L = window.L;
+            if (!L) return;
+            if (pengaturan) {
+                const center = [pengaturan.latitude, pengaturan.longitude];
+                if (markerSchoolRef.current) {
+                    markerSchoolRef.current.setLatLng(center);
+                }
+                if (circleRef.current) {
+                    circleRef.current.setLatLng(center);
+                    circleRef.current.setRadius(Number(pengaturan.radius_meter) || 0);
+                }
+            }
+            if (location) {
+                const user = [location.latitude, location.longitude];
+                if (!markerUserRef.current) {
+                    markerUserRef.current = L.marker(user).addTo(mapRef.current);
+                } else {
+                    markerUserRef.current.setLatLng(user);
+                }
+            }
+        }
+    }, [pengaturan, location, isOpen]);
 
     const handleAbsen = async () => {
         if (!location) {
@@ -122,15 +221,24 @@ const AbsensiModal = ({ isOpen, onClose, type, onAbsen }) => {
                                 {type === 'datang' ? ' Pastikan Anda berada di dalam lingkungan sekolah.' : ' Pastikan Anda berada di dalam lingkungan sekolah.'}
                             </p>
 
-                            {location && (
-                                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                                    <p className="text-sm text-gray-600 mb-2">Lokasi saat ini:</p>
-                                    <p className="text-xs text-gray-500">
-                                        Lat: {location.latitude.toFixed(6)}<br />
-                                        Lng: {location.longitude.toFixed(6)}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="bg-gray-50 rounded-lg p-2 mb-4">
+                                <div id="absen-map" className="w-full h-56 rounded-md overflow-hidden border" />
+                                {(pengaturan || location) && (
+                                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div>
+                                            <div className="font-semibold">Sekolah</div>
+                                            <div>Lat: {pengaturan ? Number(pengaturan.latitude).toFixed(6) : '-'}</div>
+                                            <div>Lng: {pengaturan ? Number(pengaturan.longitude).toFixed(6) : '-'}</div>
+                                            <div>Radius: {pengaturan ? Number(pengaturan.radius_meter) : '-'} m</div>
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold">Lokasi Anda</div>
+                                            <div>Lat: {location ? location.latitude.toFixed(6) : '-'}</div>
+                                            <div>Lng: {location ? location.longitude.toFixed(6) : '-'}</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="flex space-x-3">
                                 <button

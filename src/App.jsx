@@ -336,6 +336,8 @@ const AppRoutes = () => {
       {/* Default Redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
+      
+
       {/* 404 Not Found */}
       <Route
         path="*"

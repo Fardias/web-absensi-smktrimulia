@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Base URL untuk API
-const API_BASE_URL = 'http://localhost:8000/api';
+// const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://192.168.100.7:8000/api';
 
 // Buat instance axios
 const api = axios.create({
@@ -33,7 +34,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		if (error.response?.status === 401) {
+		const status = error.response?.status;
+		const url = error.config?.url || '';
+		const hasToken = !!localStorage.getItem('token');
+		if (status === 401 && hasToken && !url.endsWith('/login')) {
 			localStorage.removeItem('token');
 			localStorage.removeItem('user');
 			window.location.href = '/login';
@@ -64,10 +68,10 @@ export const absensiAPI = {
 
 // Admin API
 export const adminAPI = {
-  	rekap: (params) => api.get('/admin/rekap', { params }),
-  	getSettings: () => api.get('/admin/pengaturan'),
-  	updateSettings: (data) => api.put('/admin/pengaturan', data),
-  	updateMyProfile: (data) => api.put('/admin/profil', data),
+	rekap: (params) => api.get('/admin/rekap', { params }),
+	getSettings: () => api.get('/admin/pengaturan'),
+	updateSettings: (data) => api.put('/admin/pengaturan', data),
+	updateMyProfile: (data) => api.put('/admin/profil', data),
 	getJurusan: (params) => api.get('/admin/jurusan', { params }),
 	createJurusan: (data) => api.post('/admin/jurusan', data),
 	updateJurusan: (id, data) => api.put(`/admin/jurusan/${id}`, data),
@@ -126,6 +130,7 @@ export const generalAPI = {
 	siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),
 	siswaIzinHariIni: () => api.get('/izin-hariini'),
 	siswaSakitHariIni: () => api.get('/sakit-hariini'),
+	getPengaturan: () => api.get('/pengaturan'),
 };
 
 export const utilityAPI = {
