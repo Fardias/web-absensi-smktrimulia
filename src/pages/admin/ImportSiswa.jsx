@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CloudUpload, CheckCircle, XCircle } from "lucide-react";
-import { guruAPI } from "../../services/api";
+import { adminAPI } from "../../services/api";
 
 const ImportSiswa = () => {
     const [file, setFile] = useState(null);
@@ -32,7 +32,7 @@ const ImportSiswa = () => {
             setMessage("");
             setSuccess(false);
 
-            const response = await guruAPI.importSiswa(formData, (event) => {
+            const response = await adminAPI.importSiswa(formData, (event) => {
                 const percent = Math.round((event.loaded * 100) / event.total);
                 setProgress(percent);
             });

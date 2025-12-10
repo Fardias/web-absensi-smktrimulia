@@ -15,11 +15,11 @@ import AbsenDatang from "./pages/siswa/AbsenDatang";
 import AbsenPulang from "./pages/siswa/AbsenPulang";
 import RiwayatAbsensi from "./pages/siswa/RiwayatAbsensi";
 import IzinSakit from "./pages/siswa/IzinSakit";
-import ImportSiswa from "./pages/gurket/ImportSiswa";
+import ImportSiswa from "./pages/admin/ImportSiswa";
 import SiswaIzinSakit from "./pages/gurket/SiswaIzinSakit";
 import LihatAbsensi from "./pages/gurket/LihatAbsensi";
 import { LihatAbsensiHariIni } from "./pages/gurket/LihatAbsensiHariIni";
-import KelolaDataSiswa from "./pages/gurket/KelolaDataSiswa";
+import KelolaDataSiswa from "./pages/admin/KelolaDataSiswa";
 import RencanaAbsensi from "./pages/gurket/RencanaAbsensi";
 import AdminRekap from "./pages/admin/Rekap";
 import AdminPengaturan from "./pages/admin/Pengaturan";
@@ -127,7 +127,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/import-siswa"
         element={
-          <ProtectedRoute allowedRoles={["gurket"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <ImportSiswa />
             </Layout>
@@ -171,7 +171,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/kelola-siswa"
         element={
-          <ProtectedRoute allowedRoles={["gurket"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <KelolaDataSiswa />
             </Layout>

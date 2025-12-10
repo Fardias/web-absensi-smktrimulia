@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Base URL untuk API
-// const API_BASE_URL = 'http://localhost:8000/api';
-const API_BASE_URL = 'http://192.168.100.7:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api';
+// const API_BASE_URL = 'http://192.168.100.7:8000/api';
 
 // Buat instance axios
 const api = axios.create({
@@ -103,24 +103,31 @@ export const adminAPI = {
 	createJadwalPiket: (data) => api.post('/admin/jadwal-piket', data),
 	updateJadwalPiket: (id, data) => api.put(`/admin/jadwal-piket/${id}`, data),
 	deleteJadwalPiket: (id) => api.delete(`/admin/jadwal-piket/${id}`),
+
+
+	importSiswa: (formData, onUploadProgress) =>
+		api.post('/admin/import-siswa', formData, { onUploadProgress }),
+
+
+	getDataSiswa: () => api.get('/admin/kelola-datasiswa'),
+	createSiswa: (data) => api.post('/admin/kelola-datasiswa/create', data),
+	updateSiswa: (siswaId, data) => api.post('/admin/kelola-datasiswa/update', { siswa_id: siswaId, ...data }),
 };
 
 // Guru API
 export const guruAPI = {
 	laporan: () => api.get('/guru/laporan'),
 	walasInfo: () => api.get('/walas/info'),
-	importSiswa: (formData, onUploadProgress) =>
-		api.post('/import-siswa', formData, { onUploadProgress }),
+
 	aktifitasTerbaru: () => api.get('/aktivitas-terbaru'),
 	getSiswaIzinSakit: () => api.get('/absensi/siswaIzinSakit'),
 	updateAbsensiStatus: (data) => api.post(`/absensi/updateStatus`, data),
 	lihatAbsensiSiswa: (params) => api.get('/absensi/lihat', { params }),
 	lihatAbsensiHariIni: () => api.get('/absensi/hari-ini'),
-	getDataSiswa: () => api.get('/kelola-datasiswa'),
-	createSiswa: (data) => api.post('/kelola-datasiswa/create', data),
-	updateSiswa: (siswaId, data) => api.post('/kelola-datasiswa/update', { siswa_id: siswaId, ...data }),
+
 	getRencanaAbsensi: () => api.get('/absensi/rencana'),
 	createRencanaAbsensi: (data) => api.post('/absensi/rencana', data),
+	updateRencanaStatusHari: (data) => api.post('/absensi/rencana/update-status', data),
 };
 
 // Gabungan Admin dan Guru API

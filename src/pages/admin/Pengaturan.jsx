@@ -71,20 +71,37 @@ export default function AdminPengaturan() {
       css.rel = "stylesheet";
       css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
       css.onload = checkDone;
+      css.onerror = () => {
+        setNotification({ type: "error", message: "Gagal memuat stylesheet Leaflet." });
+      };
       document.head.appendChild(css);
 
       const script = document.createElement("script");
       script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
       script.onload = checkDone;
+      script.onerror = () => {
+        setNotification({ type: "error", message: "Gagal memuat script Leaflet." });
+        setMapOverlayVisible(false);
+      };
       document.body.appendChild(script);
 
       let loaded = 0;
+      let attempts = 0;
       function checkDone() {
         loaded++;
         if (loaded === 1) setMapProgress((p) => Math.max(p, 50));
         if (loaded === 2) {
-          setMapProgress((p) => Math.max(p, 70));
-          resolve();
+          const iv = setInterval(() => {
+            attempts++;
+            if (window.L) {
+              clearInterval(iv);
+              setMapProgress((p) => Math.max(p, 70));
+              resolve();
+            } else if (attempts > 60) {
+              clearInterval(iv);
+              resolve();
+            }
+          }, 50);
         }
       }
     });
@@ -107,7 +124,9 @@ export default function AdminPengaturan() {
       mapRef.current.remove();
       mapRef.current = null;
     }
+    tileStatsRef.current = { started: 0, loaded: 0 };
     mapRef.current = L.map(container).setView([form.latitude, form.longitude], 17);
+    initDoneRef.current = true;
     setMapProgress((p) => Math.max(p, 80));
     const tl = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 });
     tl.on("tileloadstart", () => {
@@ -133,8 +152,15 @@ export default function AdminPengaturan() {
       const ratio = loaded / Math.max(started, 1);
       const pct = 80 + Math.floor(ratio * 19);
       setMapProgress((p) => Math.max(p, Math.min(99, pct)));
+      setTimeout(() => setMapOverlayVisible(false), 800);
     });
     tl.addTo(mapRef.current);
+    setTimeout(() => {
+      if (mapOverlayVisible) {
+        setMapProgress((p) => Math.max(p, 95));
+        setMapOverlayVisible(false);
+      }
+    }, 5000);
     markerRef.current = L.marker([form.latitude, form.longitude], { draggable: true }).addTo(mapRef.current);
     markerRef.current.on("dragend", (e) => {
       const { lat, lng } = e.target.getLatLng();
@@ -171,7 +197,6 @@ export default function AdminPengaturan() {
   useEffect(() => {
     if (!loading && !initDoneRef.current) {
       initMap();
-      initDoneRef.current = true;
     }
   }, [loading]);
 
@@ -314,9 +339,9 @@ export default function AdminPengaturan() {
                 <input type="number" min="0" name="toleransi_telat" value={form.toleransi_telat} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
               </div>
 
-              <div className="flex gap-2 mt-2">
-                <button disabled={loading} onClick={saveSettings} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">Simpan</button>
-                <button disabled={loading} onClick={() => loadSettings(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Reset dari server</button>
+              <div className="mt-2 ">
+                <button disabled={loading} onClick={saveSettings} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 w-full">Simpan</button>
+                {/* <button disabled={loading} onClick={() => loadSettings(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">Reset dari server</button> */}
               </div>
             </div>
           </div>

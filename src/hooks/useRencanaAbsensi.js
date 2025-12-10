@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { guruAPI, utilityAPI } from "../services/api";
+import { guruAPI } from "../services/api";
 
 export const useRencanaAbsensi = () => {
   const [data, setData] = useState([]);
-  const [kelasList, setKelasList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -11,10 +10,7 @@ export const useRencanaAbsensi = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [resRencana, resKelas] = await Promise.all([
-        guruAPI.getRencanaAbsensi(),
-        utilityAPI.listKelas(),
-      ]);
+      const resRencana = await guruAPI.getRencanaAbsensi();
 
       if (resRencana.data.responseStatus) {
         setData(resRencana.data.responseData);
@@ -22,9 +18,6 @@ export const useRencanaAbsensi = () => {
         setError(resRencana.data.responseMessage || "Gagal memuat data");
       }
 
-      if (resKelas.data.responseStatus) {
-        setKelasList(resKelas.data.responseData);
-      }
     } catch (err) {
       setError(err.message || "Terjadi kesalahan saat memuat data");
     } finally {
@@ -43,7 +36,7 @@ export const useRencanaAbsensi = () => {
 
   return {
     data,
-    kelasList,
+
     loading,
     error,
     refreshData,
@@ -53,9 +46,8 @@ export const useRencanaAbsensi = () => {
 export const useRencanaAbsensiForm = (refreshData) => {
   const [formData, setFormData] = useState({
     tanggal: "",
-    status_hari: "",
     keterangan: "",
-    kelas_id: "",
+    mode: "single",
   });
 
   const handleChange = useCallback((e) => {
@@ -66,9 +58,8 @@ export const useRencanaAbsensiForm = (refreshData) => {
   const resetForm = useCallback(() => {
     setFormData({
       tanggal: "",
-      status_hari: "",
       keterangan: "",
-      kelas_id: "",
+      mode: "single",
     });
   }, []);
 
@@ -76,9 +67,14 @@ export const useRencanaAbsensiForm = (refreshData) => {
     async (e) => {
       e.preventDefault();
       try {
-        const res = await guruAPI.createRencanaAbsensi(formData);
+        const payload = {
+          tanggal: formData.tanggal,
+          keterangan: formData.keterangan,
+          mode: formData.mode,
+        };
+        const res = await guruAPI.createRencanaAbsensi(payload);
         if (res.data.responseStatus) {
-          await refreshData(); 
+          await refreshData();
           resetForm();
           return { success: true, message: "Rencana absensi berhasil ditambahkan!" };
         } else {

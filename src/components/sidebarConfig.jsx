@@ -13,7 +13,9 @@ export const createSidebarItems = (handleLogout, role) => {
           { key: "kelas", label: "Kelas", href: "/dashboard/kelas" },
           { key: "wali-kelas", label: "Wali Kelas", href: "/dashboard/wali-kelas" },
           { key: "guru-piket", label: "Guru Piket", href: "/dashboard/guru-piket" }
-          ,{ key: "jadwal-piket", label: "Jadwal Piket", href: "/dashboard/jadwal-piket" }
+          , { key: "jadwal-piket", label: "Jadwal Piket", href: "/dashboard/jadwal-piket" },
+          { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
+          { key: "kelola-siswa", label: "Kelola Data Siswa", href: "/dashboard/kelola-siswa" },
         ],
       },
       { key: "pengaturan", label: "Pengaturan Sistem", href: "/dashboard/pengaturan", icon: "SettingsIcon" },
@@ -46,15 +48,14 @@ export const createSidebarItems = (handleLogout, role) => {
         { key: "rencana-absensi", label: "Rencana Absensi", href: "/dashboard/rencana-absensi" }
       ],
     },
-    {
-      key: "siswa",
-      label: "Siswa",
-      icon: "UsersIcon",
-      children: [
-        { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
-        { key: "kelola-siswa", label: "Kelola Data Siswa", href: "/dashboard/kelola-siswa" },
-      ],
-    },
+    // {
+    //   key: "siswa",
+    //   label: "Siswa",
+    //   icon: "UsersIcon",
+    //   children: [
+
+    //   ],
+    // },
     { key: "profil", label: "Profil", href: "/profil", icon: "UserIcon" },
     { key: "logout", label: "Logout", href: "#", icon: "LogoutIcon", onClick: handleLogout },
   ];

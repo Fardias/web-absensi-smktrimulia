@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
-import { guruAPI, utilityAPI } from "../../services/api";
+import { adminAPI, utilityAPI } from "../../services/api";
 import { Loading } from "../../components";
 import EditSiswaForm from "../../components/EditSiswaForm";
 
@@ -24,7 +24,7 @@ const KelolaDataSiswa = () => {
   useEffect(() => {
     const fetchDataSiswa = async () => {
       try {
-        const response = await guruAPI.getDataSiswa();
+        const response = await adminAPI.getDataSiswa();
         if (response.status === 200 && response.data.responseStatus) {
           setSiswaList(response.data.responseData);
         } else {
@@ -72,9 +72,9 @@ const KelolaDataSiswa = () => {
 
   const handleSave = async () => {
     try {
-      const response = await guruAPI.updateSiswa(editingSiswa, formData);
+      const response = await adminAPI.updateSiswa(editingSiswa, formData);
       if (response.status === 200 && response.data.responseStatus) {
-        const updated = await guruAPI.getDataSiswa();
+        const updated = await adminAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
         setEditingSiswa(null);
         Swal.fire({ icon: "success", title: "Berhasil", text: "Data siswa berhasil diperbarui" });
@@ -145,9 +145,9 @@ const KelolaDataSiswa = () => {
   const createSiswa = async () => {
     try {
       const payload = { ...newSiswa, kelas_id: Number(newSiswa.kelas_id) };
-      const res = await guruAPI.createSiswa(payload);
+      const res = await adminAPI.createSiswa(payload);
       if (res.status === 200 && res.data.responseStatus) {
-        const updated = await guruAPI.getDataSiswa();
+        const updated = await adminAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
         setShowCreate(false);
         setNewSiswa({ nis: "", nama: "", jenkel: "L", kelas_id: "" });

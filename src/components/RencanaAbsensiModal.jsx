@@ -1,8 +1,24 @@
 import React from "react";
 
-const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit, kelasList }) => {
+const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit }) => {
   if (!show) return null;
 
+  const today = new Date().toISOString().split("T")[0];
+  const formatRangeNote = () => {
+    if (!formData.tanggal) return "";
+    const start = new Date(formData.tanggal + "T00:00:00");
+    const end = new Date(start);
+    end.setDate(start.getDate() + 7);
+    const months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const startDay = start.getDate();
+    const endDay = end.getDate();
+    const monthName = months[end.getMonth()];
+    const year = end.getFullYear();
+    return `Rencana absensi akan dibuat untuk tanggal ${startDay}–${endDay} ${monthName} ${year}.`;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -21,47 +37,29 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit, kela
               value={formData.tanggal}
               onChange={onChange}
               required
+              min={today}
               className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
 
+
+
           <div>
             <label className="block text-sm font-medium mb-1">
-              Status Hari
+              Buat selama 1 minggu ke depan
             </label>
             <select
-              name="status_hari"
-              value={formData.status_hari}
+              name="mode"
+              value={formData.mode}
               onChange={onChange}
-              required
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
             >
-              <option value="">-- Pilih Status Hari --</option>
-              <option value="normal">Normal</option>
-              <option value="libur">Libur</option>
-              <option value="acara khusus">Acara Khusus</option>
+              <option value="single">Tidak</option>
+              <option value="week">Ya</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Kelas</label>
-            <select
-              name="kelas_id"
-              value={formData.kelas_id}
-              onChange={onChange}
-              required
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">-- Pilih Kelas --</option>
-              {kelasList.map((k) => (
-                <option key={k.kelas_id} value={k.kelas_id}>
-                  {`${k.tingkat}${k.paralel ? ` ${k.paralel}` : ""} - ${
-                    k.jurusan
-                  } (${k.thn_ajaran})`}
-                </option>
-              ))}
-            </select>
-          </div>
+
 
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -74,6 +72,12 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit, kela
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
             ></textarea>
           </div>
+
+          {formData.mode === "week" && formData.tanggal && (
+            <div className="text-sm text-gray-700 bg-gray-50 border rounded-lg px-3 py-2">
+              {formatRangeNote()}
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3 pt-3">
             <button

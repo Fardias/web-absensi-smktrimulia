@@ -1,20 +1,18 @@
 import React, { useState } from "react";
-import { 
-  Loading, 
-  Error, 
-  Notification, 
-  RencanaAbsensiModal, 
-  RencanaAbsensiList 
+import {
+  Loading,
+  Error,
+  Notification,
+  RencanaAbsensiModal,
+  RencanaAbsensiList
 } from "../../components";
 import { useRencanaAbsensi, useRencanaAbsensiForm } from "../../hooks";
 
 const RencanaAbsensi = () => {
-  const { data, kelasList, loading, error } = useRencanaAbsensi();
+  const { data, loading, error, refreshData } = useRencanaAbsensi();
   const [showModal, setShowModal] = useState(false);
   const [notification, setNotification] = useState(null);
-  const { formData, handleChange, handleSubmit, resetForm } = useRencanaAbsensiForm(async () => {
-    // Refresh data setelah submit berhasil akan ditangani di handleSubmit
-  });
+  const { formData, handleChange, handleSubmit, resetForm } = useRencanaAbsensiForm(refreshData);
 
   const showAlert = (type, message) => {
     setNotification({ type, message });
@@ -27,7 +25,6 @@ const RencanaAbsensi = () => {
       showAlert("success", result.message);
       setShowModal(false);
       resetForm();
-      window.location.reload();
     } else {
       showAlert("error", result.message);
     }
@@ -37,7 +34,7 @@ const RencanaAbsensi = () => {
   if (error) return <Error message={error} />;
 
   return (
-    <div className="max-w-6xl p-6 relative">
+    <div className="p-6 relative ">
       <Notification notification={notification} />
 
       <div className="flex items-center justify-between mb-8">
@@ -52,7 +49,7 @@ const RencanaAbsensi = () => {
         </button>
       </div>
 
-      <RencanaAbsensiList data={data} />
+      <RencanaAbsensiList data={data} onUpdated={refreshData} />
 
       <RencanaAbsensiModal
         show={showModal}
@@ -60,7 +57,6 @@ const RencanaAbsensi = () => {
         formData={formData}
         onChange={handleChange}
         onSubmit={handleFormSubmit}
-        kelasList={kelasList}
       />
 
       {/* Animations */}
