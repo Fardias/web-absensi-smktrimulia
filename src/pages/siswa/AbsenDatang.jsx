@@ -113,7 +113,7 @@ const AbsenDatang = () => {
                 </div>
             </div>
 
-            {/* Main Content */}
+          
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <TimeCard title="Waktu Saat Ini" showDate={true} />
@@ -122,7 +122,7 @@ const AbsenDatang = () => {
                     </div>
                 </div>
 
-                {/* Absen Button */}
+                
                 <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center">
                     <div className="w-24 h-24 bg-[#003366] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg className="w-12 h-12 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +146,7 @@ const AbsenDatang = () => {
                     </button>
                 </div>
 
-                {/* Info Card */}
+                
                 <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">

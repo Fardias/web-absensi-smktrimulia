@@ -168,7 +168,6 @@ const SiswaHome = () => {
           </button>
         </div>
 
-        {/* Status Absensi Hari Ini */}
         <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
           <RiwayatAbsenHarian />
         </div>
