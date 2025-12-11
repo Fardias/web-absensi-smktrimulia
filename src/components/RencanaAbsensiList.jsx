@@ -95,6 +95,7 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-blue-700">
+              {/* tambah */}
               {formatDateFull(tanggal)} <span className="ml-2 text-sm text-gray-600">Tahun ajaran: {formatAjaran(records[0]?.thn_ajaran)}</span>
             </h2>
 
