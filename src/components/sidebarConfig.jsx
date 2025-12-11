@@ -16,6 +16,7 @@ export const createSidebarItems = (handleLogout, role) => {
           , { key: "jadwal-piket", label: "Jadwal Piket", href: "/dashboard/jadwal-piket" },
           { key: "import-siswa", label: "Import Data Siswa", href: "/dashboard/import-siswa" },
           { key: "kelola-siswa", label: "Kelola Data Siswa", href: "/dashboard/kelola-siswa" },
+          { key: "riwayat-kelas", label: "Riwayat Kelas", href: "/dashboard/riwayat-kelas" },
         ],
       },
       { key: "pengaturan", label: "Pengaturan Sistem", href: "/dashboard/pengaturan", icon: "SettingsIcon" },

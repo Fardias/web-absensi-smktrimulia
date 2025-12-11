@@ -30,6 +30,7 @@ import Kelas from "./pages/admin/Kelas";
 import WaliKelas from "./pages/admin/WaliKelas";
 import GuruPiket from "./pages/admin/GuruPiket";
 import JadwalPiket from "./pages/admin/JadwalPiket";
+import RiwayatKelas from "./pages/admin/RiwayatKelas";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -180,6 +181,17 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/dashboard/riwayat-kelas"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Layout>
+              <RiwayatKelas />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/dashboard/rencana-absensi"
         element={
           <ProtectedRoute allowedRoles={["gurket"]}>
@@ -194,7 +206,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/rekap"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <AdminRekap />
             </Layout>
@@ -215,7 +227,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/pengaturan"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <AdminPengaturan />
             </Layout>
@@ -225,7 +237,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/jurusan"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <Jurusan />
             </Layout>
@@ -235,7 +247,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/kelas"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <Kelas />
             </Layout>
@@ -246,7 +258,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/wali-kelas"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <WaliKelas />
             </Layout>
@@ -257,7 +269,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/guru-piket"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <GuruPiket />
             </Layout>
@@ -268,7 +280,7 @@ const AppRoutes = () => {
       <Route
         path="/dashboard/jadwal-piket"
         element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+          <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
               <JadwalPiket />
             </Layout>
@@ -293,7 +305,7 @@ const AppRoutes = () => {
         path="/siswa/home"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-              <SiswaHome />
+            <SiswaHome />
           </ProtectedRoute>
         }
       />
@@ -301,7 +313,7 @@ const AppRoutes = () => {
         path="/siswa/absen-datang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-              <AbsenDatang />
+            <AbsenDatang />
           </ProtectedRoute>
         }
       />
@@ -309,7 +321,7 @@ const AppRoutes = () => {
         path="/siswa/absen-pulang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-              <AbsenPulang />
+            <AbsenPulang />
           </ProtectedRoute>
         }
       />
@@ -317,7 +329,7 @@ const AppRoutes = () => {
         path="/siswa/riwayat"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-              <RiwayatAbsensi />
+            <RiwayatAbsensi />
           </ProtectedRoute>
         }
       />
@@ -325,7 +337,7 @@ const AppRoutes = () => {
         path="/siswa/izin"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-              <IzinSakit />
+            <IzinSakit />
           </ProtectedRoute>
         }
       />
@@ -336,7 +348,7 @@ const AppRoutes = () => {
       {/* Default Redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      
+
 
       {/* 404 Not Found */}
       <Route
