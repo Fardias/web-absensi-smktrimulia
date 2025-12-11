@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => {
+const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel, jurusanList = [] }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -49,42 +49,25 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel }) => 
           </div>
 
           {/* Tingkat */}
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">Tingkat</label>
-            <select
-              name="tingkat"
-              value={formData.tingkat || ""}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            >
-              <option value="">Pilih Tingkat</option>
-              <option value="10">X</option>
-              <option value="11">XI</option>
-              <option value="12">XII</option>
-            </select>
-          </div>
+
 
           {/* Jurusan */}
           <div className="md:col-span-2 flex flex-col">
             <label className="text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
-            <input
+            <select
               name="jurusan"
               value={formData.jurusan || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            />
+            >
+              <option value="">Pilih Jurusan</option>
+              {jurusanList.map((j) => (
+                <option key={String(j.jurusan_id || j)} value={typeof j === 'string' ? j : j.nama_jurusan}>{typeof j === 'string' ? j : j.nama_jurusan}</option>
+              ))}
+            </select>
           </div>
 
-          {/* Username */}
-          <div className="md:col-span-2 flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">Username</label>
-            <input
-              name="username"
-              value={formData.username || ""}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            />
-          </div>
+
 
           {/* Password */}
           <div className="md:col-span-2 flex flex-col">

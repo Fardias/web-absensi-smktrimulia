@@ -6,7 +6,7 @@ const STATUS = { HADIR: "hadir", TERLAMBAT: "terlambat", IZIN: "izin", SAKIT: "s
 
 const formatDateInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
 };
 
 const startOfWeek = (d) => {
@@ -34,6 +34,7 @@ export default function AdminRekap() {
   const [baseDate, setBaseDate] = useState(() => new Date());
   const [rekap, setRekap] = useState([]);
   const [kelasList, setKelasList] = useState([]);
+  const [kelasFilter, setKelasFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,7 +67,8 @@ export default function AdminRekap() {
     try {
       const res = await utilityAPI.listKelas();
       const data = res?.data?.responseData || [];
-      setKelasList(data);
+      const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan} ${k.paralel || ""}`.trim() }));
+      setKelasList(list);
     } catch (e) {
       // Fallback: tetap lanjut tanpa list kelas
       setKelasList([]);
@@ -135,9 +137,17 @@ export default function AdminRekap() {
   useEffect(() => { fetchKelas(); }, []);
   useEffect(() => { fetchRekap(); }, [range]);
 
+  const rekapDisplay = useMemo(() => {
+    if (!kelasFilter) return rekap;
+    return rekap.filter((r) => {
+      const name = r.kelas_nama || r.kelas || "";
+      return name === kelasFilter;
+    });
+  }, [rekap, kelasFilter]);
+
   const exportCSV = () => {
     const headers = ["Kelas", "Hadir", "Terlambat", "Izin", "Sakit", "Alfa"];
-    const rows = rekap.map((r) => [
+    const rows = rekapDisplay.map((r) => [
       r.kelas_nama || r.kelas || "-",
       r.hadir || 0,
       r.terlambat || 0,
@@ -150,7 +160,7 @@ export default function AdminRekap() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rekap_${period}_${range.tanggal || `${range.start}_${range.end}`}.csv`;
+    a.download = `rekap_${period}_${range.tanggal || `${range.start}_${range.end}`}${kelasFilter ? `_${kelasFilter.replace(/\s+/g, '-')}` : ''}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -191,6 +201,17 @@ export default function AdminRekap() {
               className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
             />
 
+            <select
+              value={kelasFilter}
+              onChange={(e) => setKelasFilter(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="">Semua Kelas</option>
+              {kelasList.map((k) => (
+                <option key={k.id} value={k.label}>{k.label}</option>
+              ))}
+            </select>
+
             <div className="ml-auto flex gap-2">
               <button onClick={exportCSV} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Export Excel</button>
               <button onClick={printPDF} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Export PDF</button>
@@ -218,12 +239,12 @@ export default function AdminRekap() {
                 </tr>
               </thead>
               <tbody className="table-tbody">
-                {rekap.length === 0 ? (
+                {rekapDisplay.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="table-empty">Tidak ada data rekap.</td>
                   </tr>
                 ) : (
-                  rekap.map((row, idx) => (
+                  rekapDisplay.map((row, idx) => (
                     <tr key={idx} className="table-tr hover:bg-gray-50">
                       <td className="table-td">{row.kelas_nama || row.kelas || '-'}</td>
                       <td className="table-td">{row.hadir || 0}</td>

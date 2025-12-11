@@ -60,6 +60,18 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
     });
   };
 
+  const formatAjaran = (val) => {
+    if (!val) return "";
+    const s = String(val);
+    if (/^\d{8}$/.test(s)) {
+      return `${s.slice(0, 4)}/${s.slice(4, 8)}`;
+    }
+    if (/^\d{4}\/\d{4}$/.test(s)) {
+      return s;
+    }
+    return s;
+  };
+
   const summarize = (records) => {
     let normal = 0, libur = 0, lainnya = 0;
     for (const r of records) {
@@ -83,7 +95,7 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-blue-700">
-              {formatDateFull(tanggal)}
+              {formatDateFull(tanggal)} <span className="ml-2 text-sm text-gray-600">Tahun ajaran: {formatAjaran(records[0]?.thn_ajaran)}</span>
             </h2>
 
             <button

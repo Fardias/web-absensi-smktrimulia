@@ -14,7 +14,6 @@ const Kelas = () => {
 
   const [tingkat, setTingkat] = useState('X');
   const [paralel, setParalel] = useState('');
-  const [thnAjaran, setThnAjaran] = useState('');
   const [jurusanId, setJurusanId] = useState('');
   const [walasId, setWalasId] = useState('');
 
@@ -39,11 +38,6 @@ const Kelas = () => {
   }
 
   useEffect(() => {
-    // default tahun ajaran jika kosong
-    const now = new Date();
-    const y = now.getFullYear();
-    const ajar = `${y}/${y+1}`;
-    setThnAjaran(ajar);
     fetchAll();
   }, []);
 
@@ -63,7 +57,6 @@ const Kelas = () => {
     setEditing(null);
     setTingkat('X');
     setParalel('');
-    // keep thnAjaran default
     setJurusanId(jurusan[0]?.jurusan_id ? String(jurusan[0].jurusan_id) : '');
     setWalasId(walas[0]?.walas_id ? String(walas[0].walas_id) : '');
     setShowModal(true);
@@ -73,7 +66,6 @@ const Kelas = () => {
     setEditing(item);
     setTingkat(item?.tingkat || 'X');
     setParalel(item?.paralel || '');
-    setThnAjaran(item?.thn_ajaran || '');
     setJurusanId(String(item?.jurusan_id || item?.jurusan?.jurusan_id || ''));
     setWalasId(String(item?.walas_id || item?.walas?.walas_id || ''));
     setShowModal(true);
@@ -86,15 +78,8 @@ const Kelas = () => {
 
   async function submitForm(e) {
     e.preventDefault();
-    const thnRegex = /^\d{4}\/\d{4}$/;
     const jid = parseInt(jurusanId, 10);
     const wid = parseInt(walasId, 10);
-    if (!thnRegex.test(thnAjaran)) {
-      const msg = "Format tahun ajaran harus YYYY/YYYY";
-      setError(msg);
-      Swal.fire({ icon: "error", title: "Gagal", text: msg });
-      return;
-    }
     if (!Number.isInteger(jid) || !jurusan.some((j) => j.jurusan_id === jid)) {
       const msg = "Jurusan wajib dipilih";
       setError(msg);
@@ -110,7 +95,6 @@ const Kelas = () => {
     const payload = {
       tingkat,
       paralel: paralel ? paralel.trim().toUpperCase() : null,
-      thn_ajaran: thnAjaran,
       jurusan_id: jid,
       walas_id: wid,
     };
@@ -174,7 +158,6 @@ const Kelas = () => {
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">No</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Kelas</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Tahun Ajaran</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Wali Kelas</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Action</th>
             </tr>
@@ -184,7 +167,6 @@ const Kelas = () => {
               <tr key={k.kelas_id}>
                 <td className="px-4 py-2">{idx + 1}</td>
                 <td className="px-4 py-2">{k.tingkat} {k.jurusan?.nama_jurusan} {k.paralel}</td>
-                <td className="px-4 py-2">{k.thn_ajaran}</td>
                 <td className="px-4 py-2">{k.walas?.nama || '-'}</td>
                 <td className="px-4 py-2 space-x-2">
                   <button onClick={() => openEdit(k)} className="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
@@ -194,7 +176,7 @@ const Kelas = () => {
             ))}
             {list.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">Belum ada kelas</td>
+                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">Belum ada kelas</td>
               </tr>
             )}
           </tbody>
@@ -218,10 +200,6 @@ const Kelas = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Paralel</label>
                   <input type="text" maxLength={1} value={paralel} onChange={(e)=>setParalel(e.target.value.toUpperCase())} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="1" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran</label>
-                  <input type="text" value={thnAjaran} onChange={(e)=>setThnAjaran(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="2024/2025" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>

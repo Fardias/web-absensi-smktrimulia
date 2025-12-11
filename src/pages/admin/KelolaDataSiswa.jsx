@@ -18,6 +18,7 @@ const KelolaDataSiswa = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
   const [kelasList, setKelasList] = useState([]);
+  const [jurusanList, setJurusanList] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [newSiswa, setNewSiswa] = useState({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
 
@@ -53,15 +54,26 @@ const KelolaDataSiswa = () => {
     fetchKelas();
   }, []);
 
+  useEffect(() => {
+    const fetchJurusan = async () => {
+      try {
+        const res = await adminAPI.getJurusan();
+        const arr = res?.data?.jurusan ?? [];
+        setJurusanList(Array.isArray(arr) ? arr : []);
+      } catch {
+        setJurusanList([]);
+      }
+    };
+    fetchJurusan();
+  }, []);
+
   const handleEdit = (siswa) => {
     setEditingSiswa(siswa.siswa_id);
     setFormData({
       nis: siswa.nis,
       nama: siswa.nama,
       jenkel: siswa.jenkel,
-      tingkat: siswa.kelas?.tingkat || "",
       jurusan: siswa.kelas?.jurusan?.nama_jurusan || "",
-      username: siswa.akun?.username || "",
     });
   };
 
@@ -72,7 +84,16 @@ const KelolaDataSiswa = () => {
 
   const handleSave = async () => {
     try {
-      const response = await adminAPI.updateSiswa(editingSiswa, formData);
+      const payload = {
+        nis: formData.nis,
+        nama: formData.nama,
+        jenkel: formData.jenkel,
+        username: formData.nis,
+      };
+      if (formData.password && String(formData.password).length > 0) {
+        payload.password = formData.password;
+      }
+      const response = await adminAPI.updateSiswa(editingSiswa, payload);
       if (response.status === 200 && response.data.responseStatus) {
         const updated = await adminAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
@@ -230,6 +251,7 @@ const KelolaDataSiswa = () => {
           handleChange={handleChange}
           handleSave={handleSave}
           handleCancel={handleCancel}
+          jurusanList={jurusanList}
         />
       )}
 

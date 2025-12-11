@@ -8,7 +8,7 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit }) =>
     if (!formData.tanggal) return "";
     const start = new Date(formData.tanggal + "T00:00:00");
     const end = new Date(start);
-    end.setDate(start.getDate() + 7);
+    end.setDate(start.getDate() + 29);
     const months = [
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
@@ -46,7 +46,7 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit }) =>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Buat selama 1 minggu ke depan
+              Buat selama 30 hari ke depan
             </label>
             <select
               name="mode"
