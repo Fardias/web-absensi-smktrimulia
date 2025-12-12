@@ -11,3 +11,6 @@
   .table-td { @apply px-4 py-2 text-sm text-gray-900; }
   .table-empty { @apply px-4 py-6 text-center text-gray-500 text-sm; }
 }
+
+/* Pastikan SweetAlert2 muncul di atas modal aplikasi */
+.swal2-container { z-index: 9999 !important; }

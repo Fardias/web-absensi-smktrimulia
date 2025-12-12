@@ -166,15 +166,45 @@ const KelolaDataSiswa = () => {
   };
 
   const createSiswa = async () => {
+    // Validasi awal agar SweetAlert muncul ketika input tidak sesuai
+    const nis = String(newSiswa.nis || "").trim();
+    const nama = String(newSiswa.nama || "").trim();
+    const kelasIdStr = String(newSiswa.kelas_id || "").trim();
+    if (!nis) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "NIS wajib diisi" });
+      return;
+    }
+    if (!/^\d+$/.test(nis)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "NIS hanya boleh mengandung angka" });
+      return;
+    }
+    if (!nama) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Nama wajib diisi" });
+      return;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(nama)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Nama tidak boleh mengandung angka dan simbol" });
+      return;
+    }
+    if (!kelasIdStr) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Kelas wajib dipilih" });
+      return;
+    }
+    const kelasIdNum = Number(kelasIdStr);
+    if (Number.isNaN(kelasIdNum)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Kelas tidak valid" });
+      return;
+    }
+
     try {
-      const payload = { ...newSiswa, kelas_id: Number(newSiswa.kelas_id) };
+      const payload = { ...newSiswa, nis, nama, kelas_id: kelasIdNum };
       const res = await adminAPI.createSiswa(payload);
       if (res.status === 200 && res.data.responseStatus) {
         const updated = await adminAPI.getDataSiswa();
         setSiswaList(updated.data.responseData);
         setShowCreate(false);
         setNewSiswa({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
-        Swal.fire({ icon: "success", title: "Berhasil", text: "Siswa berhasil ditambahkan. Password default: TRI12345" });
+        Swal.fire({ icon: "success", title: "Berhasil", text: "Siswa berhasil ditambahkan." });
       } else {
         Swal.fire({ icon: "error", title: "Gagal", text: res.data.responseMessage || "Gagal menambah siswa" });
       }
@@ -240,7 +270,7 @@ const KelolaDataSiswa = () => {
               </select>
               <div className="flex items-center justify-end gap-2 mt-2">
                 <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Batal</button>
-                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-green-700">Simpan</button>
+                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:opacity-85">Simpan</button>
               </div>
             </div>
           </div>
@@ -326,61 +356,61 @@ const KelolaDataSiswa = () => {
 
       {paginatedList.length > 0 ? (
         <div className="overflow-x-auto">
-        <table className="table-base">
-          <thead className="table-thead">
-            <tr>
-              <th className="table-th">NIS</th>
-              <th className="table-th">Nama</th>
-              <th className="table-th">Jenis Kelamin</th>
-              <th className="table-th">Tingkat</th>
-              <th className="table-th">Jurusan</th>
-              <th className="table-th">Paralel</th>
-              <th className="table-th">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="table-tbody">
-            {paginatedList.map((siswa) => (
-              <tr key={siswa.siswa_id} className="table-tr hover:bg-gray-50">
-                <td className="table-td">{siswa.nis}</td>
-                <td className="table-td">{siswa.nama}</td>
-                <td className="table-td">{siswa.jenkel}</td>
-                <td className="table-td">{siswa.kelas?.tingkat || "-"}</td>
-                <td className="table-td">{siswa.kelas?.jurusan?.nama_jurusan || "-"}</td>
-                <td className="table-td">{siswa.kelas?.paralel || "-"}</td>
-                <td className="table-td">
-                  <button onClick={() => handleEdit(siswa)} className="text-blue-600 hover:underline">
-                    Edit
-                  </button>
-                </td>
+          <table className="table-base">
+            <thead className="table-thead">
+              <tr>
+                <th className="table-th">NIS</th>
+                <th className="table-th">Nama</th>
+                <th className="table-th">Jenis Kelamin</th>
+                <th className="table-th">Tingkat</th>
+                <th className="table-th">Jurusan</th>
+                <th className="table-th">Paralel</th>
+                <th className="table-th">Aksi</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-700">
-          <div>
-            Menampilkan {paginatedList.length} dari {filteredList.length} data
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            >
-              Prev
-            </button>
-            <span>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-            </button>
+            </thead>
+            <tbody className="table-tbody">
+              {paginatedList.map((siswa) => (
+                <tr key={siswa.siswa_id} className="table-tr hover:bg-gray-50">
+                  <td className="table-td">{siswa.nis}</td>
+                  <td className="table-td">{siswa.nama}</td>
+                  <td className="table-td">{siswa.jenkel}</td>
+                  <td className="table-td">{siswa.kelas?.tingkat || "-"}</td>
+                  <td className="table-td">{siswa.kelas?.jurusan?.nama_jurusan || "-"}</td>
+                  <td className="table-td">{siswa.kelas?.paralel || "-"}</td>
+                  <td className="table-td">
+                    <button onClick={() => handleEdit(siswa)} className="text-blue-600 hover:underline">
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-700">
+            <div>
+              Menampilkan {paginatedList.length} dari {filteredList.length} data
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                className="px-3 py-1 border rounded"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                Prev
+              </button>
+              <span>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                className="px-3 py-1 border rounded"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       ) : (
         <div className="text-center text-gray-500 pt-2">
           Tidak ada data siswa
