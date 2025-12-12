@@ -57,6 +57,14 @@ const GuruPiket = () => {
 
   async function submitForm(e) {
     e.preventDefault();
+    if (!/^\d+$/.test(nip)) {
+          Swal.fire({ icon: "error", title: "Gagal", text: "NIP hanya boleh mengandung angka" });
+          return;
+        }
+        if ((!/^[a-zA-Z\s]+$/.test(nama))) {
+          Swal.fire({ icon: "error", title: "Gagal", text: "Nama tidak boleh mengandung angka dan simbol" });
+          return;
+        }
     const payload = {
       nip: nip.trim(),
       nama: nama.trim(),
@@ -85,7 +93,17 @@ const GuruPiket = () => {
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Hapus guru piket ${item.nama} (${item.nip})?`)) return;
+    const result = await Swal.fire({
+      title: 'Hapus guru piket',
+      text: `Hapus guru piket ${item.nama} (${item.nip})?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    });
+    if (!result.isConfirmed) return;
     try {
       setLoading(true);
       await adminAPI.deleteGuruPiket(item.gurket_id);
@@ -108,7 +126,7 @@ const GuruPiket = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Guru Piket</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Add Guru Piket</button>
+        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Guru Piket</button>
       </div>
 
       {error && (

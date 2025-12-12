@@ -35,7 +35,7 @@ const RiwayatKelas = () => {
         setKelasList([])
       }
     }
-  }, [kelasId])
+  }, [])
 
   const fetchRiwayat = React.useCallback(async () => {
     setLoading(true)
@@ -43,9 +43,23 @@ const RiwayatKelas = () => {
     try {
       const params = {}
       if (kelasId) params.kelas_id = kelasId
-      const res = await adminAPI.getRiwayatKelas(params)
-      const arr = res?.data?.riwayat ?? []
-      setList(Array.isArray(arr) ? arr : [])
+      const [resRiwayat, resSiswa] = await Promise.all([
+        adminAPI.getRiwayatKelas(params),
+        adminAPI.getDataSiswa(),
+      ])
+      const riwayatArr = Array.isArray(resRiwayat?.data?.riwayat) ? resRiwayat.data.riwayat : []
+      const siswaArr = Array.isArray(resSiswa?.data?.responseData) ? resSiswa.data.responseData : []
+      const existing = new Set(riwayatArr.map((r) => r?.siswa?.siswa_id))
+      const synthesized = siswaArr
+        .filter((s) => !existing.has(s.siswa_id))
+        .filter((s) => !kelasId || String(s?.kelas?.kelas_id) === String(kelasId))
+        .map((s) => ({
+          riwayat_kelas_id: `synthetic-${s.siswa_id}`,
+          siswa: s,
+          kelas: s.kelas,
+          status: 'aktif',
+        }))
+      setList([...riwayatArr, ...synthesized])
     } catch (e) {
       setError('Gagal memuat riwayat kelas')
     } finally {
@@ -54,7 +68,7 @@ const RiwayatKelas = () => {
   }, [kelasId])
 
   React.useEffect(() => { fetchKelas() }, [fetchKelas])
-  React.useEffect(() => { fetchRiwayat() }, [fetchRiwayat])
+  React.useEffect(() => { fetchRiwayat() }, [])
 
   const filteredList = React.useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -73,14 +87,13 @@ const RiwayatKelas = () => {
     return `${k.tingkat ?? ''} ${jur ?? ''} ${k.paralel ?? ''}`.trim()
   }
 
-  if (loading) return <Loading text="Memuat riwayat kelas..." />
-  if (error) return <Error message={error} />
-
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Riwayat Kelas Siswa</h1>
       </div>
+      {loading && <Loading text="Memuat riwayat kelas..." />}
+      {error && <Error message={error} />}
 
       <div className="flex flex-wrap items-end gap-3 mb-4">
         <div className="flex flex-col text-sm">
@@ -103,9 +116,6 @@ const RiwayatKelas = () => {
             className="mt-1 p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
           />
         </div>
-
-        <button type="button" onClick={fetchRiwayat} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Terapkan</button>
-        <button type="button" onClick={() => { setKelasId(''); setQ(''); fetchRiwayat(); }} className="px-4 py-2 border border-gray-300 rounded-lg">Reset</button>
       </div>
 
       <div className="text-xs text-gray-600 mb-2">

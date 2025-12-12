@@ -45,7 +45,9 @@ const KelolaDataSiswa = () => {
       try {
         const res = await utilityAPI.listKelas();
         const data = res?.data?.responseData ?? [];
-        const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel}` }));
+        console.log("data kelas:", data);
+        // cek jika paralel = null maka null jadikan string kosong
+        const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel || ""}` }));
         setKelasList(list);
       } catch {
         setKelasList([]);
@@ -238,7 +240,7 @@ const KelolaDataSiswa = () => {
               </select>
               <div className="flex items-center justify-end gap-2 mt-2">
                 <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Batal</button>
-                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">Simpan</button>
+                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-green-700">Simpan</button>
               </div>
             </div>
           </div>
@@ -322,7 +324,8 @@ const KelolaDataSiswa = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {paginatedList.length > 0 ? (
+        <div className="overflow-x-auto">
         <table className="table-base">
           <thead className="table-thead">
             <tr>
@@ -378,6 +381,11 @@ const KelolaDataSiswa = () => {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="text-center text-gray-500 pt-2">
+          Tidak ada data siswa
+        </div>
+      )}
     </div>
   );
 };

@@ -49,7 +49,11 @@ const Jurusan = () => {
 
   async function submitForm(e) {
     e.preventDefault();
-    if (!nama.trim()) return;
+    if (!/^[a-zA-Z\s]+$/.test(nama)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Nama jurusan hanya boleh berisi huruf dan spasi" });
+      return;
+    }
+    if (!nama.trim() && !editing) return;
     try {
       setLoading(true);
       if (editing) {
@@ -74,7 +78,17 @@ const Jurusan = () => {
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Hapus jurusan "${item.nama_jurusan}"?`)) return;
+    const result = await Swal.fire({
+      title: 'Hapus jurusan',
+      text: `Hapus jurusan "${item.nama_jurusan}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    });
+    if (!result.isConfirmed) return;
     try {
       setLoading(true);
       await adminAPI.deleteJurusan(item.jurusan_id);
@@ -97,7 +111,7 @@ const Jurusan = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Jurusan</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Add Jurusan</button>
+        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah jurusan</button>
       </div>
 
       {error && (

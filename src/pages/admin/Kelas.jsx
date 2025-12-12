@@ -78,6 +78,10 @@ const Kelas = () => {
 
   async function submitForm(e) {
     e.preventDefault();
+    if (!/^[a-zA-Z0-9\s]+$/.test(paralel)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Paralel hanya boleh huruf atau angka" });
+      return;
+    }
     const jid = parseInt(jurusanId, 10);
     const wid = parseInt(walasId, 10);
     if (!Number.isInteger(jid) || !jurusan.some((j) => j.jurusan_id === jid)) {
@@ -122,7 +126,17 @@ const Kelas = () => {
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Hapus kelas ${item.tingkat} ${item.jurusan?.nama_jurusan ?? ''} ${item.paralel || ''}?`)) return;
+    const result = await Swal.fire({
+      title: 'Hapus kelas',
+      text: `Hapus kelas ${item.tingkat} ${item.jurusan?.nama_jurusan ?? ''} ${item.paralel || ''}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    });
+    if (!result.isConfirmed) return;
     try {
       setLoading(true);
       await adminAPI.deleteKelas(item.kelas_id);
@@ -145,7 +159,7 @@ const Kelas = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Kelas</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Add Kelas</button>
+        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Kelas</button>
       </div>
 
       {error && (
@@ -199,20 +213,20 @@ const Kelas = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Paralel</label>
-                  <input type="text" maxLength={1} value={paralel} onChange={(e)=>setParalel(e.target.value.toUpperCase())} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="1" />
+                  <input type="text" maxLength={1} value={paralel} onChange={(e) => setParalel(e.target.value.toUpperCase())} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="1" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Jurusan</label>
-                  <select value={jurusanId} onChange={(e)=>setJurusanId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
-                    {jurusan.map((j)=> (
+                  <select value={jurusanId} onChange={(e) => setJurusanId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
+                    {jurusan.map((j) => (
                       <option key={j.jurusan_id} value={j.jurusan_id}>{j.nama_jurusan}</option>
                     ))}
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Wali Kelas</label>
-                  <select value={walasId} onChange={(e)=>setWalasId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
-                    {walas.map((w)=> (
+                  <select value={walasId} onChange={(e) => setWalasId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
+                    {walas.map((w) => (
                       <option key={w.walas_id} value={w.walas_id}>{w.nama} ({w.nip})</option>
                     ))}
                   </select>

@@ -57,6 +57,14 @@ const WaliKelas = () => {
 
   async function submitForm(e) {
     e.preventDefault();
+    if (!/^\d+$/.test(nip)) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "NIP hanya boleh mengandung angka" });
+      return;
+    }
+    if ((!/^[a-zA-Z\s]+$/.test(nama))) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Nama tidak boleh mengandung angka dan simbol" });
+      return;
+    }
     const payload = {
       nip: nip.trim(),
       nama: nama.trim(),
@@ -85,7 +93,17 @@ const WaliKelas = () => {
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Hapus wali kelas ${item.nama} (${item.nip})?`)) return;
+    const result = await Swal.fire({
+      title: 'Hapus wali kelas',
+      text: `Hapus wali kelas ${item.nama} (${item.nip})?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    });
+    if (!result.isConfirmed) return;
     try {
       setLoading(true);
       await adminAPI.deleteWaliKelas(item.walas_id);
@@ -108,7 +126,7 @@ const WaliKelas = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Wali Kelas</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Add Wali Kelas</button>
+        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Wali Kelas</button>
       </div>
 
       {error && (
@@ -154,11 +172,11 @@ const WaliKelas = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                  <input type="text" value={nip} onChange={(e)=>setNip(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="NIP" required />
+                  <input type="text" value={nip} onChange={(e) => setNip(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="NIP" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                  <input type="text" value={nama} onChange={(e)=>setNama(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" required placeholder="Nama Wali Kelas" />
+                  <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" required placeholder="Nama Wali Kelas" />
                 </div>
                 {/* Akun dibuat otomatis dari NIP saat tambah */}
               </div>
