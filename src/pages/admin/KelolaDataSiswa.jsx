@@ -60,7 +60,7 @@ const KelolaDataSiswa = () => {
     const fetchJurusan = async () => {
       try {
         const res = await adminAPI.getJurusan();
-        const arr = res?.data?.jurusan ?? [];
+        const arr = res?.data?.responseData?.jurusan ?? [];
         setJurusanList(Array.isArray(arr) ? arr : []);
       } catch {
         setJurusanList([]);

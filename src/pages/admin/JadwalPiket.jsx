@@ -38,9 +38,9 @@ const JadwalPiket = () => {
         adminAPI.getJadwalPiket(),
         adminAPI.getGuruPiket(),
       ]);
-      const arr = jadRes?.data?.jadwal ?? [];
+      const arr = jadRes?.data?.responseData?.jadwal ?? [];
       setList(Array.isArray(arr) ? arr : []);
-      setGurketList(gurketRes?.data?.gurket ?? []);
+      setGurketList(gurketRes?.data?.responseData?.gurket ?? []);
     } catch (e) {
       setError("Gagal memuat data jadwal piket");
     } finally {
@@ -99,7 +99,7 @@ const JadwalPiket = () => {
         }
         const payload = { tanggal, gurket_id: Number(gurketId) };
         const res = await adminAPI.updateJadwalPiket(editing.jad_piket_id, payload);
-        const updated = res?.data?.jadwal;
+        const updated = res?.data?.responseData?.jadwal;
         setList((prev) => prev.map((x) => (x.jad_piket_id === editing.jad_piket_id ? updated : x)));
         Swal.fire({ icon: "success", title: "Berhasil", text: "Jadwal piket berhasil diperbarui" });
         closeModal();
@@ -142,7 +142,7 @@ const JadwalPiket = () => {
           if (list.some((x) => x.tanggal === ymd)) { skippedCount++; continue; }
           try {
             const res = await adminAPI.createJadwalPiket({ tanggal: ymd, gurket_id: Number(mapId) });
-            const created = res?.data?.jadwal;
+            const created = res?.data?.responseData?.jadwal;
             if (created) {
               newlyCreated.push(created);
               createdCount++;
@@ -161,7 +161,7 @@ const JadwalPiket = () => {
         closeModal();
       }
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan jadwal piket";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan jadwal piket";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
@@ -177,7 +177,7 @@ const JadwalPiket = () => {
       setList((prev) => prev.filter((x) => x.jad_piket_id !== item.jad_piket_id));
       Swal.fire({ icon: "success", title: "Berhasil", text: "Jadwal piket berhasil dihapus" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menghapus jadwal piket";
+      const msg = e?.response?.data?.responseMessage || "Gagal menghapus jadwal piket";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

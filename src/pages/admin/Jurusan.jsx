@@ -16,7 +16,7 @@ const Jurusan = () => {
     setError(null);
     try {
       const res = await adminAPI.getJurusan();
-      const arr = res?.data?.jurusan ?? [];
+      const arr = res?.data?.responseData?.jurusan ?? [];
       setList(Array.isArray(arr) ? arr : []);
     } catch (e) {
       setError("Gagal memuat data jurusan");
@@ -58,18 +58,18 @@ const Jurusan = () => {
       setLoading(true);
       if (editing) {
         const res = await adminAPI.updateJurusan(editing.jurusan_id, { nama_jurusan: nama.trim() });
-        const updated = res?.data?.jurusan;
+        const updated = res?.data?.responseData?.jurusan;
         setList((prev) => prev.map((x) => (x.jurusan_id === editing.jurusan_id ? updated : x)));
         Swal.fire({ icon: "success", title: "Berhasil", text: "Jurusan berhasil diperbarui" });
       } else {
         const res = await adminAPI.createJurusan({ nama_jurusan: nama.trim() });
-        const created = res?.data?.jurusan;
+        const created = res?.data?.responseData?.jurusan;
         setList((prev) => [created, ...prev]);
         Swal.fire({ icon: "success", title: "Berhasil", text: "Jurusan berhasil ditambahkan" });
       }
       closeModal();
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan jurusan";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan jurusan";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
@@ -95,7 +95,7 @@ const Jurusan = () => {
       setList((prev) => prev.filter((x) => x.jurusan_id !== item.jurusan_id));
       Swal.fire({ icon: "success", title: "Berhasil", text: "Jurusan berhasil dihapus" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menghapus jurusan";
+      const msg = e?.response?.data?.responseMessage || "Gagal menghapus jurusan";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

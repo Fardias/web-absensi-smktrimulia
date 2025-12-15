@@ -56,7 +56,7 @@ export default function AdminPengaturan() {
         Swal.fire({ icon: "success", title: "Berhasil", text: "Pengaturan berhasil direset dari server" });
       }
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal memuat pengaturan dari server";
+      const msg = e?.response?.data?.responseMessage || "Gagal memuat pengaturan dari server";
       if (showAlert) Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
       setLoading(false);
@@ -255,7 +255,7 @@ export default function AdminPengaturan() {
       setNotification({ type: "success", message: "Pengaturan berhasil disimpan." });
       Swal.fire({ icon: "success", title: "Berhasil", text: "Pengaturan berhasil disimpan" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan pengaturan. Periksa API backend.";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan pengaturan. Periksa API backend.";
       setNotification({ type: "error", message: msg });
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

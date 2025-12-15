@@ -20,7 +20,7 @@ const GuruPiket = () => {
     setError(null);
     try {
       const listRes = await adminAPI.getGuruPiket();
-      const arr = listRes?.data?.gurket ?? [];
+      const arr = listRes?.data?.responseData?.gurket ?? [];
       setList(Array.isArray(arr) ? arr : []);
       setAkunList([]);
     } catch (e) {
@@ -73,18 +73,18 @@ const GuruPiket = () => {
       setLoading(true);
       if (editing) {
         const res = await adminAPI.updateGuruPiket(editing.gurket_id, payload);
-        const updated = res?.data?.gurket;
+        const updated = res?.data?.responseData?.gurket;
         setList((prev) => prev.map((x) => (x.gurket_id === editing.gurket_id ? updated : x)));
         Swal.fire({ icon: "success", title: "Berhasil", text: "Guru piket berhasil diperbarui" });
       } else {
         const res = await adminAPI.createGuruPiket(payload);
-        const created = res?.data?.gurket;
+        const created = res?.data?.responseData?.gurket;
         setList((prev) => [created, ...prev]);
         Swal.fire({ icon: "success", title: "Berhasil", text: "Guru piket berhasil ditambahkan" });
       }
       closeModal();
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan guru piket";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan guru piket";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
@@ -110,7 +110,7 @@ const GuruPiket = () => {
       setList((prev) => prev.filter((x) => x.gurket_id !== item.gurket_id));
       Swal.fire({ icon: "success", title: "Berhasil", text: "Guru piket berhasil dihapus" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menghapus guru piket";
+      const msg = e?.response?.data?.responseMessage || "Gagal menghapus guru piket";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

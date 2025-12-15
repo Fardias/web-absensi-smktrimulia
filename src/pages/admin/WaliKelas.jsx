@@ -20,7 +20,7 @@ const WaliKelas = () => {
     setError(null);
     try {
       const walasRes = await adminAPI.getWaliKelas();
-      const wl = walasRes?.data?.walas ?? [];
+      const wl = walasRes?.data?.responseData?.walas ?? [];
       setList(Array.isArray(wl) ? wl : []);
       setAkunList([]);
     } catch (e) {
@@ -73,18 +73,18 @@ const WaliKelas = () => {
       setLoading(true);
       if (editing) {
         const res = await adminAPI.updateWaliKelas(editing.walas_id, payload);
-        const updated = res?.data?.walas;
+        const updated = res?.data?.responseData?.walas;
         setList((prev) => prev.map((x) => (x.walas_id === editing.walas_id ? updated : x)));
         Swal.fire({ icon: "success", title: "Berhasil", text: "Wali kelas berhasil diperbarui" });
       } else {
         const res = await adminAPI.createWaliKelas(payload);
-        const created = res?.data?.walas;
+        const created = res?.data?.responseData?.walas;
         setList((prev) => [created, ...prev]);
         Swal.fire({ icon: "success", title: "Berhasil", text: "Wali kelas berhasil ditambahkan" });
       }
       closeModal();
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan wali kelas";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan wali kelas";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
@@ -110,7 +110,7 @@ const WaliKelas = () => {
       setList((prev) => prev.filter((x) => x.walas_id !== item.walas_id));
       Swal.fire({ icon: "success", title: "Berhasil", text: "Wali kelas berhasil dihapus" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menghapus wali kelas";
+      const msg = e?.response?.data?.responseMessage || "Gagal menghapus wali kelas";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

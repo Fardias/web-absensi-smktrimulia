@@ -136,7 +136,7 @@ export default function Profil() {
                     Swal.fire({ icon: "success", title: "Berhasil", text: "Nama berhasil diperbarui" });
                   }
                   catch (e) {
-                    const msg = e?.response?.data?.message || "Gagal memperbarui nama";
+                    const msg = e?.response?.data?.responseMessage || "Gagal memperbarui nama";
                     setErr(msg);
                     Swal.fire({ icon: "error", title: "Gagal", text: msg });
                   }

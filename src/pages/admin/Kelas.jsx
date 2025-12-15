@@ -26,10 +26,10 @@ const Kelas = () => {
         adminAPI.getJurusan(),
         adminAPI.getWalas(),
       ]);
-      const kelasArr = klsRes?.data?.kelas ?? [];
+      const kelasArr = klsRes?.data?.responseData?.kelas ?? [];
       setList(Array.isArray(kelasArr) ? kelasArr : []);
-      setJurusan(jurRes?.data?.jurusan ?? []);
-      setWalas(walRes?.data?.walas ?? []);
+      setJurusan(jurRes?.data?.responseData?.jurusan ?? []);
+      setWalas(walRes?.data?.responseData?.walas ?? []);
     } catch (e) {
       setError("Gagal memuat data kelas");
     } finally {
@@ -106,18 +106,18 @@ const Kelas = () => {
       setLoading(true);
       if (editing) {
         const res = await adminAPI.updateKelas(editing.kelas_id, payload);
-        const updated = res?.data?.kelas;
+        const updated = res?.data?.responseData?.kelas;
         setList((prev) => prev.map((x) => (x.kelas_id === editing.kelas_id ? updated : x)));
         Swal.fire({ icon: "success", title: "Berhasil", text: "Kelas berhasil diperbarui" });
       } else {
         const res = await adminAPI.createKelas(payload);
-        const created = res?.data?.kelas;
+        const created = res?.data?.responseData?.kelas;
         setList((prev) => [created, ...prev]);
         Swal.fire({ icon: "success", title: "Berhasil", text: "Kelas berhasil ditambahkan" });
       }
       closeModal();
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menyimpan kelas";
+      const msg = e?.response?.data?.responseMessage || "Gagal menyimpan kelas";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {
@@ -143,7 +143,7 @@ const Kelas = () => {
       setList((prev) => prev.filter((x) => x.kelas_id !== item.kelas_id));
       Swal.fire({ icon: "success", title: "Berhasil", text: "Kelas berhasil dihapus" });
     } catch (e) {
-      const msg = e?.response?.data?.message || "Gagal menghapus kelas";
+      const msg = e?.response?.data?.responseMessage || "Gagal menghapus kelas";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal", text: msg });
     } finally {

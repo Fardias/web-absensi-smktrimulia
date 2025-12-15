@@ -21,17 +21,17 @@ const SiswaHome = () => {
 
   useEffect(() => {
     const fetchPengaturan = async () => {
-      try {
-        setLoadingPengaturan(true);
-        const { data } = await generalAPI.getPengaturan();
-        setPengaturan(data);
-      } catch (e) {
-        setErrorPengaturan(e?.response?.data?.message || 'Gagal memuat pengaturan');
-      } finally {
-        setLoadingPengaturan(false);
-      }
-    };
-    fetchPengaturan();
+    try {
+      setLoadingPengaturan(true);
+      const { data } = await generalAPI.getPengaturan();
+      setPengaturan(data);
+    } catch (e) {
+      setErrorPengaturan(e?.response?.data?.responseMessage || 'Gagal memuat pengaturan');
+    } finally {
+      setLoadingPengaturan(false);
+    }
+  };
+  fetchPengaturan();
   }, []);
 
   const formatJam = (jam) => {

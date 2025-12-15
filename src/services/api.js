@@ -92,7 +92,6 @@ export const adminAPI = {
 	createWaliKelas: (data) => api.post('/admin/wali-kelas', data),
 	updateWaliKelas: (id, data) => api.put(`/admin/wali-kelas/${id}`, data),
 	deleteWaliKelas: (id) => api.delete(`/admin/wali-kelas/${id}`),
-	getAkunWalas: () => api.get('/admin/akun-walas'),
 
 	// Guru Piket CRUD
 	getGuruPiket: () => api.get('/admin/guru-piket'),
