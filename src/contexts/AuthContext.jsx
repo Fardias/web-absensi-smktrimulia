@@ -52,8 +52,11 @@ export const AuthProvider = ({ children }) => {
       const data = response.data;
 
       if (data.responseStatus) {
-        const { access_token } = data.responseHeader;
-        const userData = data.responseData;
+        const access_token =
+          data?.responseData?.access_token ??
+          data?.responseHeader?.access_token;
+        const userData =
+          data?.responseData?.user ?? data?.responseData;
 
         // Simpan ke localStorage
         localStorage.setItem('token', access_token);
@@ -68,9 +71,9 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.responseMessage };
       }
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.responseMessage || 'Terjadi kesalahan pada server' 
+      return {
+        success: false,
+        message: error.response?.data?.responseMessage || 'Terjadi kesalahan pada server'
       };
     }
   };
@@ -95,7 +98,9 @@ export const AuthProvider = ({ children }) => {
       const data = response.data;
 
       if (data.responseStatus) {
-        const { access_token } = data.responseHeader;
+        const access_token =
+          data?.responseData?.access_token ??
+          data?.responseHeader?.access_token;
         localStorage.setItem('token', access_token);
         setToken(access_token);
         return true;
