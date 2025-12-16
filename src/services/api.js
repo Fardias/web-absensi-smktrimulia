@@ -98,7 +98,7 @@ export const adminAPI = {
 	createGuruPiket: (data) => api.post('/admin/guru-piket', data),
 	updateGuruPiket: (id, data) => api.put(`/admin/guru-piket/${id}`, data),
 	deleteGuruPiket: (id) => api.delete(`/admin/guru-piket/${id}`),
-	getAkunGuruPiket: () => api.get('/admin/akun-gurket'),
+	// getAkunGuruPiket: () => api.get('/admin/akun-gurket'),
 
 	// Jadwal Piket CRUD
 	getJadwalPiket: () => api.get('/admin/jadwal-piket'),
