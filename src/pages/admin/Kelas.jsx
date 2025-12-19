@@ -24,7 +24,7 @@ const Kelas = () => {
       const [klsRes, jurRes, walRes] = await Promise.all([
         adminAPI.getKelas(),
         adminAPI.getJurusan(),
-        adminAPI.getWalas(),
+        adminAPI.getWaliKelas(),
       ]);
       const kelasArr = klsRes?.data?.responseData?.kelas ?? [];
       setList(Array.isArray(kelasArr) ? kelasArr : []);

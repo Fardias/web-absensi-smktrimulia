@@ -233,7 +233,7 @@ const KelolaDataSiswa = () => {
           <div className="relative z-10 w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Tambah Siswa</h3>
-              <button onClick={() => setShowCreate(false)} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg">Tutup</button>
+            
             </div>
             <div className="grid grid-cols-1 gap-3">
               <input

@@ -82,7 +82,8 @@ export const adminAPI = {
 	createKelas: (data) => api.post('/admin/kelas', data),
 	updateKelas: (id, data) => api.put(`/admin/kelas/${id}`, data),
 	deleteKelas: (id) => api.delete(`/admin/kelas/${id}`),
-	getWalas: () => api.get('/admin/walas'),
+	// getWalas: () => api.get('/admin/walas'),
+	getWaliKelas: () => api.get('/admin/wali-kelas'),
 
 	// Riwayat Kelas
 	getRiwayatKelas: (params) => api.get('/admin/riwayat-kelas', { params }),

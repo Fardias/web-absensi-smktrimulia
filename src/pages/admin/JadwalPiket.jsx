@@ -170,7 +170,17 @@ const JadwalPiket = () => {
   }
 
   async function handleDelete(item) {
-    if (!window.confirm(`Hapus jadwal ${item.guru_piket?.nama || '-'} pada ${formatTanggal(item.tanggal)} (${getHari(item.tanggal)})?`)) return;
+    const result = await Swal.fire({
+      title: 'Hapus jadwal piket',
+      text: `Hapus jadwal ${item.guru_piket?.nama || '-'} pada ${formatTanggal(item.tanggal)} (${getHari(item.tanggal)})?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal'
+    });
+    if (!result.isConfirmed) return;
     try {
       setLoading(true);
       await adminAPI.deleteJadwalPiket(item.jad_piket_id);
