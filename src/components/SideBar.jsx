@@ -90,12 +90,12 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
     >
       {/* Header */}
       <div className="flex items-center gap-3 p-2">
-        <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center font-bold text-white text-lg">
-          SM
-        </div>
         {!collapsed && (
-          <div className="font-bold text-base whitespace-nowrap">
-            SISENUS SMK TRIMULIA 
+          <div>
+            <h1 className="font-bold text-base whitespace-nowrap">
+              SMK TRIMULIA JAKARTA
+            </h1>
+            <p className="text-sm">SISENUS - Sistem Absensi Radius</p>
           </div>
         )}
       </div>
@@ -138,11 +138,10 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
                   }
                 }}
                 className={`flex items-center justify-between px-2 py-2.5 rounded-md cursor-pointer transition-colors 
-                ${
-                  activeMain
+                ${activeMain
                     ? "bg-blue-600/30 text-white"
                     : "text-slate-300 hover:bg-white/5"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-7 flex justify-center">
@@ -173,11 +172,10 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
                       key={child.key}
                       onClick={() => navigate(child.href)}
                       className={`px-2 py-2 rounded-md text-sm cursor-pointer transition 
-                      ${
-                        isActive(child.href)
+                      ${isActive(child.href)
                           ? "bg-blue-600/40 text-white"
                           : "text-slate-400 hover:bg-white/5"
-                      }`}
+                        }`}
                     >
                       {child.label}
                     </div>

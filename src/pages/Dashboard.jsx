@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useDataSiswa } from "../hooks/useDataSiswa";
 import { useCountUp } from "../hooks";
 import { guruAPI, adminAPI } from "../services/api";
+import Swal from 'sweetalert2';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,6 +16,8 @@ const Dashboard = () => {
   const [terlambat, setTerlambat] = useState(0);
   const [izin, setIzin] = useState(0);
   const [sakit, setSakit] = useState(0);
+  const [alfa, setAlfa] = useState(0);
+  const [belumHadir, setBelumHadir] = useState(0);
 
   const [aktivitas, setAktivitas] = useState([]);
   const [loadingAktivitas, setLoadingAktivitas] = useState(true);
@@ -27,12 +30,15 @@ const Dashboard = () => {
   const [filterStatus, setFilterStatus] = useState("hadir");
   const [listLoading, setListLoading] = useState(false);
   const [siswaList, setSiswaList] = useState([]);
+  const [updatingStatus, setUpdatingStatus] = useState({});
 
   const animTotalSiswa = useCountUp(totalSiswa, 500);
   const animHadir = useCountUp(hadirHariIni, 500);
   const animTerlambat = useCountUp(terlambat, 500);
   const animIzin = useCountUp(izin, 500);
   const animSakit = useCountUp(sakit, 500);
+  const animAlfa = useCountUp(alfa, 500);
+  const animBelumHadir = useCountUp(belumHadir, 500);
 
   const {
     handleTotalSiswa,
@@ -61,9 +67,21 @@ const Dashboard = () => {
         setTerlambat(cTerlambat || 0);
         setIzin(cIzin || 0);
         setSakit(cSakit || 0);
+        
+        // Calculate alfa (absent without permission)
+        const total = Number(cTotalSiswa || 0);
+        const hadir = Number(cHadirHariIni || 0);
+        const terlambatNum = Number(cTerlambat || 0);
+        const izinNum = Number(cIzin || 0);
+        const sakitNum = Number(cSakit || 0);
+        const alfaNum = Math.max(0, total - hadir - terlambatNum - izinNum - sakitNum);
+        setAlfa(alfaNum);
+        
+        // Calculate belum hadir (not yet present - excluding alfa)
+        const belumHadirNum = Math.max(0, total - hadir - terlambatNum);
+        setBelumHadir(belumHadirNum);
+        
         if (user?.role === "gurket") {
-          const total = Number(cTotalSiswa || 0);
-          const hadir = Number(cHadirHariIni || 0);
           const rate = total > 0 ? Math.round((hadir / total) * 100) : 0;
           setPresentRate(rate);
         }
@@ -152,17 +170,132 @@ const Dashboard = () => {
 
   // Fetch daftar siswa hari ini berdasarkan status
   const fetchSiswaByStatus = async (status) => {
+    // Only fetch for supported statuses
+    const supportedStatuses = ["hadir", "terlambat", "izin", "sakit"];
+    
+    if (!supportedStatuses.includes(status)) {
+      // For unsupported statuses like "alfa" and "belum_hadir", show empty list
+      setSiswaList([]);
+      return;
+    }
+
     setListLoading(true);
     try {
       const res = await guruAPI.lihatAbsensiSiswa({ status });
       const payload = res?.data?.responseData || res?.data || {};
       const list = payload?.absensi || [];
       setSiswaList(Array.isArray(list) ? list : []);
-    } catch {
+    } catch (error) {
+      console.error("Error fetching siswa by status:", error);
       setSiswaList([]);
     } finally {
       setListLoading(false);
     }
+  };
+
+  const handleStatusChange = async (absensiId, newStatus, oldStatus, siswaName) => {
+    // Confirm the change
+    const result = await Swal.fire({
+      title: 'Konfirmasi Perubahan Status',
+      html: `
+        <div class="text-sm">
+          <p><strong>Siswa:</strong> ${siswaName}</p>
+          <p><strong>Status Lama:</strong> <span class="capitalize">${oldStatus}</span></p>
+          <p><strong>Status Baru:</strong> <span class="capitalize">${newStatus}</span></p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Ubah Status',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!result.isConfirmed) return;
+
+    // Set loading state for this specific row
+    setUpdatingStatus(prev => ({ ...prev, [absensiId]: true }));
+
+    try {
+      await guruAPI.updateAbsensiStatusAll({
+        absensi_id: absensiId,
+        status: newStatus
+      });
+
+      // Update local state
+      setSiswaList(prev => prev.map(item => 
+        item.absensi_id === absensiId 
+          ? { ...item, status: newStatus }
+          : item
+      ));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Status Berhasil Diubah!',
+        text: `Status kehadiran ${siswaName} berhasil diubah menjadi ${newStatus}`,
+        confirmButtonColor: '#3b82f6',
+        timer: 3000,
+        timerProgressBar: true
+      });
+
+    } catch (error) {
+      console.error('Error updating status:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Mengubah Status',
+        text: error?.response?.data?.responseMessage || 'Terjadi kesalahan saat mengubah status',
+        confirmButtonColor: '#3b82f6'
+      });
+    } finally {
+      setUpdatingStatus(prev => ({ ...prev, [absensiId]: false }));
+    }
+  };
+
+  const StatusDropdown = ({ item }) => {
+    const statusOptions = [
+      { value: 'hadir', label: 'Hadir', color: 'text-green-600' },
+      { value: 'terlambat', label: 'Terlambat', color: 'text-yellow-600' },
+      { value: 'izin', label: 'Izin', color: 'text-blue-600' },
+      { value: 'sakit', label: 'Sakit', color: 'text-red-600' },
+      { value: 'alfa', label: 'Alfa', color: 'text-gray-600' }
+    ];
+
+    const isUpdating = updatingStatus[item.absensi_id];
+
+    return (
+      <div className="relative">
+        <select
+          value={item.status}
+          onChange={(e) => handleStatusChange(
+            item.absensi_id,
+            e.target.value,
+            item.status,
+            item.nama
+          )}
+          disabled={isUpdating}
+          className={`
+            w-full px-2 py-1 text-xs font-medium border border-gray-300 rounded-md
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            ${isUpdating ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer hover:bg-gray-50'}
+            transition-colors duration-200
+          `}
+        >
+          {statusOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {isUpdating && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 rounded-md">
+            <svg className="w-3 h-3 animate-spin text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+        )}
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -259,7 +392,7 @@ const Dashboard = () => {
           )}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
             {/* Total Siswa */}
             <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
               <div className="flex items-center">
@@ -391,6 +524,56 @@ const Dashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Sakit</p>
                   <p className="text-2xl font-bold text-gray-900">{animSakit}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Alfa */}
+            <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+              <div className="flex items-center">
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <svg
+                    className="w-6 h-6 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Alfa</p>
+                  <p className="text-2xl font-bold text-gray-900">{animAlfa}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Belum Hadir */}
+            <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+              <div className="flex items-center">
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <svg
+                    className="w-6 h-6 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Belum Hadir</p>
+                  <p className="text-2xl font-bold text-gray-900">{animBelumHadir}</p>
                 </div>
               </div>
             </div>
@@ -537,10 +720,16 @@ const Dashboard = () => {
                     { key: "terlambat", label: "Terlambat" },
                     { key: "izin", label: "Izin" },
                     { key: "sakit", label: "Sakit" },
+                    { key: "alfa", label: "Alfa" },
+                    { key: "belum_hadir", label: "Belum Hadir" },
                   ].map((opt) => (
                     <button
                       key={opt.key}
-                      onClick={() => setFilterStatus(opt.key)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setFilterStatus(opt.key);
+                      }}
                       className={`px-3 py-1.5 rounded-md text-sm ${filterStatus === opt.key
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 text-gray-700"
@@ -555,7 +744,12 @@ const Dashboard = () => {
               {listLoading ? (
                 <p className="text-sm text-gray-500">Memuat data siswa...</p>
               ) : siswaList.length === 0 ? (
-                <p className="text-sm text-gray-500">Tidak ada data untuk status ini.</p>
+                <p className="text-sm text-gray-500">
+                  {["alfa", "belum_hadir"].includes(filterStatus) 
+                    ? `Fitur daftar siswa untuk status "${filterStatus.replace("_", " ")}" belum tersedia.`
+                    : "Tidak ada data untuk status ini."
+                  }
+                </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="table-base">
@@ -577,7 +771,13 @@ const Dashboard = () => {
                           <td className="table-td">
                             {row.tingkat ? `Kelas ${row.tingkat} ${row.jurusan || ''} ${row.paralel || ''}` : '-'}
                           </td>
-                          <td className="table-td capitalize">{row.status || '-'}</td>
+                          <td className="table-td">
+                            {row.absensi_id ? (
+                              <StatusDropdown item={row} />
+                            ) : (
+                              <span className="capitalize text-gray-500">{row.status || '-'}</span>
+                            )}
+                          </td>
                           <td className="table-td">{row.jam_datang || '-'}</td>
                           <td className="table-td">{row.jam_pulang || '-'}</td>
                         </tr>

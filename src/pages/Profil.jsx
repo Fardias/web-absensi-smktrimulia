@@ -46,8 +46,6 @@ export default function Profil() {
         : "bg-green-100 text-green-700";
 
   return (
-    // <div className="flex flex-col p-6 md:p-8">
-
     <div className="min-h-screen p-6 md:p-8">
       <h2 className="mb-2 text-2xl font-bold text-gray-800">Informasi Profil</h2>
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

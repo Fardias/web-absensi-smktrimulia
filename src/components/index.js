@@ -9,3 +9,5 @@ export { default as Layout } from './Layout';
 export { default as Notification } from './Notification';
 export { default as RencanaAbsensiModal } from './RencanaAbsensiModal';
 export { default as RencanaAbsensiList } from './RencanaAbsensiList';
+export { default as BottomNavbar } from './BottomNavbar';
+export { default as DataTable } from './DataTable';

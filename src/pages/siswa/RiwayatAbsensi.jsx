@@ -1,9 +1,11 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { Loading } from '../../components';
+import { Loading, BottomNavbar } from '../../components';
 import { absensiAPI } from '../../services/api';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 const RiwayatAbsensi = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [riwayatAbsen, setRiwayatAbsen] = useState(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -36,23 +38,36 @@ const RiwayatAbsensi = () => {
   if (loading) return <Loading text="Memuat riwayat absensi..." />;
   
   return (
-    <div className="min-h-screen">
-      <Header
-        title="Riwayat Absensi"
-        subtitle="SMK Trimulia"
-        showBackButton
-        backPath="/siswa/home"
-      />
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between text-white">
+            <div>
+              <p className="text-2xl font-bold">Riwayat Absensi</p>
+              <p className="text-sm opacity-90">SMK Trimulia</p>
+            </div>
+            <button 
+              onClick={() => navigate('/siswa/home')} 
+              className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded transition-colors"
+            >
+              Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+
       <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+        <div className="mb-8 text-center">
+          <h2 className="mb-4 text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900">
             Riwayat <span className="text-indigo-600">Kehadiran</span> Anda
           </h2>
-          <p className="max-w-2xl mx-auto text-lg text-gray-600">
+          <p className="max-w-2xl mx-auto text-base sm:text-lg text-gray-600">
             Rekam jejak kehadiran Anda di SMK Trimulia. Selalu pantau untuk hasil terbaik!
           </p>
         </div>
-        <div className="relative mt-8 overflow-hidden bg-white shadow-2xl rounded-xl ring-1 ring-gray-200">
+        
+        <div className="relative mt-8 overflow-hidden bg-white shadow-lg rounded-xl border border-gray-200">
           {riwayatAbsen?.responseStatus ? (
             <div className="overflow-x-auto">
               <table className="table-base">
@@ -82,7 +97,7 @@ const RiwayatAbsensi = () => {
             </div>
           ) : (
             // Kalo data absen kosong /  belum ada
-            <div className="p-8 text-center bg-white shadow-md rounded-xl">
+            <div className="p-8 text-center bg-white">
               <svg
                 className="w-16 h-16 mx-auto text-indigo-400"
                 fill="none"
@@ -108,7 +123,7 @@ const RiwayatAbsensi = () => {
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center px-4 py-2 mt-6 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-4 py-2 mt-6 text-sm font-medium text-white bg-indigo-600 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
               >
                 Segarkan Halaman
               </button>
@@ -116,6 +131,9 @@ const RiwayatAbsensi = () => {
           )}
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNavbar />
     </div>
   );
 };

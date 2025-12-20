@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { adminAPI } from "../../services/api";
-import { Loading } from "../../components";
+import { Loading, DataTable } from "../../components";
 import Swal from "sweetalert2";
 
 const JadwalPiket = () => {
@@ -16,14 +16,17 @@ const JadwalPiket = () => {
   const [startDate, setStartDate] = useState('');
   const [assignments, setAssignments] = useState({ senin: '', selasa: '', rabu: '', kamis: '', jumat: '' });
   const hariNama = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
   function parseDateYmd(ymd) {
     const [y, m, d] = (ymd || '').split('-').map(Number);
     return new Date(y, (m || 1) - 1, d || 1);
   }
+  
   function getHari(ymd) {
     const dt = parseDateYmd(ymd);
     return hariNama[dt.getDay()] || '-';
   }
+  
   function formatTanggal(ymd) {
     const [y, m, d] = (ymd || '').split('-');
     if (!y || !m || !d) return ymd || '-';
@@ -104,7 +107,7 @@ const JadwalPiket = () => {
         Swal.fire({ icon: "success", title: "Berhasil", text: "Jadwal piket berhasil diperbarui" });
         closeModal();
       } else {
-        // Bulk create: generate jadwal untuk 30 hari ke depan berdasarkan assignment Senin-Jumat
+        // Bulk create logic
         const start = parseDateYmd(startDate);
         if (isNaN(start.getTime())) {
           setError("Tanggal mulai tidak valid");
@@ -127,10 +130,8 @@ const JadwalPiket = () => {
           const m = String(dt.getMonth() + 1).padStart(2, '0');
           const d = String(dt.getDate()).padStart(2, '0');
           const ymd = `${y}-${m}-${d}`;
-          const dow = dt.getDay(); // 0=Sun .. 6=Sat
-          if (dow === 0 || dow === 6) { // skip weekend
-            continue;
-          }
+          const dow = dt.getDay();
+          if (dow === 0 || dow === 6) continue;
           const mapId = {
             1: assignments.senin,
             2: assignments.selasa,
@@ -150,7 +151,6 @@ const JadwalPiket = () => {
               skippedCount++;
             }
           } catch (err) {
-            // If duplicate or validation fail, skip
             skippedCount++;
           }
         }
@@ -199,6 +199,64 @@ const JadwalPiket = () => {
     return <Loading text="Memuat data jadwal piket..." />;
   }
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: 'no',
+      label: 'No',
+      render: (item, index) => index + 1
+    },
+    {
+      key: 'hari',
+      label: 'Hari',
+      sortable: true,
+      accessor: (item) => getHari(item.tanggal),
+      sortValue: (item) => getHari(item.tanggal)
+    },
+    {
+      key: 'tanggal',
+      label: 'Tanggal',
+      sortable: true,
+      accessor: (item) => formatTanggal(item.tanggal),
+      sortValue: (item) => new Date(item.tanggal)
+    },
+    {
+      key: 'guru_piket',
+      label: 'Guru Piket',
+      sortable: true,
+      accessor: (item) => item.guru_piket?.nama || '-',
+      sortValue: (item) => item.guru_piket?.nama || ''
+    },
+    {
+      key: 'actions',
+      label: 'Action',
+      render: (item) => (
+        <div className="space-x-2">
+          <button 
+            onClick={() => openEdit(item)} 
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Edit
+          </button>
+          {/* ignore this button for temporary */}
+          {/* <button 
+            onClick={() => handleDelete(item)} 
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Hapus
+          </button> */}
+        </div>
+      )
+    }
+  ];
+
+  // Define search fields
+  const searchFields = [
+    (item) => item.guru_piket?.nama || '',
+    (item) => getHari(item.tanggal),
+    (item) => formatTanggal(item.tanggal)
+  ];
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -210,38 +268,14 @@ const JadwalPiket = () => {
         <div className="mb-3 text-red-600 font-semibold">{error}</div>
       )}
 
-      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">No</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Hari</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Tanggal</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Guru Piket</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {list.map((w, idx) => (
-              <tr key={w.jad_piket_id}>
-                <td className="px-4 py-2">{idx + 1}</td>
-                <td className="px-4 py-2">{getHari(w.tanggal)}</td>
-                <td className="px-4 py-2">{formatTanggal(w.tanggal)}</td>
-                <td className="px-4 py-2">{w.guru_piket?.nama || '-'}</td>
-                <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => openEdit(w)} className="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
-                  <button onClick={() => handleDelete(w)} className="px-3 py-1 bg-red-600 text-white rounded">Hapus</button>
-                </td>
-              </tr>
-            ))}
-            {list.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">Belum ada jadwal piket</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={list}
+        columns={columns}
+        searchFields={searchFields}
+        searchPlaceholder="Cari nama guru, hari, atau tanggal..."
+        emptyMessage="Belum ada jadwal piket"
+        defaultSort={{ field: 'tanggal', direction: 'desc' }}
+      />
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

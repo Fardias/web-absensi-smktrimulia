@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Title>Template Import Siswa</Title>
+  <Author>SMK Trimulia</Author>
+  <Created>2024-12-20T00:00:00Z</Created>
+ </DocumentProperties>
+ <Worksheet ss:Name="Data Siswa">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">NIS</Data></Cell>
+    <Cell><Data ss:Type="String">Nama</Data></Cell>
+    <Cell><Data ss:Type="String">Jenis Kelamin</Data></Cell>
+    <Cell><Data ss:Type="String">Kelas</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="Number">12345</Data></Cell>
+    <Cell><Data ss:Type="String">Ahmad Rizki</Data></Cell>
+    <Cell><Data ss:Type="String">L</Data></Cell>
+    <Cell><Data ss:Type="String">X TKJ 1</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="Number">12346</Data></Cell>
+    <Cell><Data ss:Type="String">Siti Nurhaliza</Data></Cell>
+    <Cell><Data ss:Type="String">P</Data></Cell>
+    <Cell><Data ss:Type="String">X TKJ 1</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="Number">12347</Data></Cell>
+    <Cell><Data ss:Type="String">Budi Santoso</Data></Cell>
+    <Cell><Data ss:Type="String">L</Data></Cell>
+    <Cell><Data ss:Type="String">X RPL 1</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="Number">12348</Data></Cell>
+    <Cell><Data ss:Type="String">Dewi Sartika</Data></Cell>
+    <Cell><Data ss:Type="String">P</Data></Cell>
+    <Cell><Data ss:Type="String">X RPL 1</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>

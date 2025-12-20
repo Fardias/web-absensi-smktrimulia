@@ -15,6 +15,7 @@ import AbsenDatang from "./pages/siswa/AbsenDatang";
 import AbsenPulang from "./pages/siswa/AbsenPulang";
 import RiwayatAbsensi from "./pages/siswa/RiwayatAbsensi";
 import IzinSakit from "./pages/siswa/IzinSakit";
+import SiswaProfil from "./pages/siswa/Profil";
 import ImportSiswa from "./pages/admin/ImportSiswa";
 import SiswaIzinSakit from "./pages/gurket/SiswaIzinSakit";
 import LihatAbsensi from "./pages/gurket/LihatAbsensi";
@@ -288,14 +289,23 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Profil Route */}
+      {/* Profil Routes */}
       <Route
         path="/profil"
         element={
-          <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas", "siswa"]}>
+          <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas"]}>
             <Layout>
               <Profil />
             </Layout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/siswa/profil"
+        element={
+          <ProtectedRoute allowedRoles={["siswa"]}>
+            <SiswaProfil />
           </ProtectedRoute>
         }
       />

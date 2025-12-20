@@ -14,6 +14,7 @@ export default function AdminPengaturan() {
     toleransi_telat: 10,
   });
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -264,6 +265,204 @@ export default function AdminPengaturan() {
     }
   };
 
+  const getCurrentLocation = async () => {
+    // Prevent multiple simultaneous requests
+    if (geoLoading) return;
+
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+      Swal.fire({
+        icon: 'error',
+        title: 'GPS Tidak Tersedia',
+        text: 'Browser Anda tidak mendukung geolokasi atau GPS tidak tersedia.',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    // Check if we're on HTTPS (required for geolocation in modern browsers)
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Koneksi Tidak Aman',
+        text: 'Geolokasi memerlukan koneksi HTTPS atau localhost. Mohon akses melalui HTTPS atau localhost.',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    setGeoLoading(true);
+
+    // Show loading with better UX
+    const loadingSwal = Swal.fire({
+      title: 'Mendapatkan Lokasi...',
+      html: `
+        <div class="text-sm text-gray-600 mb-4">
+          Mohon tunggu, sedang mengambil koordinat GPS Anda.
+        </div>
+        <div class="text-xs text-gray-500">
+          Pastikan Anda telah mengizinkan akses lokasi di browser.
+        </div>
+      `,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    try {
+      // Get current position with better error handling
+      const position = await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('TIMEOUT'));
+        }, 15000); // 15 second timeout
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            clearTimeout(timeoutId);
+            resolve(pos);
+          },
+          (err) => {
+            clearTimeout(timeoutId);
+            reject(err);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 30000 // Reduce cache time
+          }
+        );
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Validate coordinates
+      if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+        throw new Error('Invalid coordinates received');
+      }
+
+      // Close loading dialog
+      loadingSwal.close();
+      
+      // Update form state
+      setForm(prev => ({
+        ...prev,
+        latitude: parseFloat(latitude.toFixed(6)),
+        longitude: parseFloat(longitude.toFixed(6))
+      }));
+
+      // Update map if it exists
+      if (mapRef.current && window.L) {
+        const L = window.L;
+        const newLatLng = [latitude, longitude];
+        
+        try {
+          // Update map view
+          mapRef.current.setView(newLatLng, 17);
+          
+          // Update or create marker
+          if (markerRef.current) {
+            markerRef.current.setLatLng(newLatLng);
+          } else {
+            markerRef.current = L.marker(newLatLng, { draggable: true }).addTo(mapRef.current);
+            markerRef.current.on('dragend', (e) => {
+              const pos = e.target.getLatLng();
+              setForm(prev => ({
+                ...prev,
+                latitude: parseFloat(pos.lat.toFixed(6)),
+                longitude: parseFloat(pos.lng.toFixed(6))
+              }));
+            });
+          }
+          
+          // Update or create circle
+          if (circleRef.current) {
+            circleRef.current.setLatLng(newLatLng);
+            circleRef.current.setRadius(Number(form.radius_meter) || 50);
+          } else {
+            circleRef.current = L.circle(newLatLng, {
+              radius: Number(form.radius_meter) || 50,
+              color: '#3b82f6',
+              weight: 2,
+              fillColor: '#3b82f6',
+              fillOpacity: 0.15
+            }).addTo(mapRef.current);
+          }
+        } catch (mapError) {
+          console.warn('Map update failed:', mapError);
+          // Continue even if map update fails
+        }
+      }
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Lokasi Berhasil Diambil!',
+        html: `
+          <div class="text-sm">
+            <strong>Koordinat:</strong><br>
+            Latitude: ${latitude.toFixed(6)}<br>
+            Longitude: ${longitude.toFixed(6)}
+          </div>
+          <div class="text-xs text-gray-500 mt-2">
+            Akurasi: ±${Math.round(position.coords.accuracy || 0)} meter
+          </div>
+        `,
+        confirmButtonColor: '#3b82f6',
+        timer: 4000,
+        timerProgressBar: true
+      });
+
+    } catch (error) {
+      // Close loading dialog if still open
+      if (loadingSwal && loadingSwal.isVisible && loadingSwal.isVisible()) {
+        loadingSwal.close();
+      }
+
+      console.error('Geolocation error:', error);
+
+      let errorMessage = 'Gagal mendapatkan lokasi. ';
+      let errorTitle = 'Gagal Mendapatkan Lokasi';
+      
+      if (error.message === 'TIMEOUT') {
+        errorTitle = 'Waktu Tunggu Habis';
+        errorMessage = 'Tidak dapat mendapatkan lokasi dalam waktu yang ditentukan. Pastikan GPS aktif dan sinyal baik.';
+      } else if (error.code) {
+        switch (error.code) {
+          case 1: // PERMISSION_DENIED
+            errorTitle = 'Akses Lokasi Ditolak';
+            errorMessage = 'Mohon izinkan akses lokasi di browser Anda. Klik ikon kunci/lokasi di address bar untuk mengatur izin.';
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            errorTitle = 'Lokasi Tidak Tersedia';
+            errorMessage = 'Informasi lokasi tidak tersedia. Pastikan GPS aktif dan Anda berada di area dengan sinyal yang baik.';
+            break;
+          case 3: // TIMEOUT
+            errorTitle = 'Waktu Tunggu Habis';
+            errorMessage = 'Waktu tunggu habis. Pastikan GPS aktif dan coba lagi.';
+            break;
+          default:
+            errorMessage += 'Terjadi kesalahan yang tidak diketahui.';
+            break;
+        }
+      } else {
+        errorMessage += error.message || 'Terjadi kesalahan yang tidak diketahui.';
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: errorTitle,
+        text: errorMessage,
+        confirmButtonColor: '#3b82f6',
+        footer: '<small>Tips: Pastikan browser mengizinkan akses lokasi dan GPS aktif</small>'
+      });
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
   if (loading && !mapRef.current) {
     return <Loading text="Memuat pengaturan..." />;
   }
@@ -277,7 +476,7 @@ export default function AdminPengaturan() {
           {/* Map Picker */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Pilih Lokasi Sekolah</h3>
-            <MapsLinkInput
+            {/* <MapsLinkInput
               onResult={(coords) => {
                 setForm((prev) => ({
                   ...prev,
@@ -285,7 +484,7 @@ export default function AdminPengaturan() {
                   longitude: coords.longitude
                 }));
               }}
-            />
+            /> */}
 
 
             <div className="relative">
@@ -305,6 +504,39 @@ export default function AdminPengaturan() {
                 </div>
               )}
             </div>
+            
+            {/* Tombol Get Current Location */}
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={getCurrentLocation}
+                disabled={loading || geoLoading}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                {geoLoading ? (
+                  <>
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Mengambil Lokasi...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Gunakan Lokasi Saat Ini
+                  </>
+                )}
+              </button>
+            </div>
+            
+            <div className="mt-2 text-center">
+              <p className="text-xs text-gray-500">
+                Pastikan browser mengizinkan akses lokasi dan GPS aktif
+              </p>
+            </div>
+            
             <p className="mt-3 text-sm text-gray-600">Klik pada peta atau seret marker untuk mengatur lokasi. Latitude dan longitude akan terisi otomatis.</p>
           </div>
 

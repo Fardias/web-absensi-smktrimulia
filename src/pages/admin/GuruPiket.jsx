@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { adminAPI } from "../../services/api";
-import { Loading } from "../../components";
+import { Loading, DataTable } from "../../components";
 import Swal from "sweetalert2";
 
 const GuruPiket = () => {
@@ -122,6 +122,50 @@ const GuruPiket = () => {
     return <Loading text="Memuat data guru piket..." />;
   }
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: 'no',
+      label: 'No',
+      render: (item, index) => index + 1
+    },
+    {
+      key: 'nip',
+      label: 'NIP/Username',
+      sortable: true,
+      accessor: (item) => item.nip
+    },
+    {
+      key: 'nama',
+      label: 'Nama',
+      sortable: true,
+      accessor: (item) => item.nama
+    },
+    {
+      key: 'actions',
+      label: 'Action',
+      render: (item) => (
+        <div className="space-x-2">
+          <button 
+            onClick={() => openEdit(item)} 
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => handleDelete(item)} 
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Hapus
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  // Define search fields
+  const searchFields = ['nip', 'nama'];
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -133,36 +177,14 @@ const GuruPiket = () => {
         <div className="mb-3 text-red-600 font-semibold">{error}</div>
       )}
 
-      <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">No</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">NIP/Username</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Nama</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {list.map((w, idx) => (
-              <tr key={w.gurket_id}>
-                <td className="px-4 py-2">{idx + 1}</td>
-                <td className="px-4 py-2">{w.nip}</td>
-                <td className="px-4 py-2">{w.nama}</td>
-                <td className="px-4 py-2 space-x-2">
-                  <button onClick={() => openEdit(w)} className="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
-                  <button onClick={() => handleDelete(w)} className="px-3 py-1 bg-red-600 text-white rounded">Hapus</button>
-                </td>
-              </tr>
-            ))}
-            {list.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">Belum ada guru piket</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={list}
+        columns={columns}
+        searchFields={searchFields}
+        searchPlaceholder="Cari NIP atau nama guru..."
+        emptyMessage="Belum ada guru piket"
+        defaultSort={{ field: 'nama', direction: 'asc' }}
+      />
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

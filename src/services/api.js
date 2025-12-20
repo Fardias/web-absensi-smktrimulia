@@ -125,6 +125,7 @@ export const guruAPI = {
 	aktifitasTerbaru: () => api.get('/aktivitas-terbaru'),
 	getSiswaIzinSakit: () => api.get('/absensi/siswaIzinSakit'),
 	updateAbsensiStatus: (data) => api.post(`/absensi/updateStatus`, data),
+	updateAbsensiStatusAll: (data) => api.post(`/absensi/updateAbsensiStatus`, data),
 	lihatAbsensiSiswa: (params) => api.get('/absensi/lihat', { params }),
 	lihatAbsensiHariIni: () => api.get('/absensi/hari-ini'),
 

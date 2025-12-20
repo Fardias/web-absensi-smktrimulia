@@ -49,11 +49,9 @@ const Login = () => {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
                 {/* Logo/Header */}
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-[#003366] rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span className="text-white text-2xl font-bold">SMK</span>
-                    </div>
-                    <h1 className="text-2xl font-bold text-[#003366] mb-2">SMK Trimulia</h1>
-                    <p className="text-gray-600">Sistem Absensi Radius</p>
+                    
+                    <h1 className="text-2xl font-bold text-[#003366] uppercase mb-2">SMK Trimulia Jakarta</h1>
+                    <p className="text-gray-600 text-sm">SISENUS - Sistem Absensi Radius</p>
                 </div>
 
                 {/* Form Login */}
@@ -125,7 +123,7 @@ const Login = () => {
                 {/* Footer */}
                 <div className="mt-8 text-center">
                     <p className="text-sm text-gray-500">
-                        © 2025 SISENUS SMK Trimulia. All rights reserved.
+                        © 2025 SISENUS SMK TRIMULIA JAKARTA. All rights reserved.
                     </p>
                 </div>
             </div>

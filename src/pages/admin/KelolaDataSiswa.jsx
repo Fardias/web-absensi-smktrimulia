@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import { adminAPI, utilityAPI } from "../../services/api";
-import { Loading } from "../../components";
+import { Loading, DataTable } from "../../components";
 import EditSiswaForm from "../../components/EditSiswaForm";
 
 const KelolaDataSiswa = () => {
@@ -10,17 +10,16 @@ const KelolaDataSiswa = () => {
   const [error, setError] = useState(null);
   const [editingSiswa, setEditingSiswa] = useState(null);
   const [formData, setFormData] = useState({});
-  const [search, setSearch] = useState("");
-  const [filterJenkel, setFilterJenkel] = useState("");
-  const [filterTingkat, setFilterTingkat] = useState("");
-  const [filterJurusan, setFilterJurusan] = useState("");
-  const [filterParalel, setFilterParalel] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
   const [kelasList, setKelasList] = useState([]);
   const [jurusanList, setJurusanList] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [newSiswa, setNewSiswa] = useState({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
+
+  // Additional filters for DataTable
+  const [filterJenkel, setFilterJenkel] = useState("");
+  const [filterTingkat, setFilterTingkat] = useState("");
+  const [filterJurusan, setFilterJurusan] = useState("");
+  const [filterParalel, setFilterParalel] = useState("");
 
   useEffect(() => {
     const fetchDataSiswa = async () => {
@@ -132,12 +131,8 @@ const KelolaDataSiswa = () => {
     return Array.from(new Set(vals));
   }, [siswaList]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
-
-  const filteredList = useMemo(() => {
-    const q = search.trim().toLowerCase();
+  // Filter data based on additional filters
+  const filteredSiswaList = useMemo(() => {
     return siswaList.filter((s) => {
       if (filterJenkel && (s.jenkel || "").toString() !== filterJenkel) return false;
       const tingkat = s.kelas?.tingkat ? String(s.kelas.tingkat) : "";
@@ -146,19 +141,11 @@ const KelolaDataSiswa = () => {
       if (filterJurusan && String(jurusanVal) !== filterJurusan) return false;
       const paralelVal = s.kelas?.paralel ? String(s.kelas.paralel) : "";
       if (filterParalel && paralelVal !== filterParalel) return false;
-      if (!q) return true;
-      const nama = (s.nama || "").toLowerCase();
-      const nis = (s.nis || "").toLowerCase();
-      return nama.includes(q) || nis.includes(q);
+      return true;
     });
-  }, [siswaList, search, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
-  const startIndex = (currentPage - 1) * pageSize;
-  const paginatedList = filteredList.slice(startIndex, startIndex + pageSize);
+  }, [siswaList, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
 
   const resetFilter = () => {
-    setSearch("");
     setFilterJenkel("");
     setFilterTingkat("");
     setFilterJurusan("");
@@ -218,14 +205,87 @@ const KelolaDataSiswa = () => {
   if (loading) return <Loading text="Loading data siswa..." />;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      key: 'no',
+      label: 'No',
+      render: (item, index) => index + 1
+    },
+    {
+      key: 'nis',
+      label: 'NIS',
+      sortable: true,
+      accessor: (item) => item.nis || '-'
+    },
+    {
+      key: 'nama',
+      label: 'Nama',
+      sortable: true,
+      accessor: (item) => item.nama || '-'
+    },
+    {
+      key: 'jenkel',
+      label: 'Jenis Kelamin',
+      sortable: true,
+      accessor: (item) => item.jenkel === 'L' ? 'Laki-laki' : item.jenkel === 'P' ? 'Perempuan' : item.jenkel || '-'
+    },
+    {
+      key: 'tingkat',
+      label: 'Tingkat',
+      sortable: true,
+      accessor: (item) => item.kelas?.tingkat || '-'
+    },
+    {
+      key: 'jurusan',
+      label: 'Jurusan',
+      sortable: true,
+      accessor: (item) => item.kelas?.jurusan?.nama_jurusan || '-'
+    },
+    {
+      key: 'paralel',
+      label: 'Paralel',
+      sortable: true,
+      accessor: (item) => item.kelas?.paralel || '-'
+    },
+    {
+      key: 'actions',
+      label: 'Aksi',
+      render: (item) => (
+        <button 
+          onClick={() => handleEdit(item)} 
+          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+        >
+          Edit
+        </button>
+      )
+    }
+  ];
+
+  // Define search fields for DataTable
+  const searchFields = [
+    'nis',
+    'nama',
+    (item) => item.kelas?.jurusan?.nama_jurusan || '',
+    (item) => item.kelas?.tingkat ? String(item.kelas.tingkat) : '',
+    (item) => item.kelas?.paralel || ''
+  ];
+
   return (
     <div className="flex flex-col p-6 md:p-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Kelola Data Siswa</h1>
-        <button onClick={() => setShowCreate((v) => !v)} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+        <button 
+          onClick={() => setShowCreate((v) => !v)} 
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        >
           {showCreate ? "Tutup" : "Tambah Siswa"}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-3 text-red-600 font-semibold">{error}</div>
+      )}
 
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -233,7 +293,6 @@ const KelolaDataSiswa = () => {
           <div className="relative z-10 w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Tambah Siswa</h3>
-            
             </div>
             <div className="grid grid-cols-1 gap-3">
               <input
@@ -269,8 +328,18 @@ const KelolaDataSiswa = () => {
                 ))}
               </select>
               <div className="flex items-center justify-end gap-2 mt-2">
-                <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Batal</button>
-                <button onClick={createSiswa} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:opacity-85">Simpan</button>
+                <button 
+                  onClick={() => setShowCreate(false)} 
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={createSiswa} 
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:opacity-85"
+                >
+                  Simpan
+                </button>
               </div>
             </div>
           </div>
@@ -287,16 +356,8 @@ const KelolaDataSiswa = () => {
         />
       )}
 
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
-        <div>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari Nama atau NIS"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          />
-        </div>
+      {/* Additional Filters */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
           <select
             value={filterJenkel}
@@ -347,75 +408,23 @@ const KelolaDataSiswa = () => {
         <div>
           <button
             onClick={resetFilter}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
-            Reset
+            Reset Filter
           </button>
         </div>
       </div>
 
-      {paginatedList.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="table-base">
-            <thead className="table-thead">
-              <tr>
-                <th className="table-th">NIS</th>
-                <th className="table-th">Nama</th>
-                <th className="table-th">Jenis Kelamin</th>
-                <th className="table-th">Tingkat</th>
-                <th className="table-th">Jurusan</th>
-                <th className="table-th">Paralel</th>
-                <th className="table-th">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="table-tbody">
-              {paginatedList.map((siswa) => (
-                <tr key={siswa.siswa_id} className="table-tr hover:bg-gray-50">
-                  <td className="table-td">{siswa.nis}</td>
-                  <td className="table-td">{siswa.nama}</td>
-                  <td className="table-td">{siswa.jenkel}</td>
-                  <td className="table-td">{siswa.kelas?.tingkat || "-"}</td>
-                  <td className="table-td">{siswa.kelas?.jurusan?.nama_jurusan || "-"}</td>
-                  <td className="table-td">{siswa.kelas?.paralel || "-"}</td>
-                  <td className="table-td">
-                    <button onClick={() => handleEdit(siswa)} className="text-blue-600 hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-700">
-            <div>
-              Menampilkan {paginatedList.length} dari {filteredList.length} data
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="px-3 py-1 border rounded"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              >
-                Prev
-              </button>
-              <span>
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                className="px-3 py-1 border rounded"
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center text-gray-500 pt-2">
-          Tidak ada data siswa
-        </div>
-      )}
+      {/* DataTable */}
+      <DataTable
+        data={filteredSiswaList}
+        columns={columns}
+        searchFields={searchFields}
+        searchPlaceholder="Cari nama atau NIS siswa..."
+        emptyMessage="Tidak ada data siswa"
+        defaultSort={{ field: 'nama', direction: 'asc' }}
+        defaultItemsPerPage={20}
+      />
     </div>
   );
 };

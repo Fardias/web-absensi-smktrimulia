@@ -2,17 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
-import { TimeCard, Loading } from '../../components';
+import { TimeCard, Loading, BottomNavbar } from '../../components';
 import { generalAPI } from '../../services/api';
 import { PersonStanding, School } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import Swal from 'sweetalert2';
 
 const AbsenPulang = () => {
     const { user } = useAuth();
     const { handleAbsen } = useAbsensi();
-    const [result, setResult] = useState(null);
     const [location, setLocation] = useState(null);
     const [pengaturan, setPengaturan] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const mapRef = useRef(null);
     const markerSchoolRef = useRef(null);
     const markerUserRef = useRef(null);
@@ -20,9 +21,69 @@ const AbsenPulang = () => {
     const navigate = useNavigate();
 
     const handleAbsenWrapper = async () => {
-        if (!location) return;
-        const res = await handleAbsen('pulang', { latitude: location.latitude, longitude: location.longitude });
-        setResult(res);
+        if (!location) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lokasi Tidak Tersedia',
+                text: 'Mohon aktifkan GPS dan izinkan akses lokasi untuk melakukan absensi.',
+                confirmButtonColor: '#003366'
+            });
+            return;
+        }
+
+        // Show confirmation dialog
+        const result = await Swal.fire({
+            title: 'Konfirmasi Absensi',
+            text: 'Apakah Anda yakin ingin melakukan absensi pulang sekarang?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#003366',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Absen Sekarang',
+            cancelButtonText: 'Batal'
+        });
+
+        if (!result.isConfirmed) return;
+
+        // Show loading
+        setIsLoading(true);
+        
+        try {
+            const res = await handleAbsen('pulang', { 
+                latitude: location.latitude, 
+                longitude: location.longitude 
+            });
+            
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Absensi Berhasil!',
+                    text: res.message,
+                    confirmButtonColor: '#003366',
+                    timer: 3000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Redirect to home after success
+                    navigate('/siswa/home');
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Absensi Gagal',
+                    text: res.message,
+                    confirmButtonColor: '#003366'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan',
+                text: 'Gagal melakukan absensi. Silakan coba lagi.',
+                confirmButtonColor: '#003366'
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (!user) {
@@ -30,7 +91,12 @@ const AbsenPulang = () => {
     }
 
     useEffect(() => {
-        generalAPI.getPengaturan().then((res) => setPengaturan(res.data)).catch(() => setPengaturan(null));
+        generalAPI.getPengaturan()
+            .then((res) => {
+                const pengaturanData = res.data?.responseData || res.data;
+                setPengaturan(pengaturanData);
+            })
+            .catch(() => setPengaturan(null));
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
                 setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
@@ -98,7 +164,7 @@ const AbsenPulang = () => {
     }, [pengaturan, location]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pb-20">
             <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
                 <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between text-white">
@@ -138,9 +204,24 @@ const AbsenPulang = () => {
 
                     <button
                         onClick={handleAbsenWrapper}
-                        className="bg-[#f0ca30] text-[#003366] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#e6b82a] transition duration-200 shadow-lg"
+                        disabled={isLoading || !location}
+                        className={`px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 shadow-lg ${
+                            isLoading || !location
+                                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                                : 'bg-[#f0ca30] text-[#003366] hover:bg-[#e6b82a]'
+                        }`}
                     >
-                        Absen Pulang
+                        {isLoading ? (
+                            <div className="flex items-center justify-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Memproses...
+                            </div>
+                        ) : (
+                            'Absen Pulang'
+                        )}
                     </button>
                 </div>
 
@@ -167,14 +248,8 @@ const AbsenPulang = () => {
                 </div>
             </main>
 
-            {result && (
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-                    <div className={`rounded-xl p-6 border ${result.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <div className={`text-lg font-semibold mb-2 ${result.success ? 'text-green-700' : 'text-red-700'}`}>{result.success ? 'Berhasil' : 'Gagal'}</div>
-                        <div className={`${result.success ? 'text-green-600' : 'text-red-600'}`}>{result.message}</div>
-                    </div>
-                </div>
-            )}
+            {/* Bottom Navigation */}
+            <BottomNavbar />
         </div>
     );
 };

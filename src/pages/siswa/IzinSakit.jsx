@@ -1,12 +1,14 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { Loading } from '../../components';
+import { Loading, BottomNavbar } from '../../components';
 import { useState } from 'react';
 import { useAbsensi } from '../../hooks';
+import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 
 const IzinSakit = () => {
    const { handleIzin, handleSakit, loading } = useAbsensi();
    const { user } = useAuth();
+   const navigate = useNavigate();
 
    const today = new Date().toISOString().split('T')[0];
    const [selectedType, setSelectedType] = useState('izin'); // "izin" atau "sakit"
@@ -89,13 +91,24 @@ const IzinSakit = () => {
    };
 
    return (
-      <div className="min-h-screen bg-gray-50">
-         <Header
-            title="Izin / Sakit"
-            subtitle="SMK Trimulia"
-            showBackButton
-            backPath="/siswa/home"
-         />
+      <div className="min-h-screen bg-gray-50 pb-20">
+         {/* Header */}
+         <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+               <div className="flex items-center justify-between text-white">
+                  <div>
+                     <p className="text-2xl font-bold">Izin / Sakit</p>
+                     <p className="text-sm opacity-90">SMK Trimulia</p>
+                  </div>
+                  <button 
+                     onClick={() => navigate('/siswa/home')} 
+                     className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded transition-colors"
+                  >
+                     Kembali
+                  </button>
+               </div>
+            </div>
+         </div>
 
          <main className="max-w-2xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
             <div className="p-8 bg-white shadow-lg rounded-2xl">
@@ -230,6 +243,9 @@ const IzinSakit = () => {
          <div className="fixed z-50 bottom-16 right-4">
             <Toaster position="bottom-right" reverseOrder={false} />
          </div>
+
+         {/* Bottom Navigation */}
+         <BottomNavbar />
       </div>
    );
 };
