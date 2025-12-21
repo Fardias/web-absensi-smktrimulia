@@ -87,6 +87,8 @@ export const adminAPI = {
 
 	// Riwayat Kelas
 	getRiwayatKelas: (params) => api.get('/admin/riwayat-kelas', { params }),
+	updateRiwayatKelas: (id, data) => api.put(`/admin/riwayat-kelas/${id}`, data),
+	promoteClass: (kelasId, data) => api.post(`/admin/riwayat-kelas/promote/${kelasId}`, data),
 
 	// Wali Kelas CRUD
 	getWaliKelas: () => api.get('/admin/wali-kelas'),

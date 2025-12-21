@@ -5,9 +5,9 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), basicSsl()],
-  server: {
-    https: true,
-    host: true,
-    allowedHosts: ['kamron-problockade-indiscriminatingly.ngrok-free.dev'],
-  },
+  // server: {
+  //   https: true,
+  //   host: true,
+  //   allowedHosts: ['kamron-problockade-indiscriminatingly.ngrok-free.dev'],
+  // },
 })

@@ -11,9 +11,16 @@ const KelolaDataSiswa = () => {
   const [editingSiswa, setEditingSiswa] = useState(null);
   const [formData, setFormData] = useState({});
   const [kelasList, setKelasList] = useState([]);
+  const [rawKelasList, setRawKelasList] = useState([]);
   const [jurusanList, setJurusanList] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [newSiswa, setNewSiswa] = useState({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
+
+  // Riwayat Modal State
+  const [showRiwayatModal, setShowRiwayatModal] = useState(false);
+  const [riwayatList, setRiwayatList] = useState([]);
+  const [loadingRiwayat, setLoadingRiwayat] = useState(false);
+  const [selectedSiswaName, setSelectedSiswaName] = useState("");
 
   // Additional filters for DataTable
   const [filterJenkel, setFilterJenkel] = useState("");
@@ -45,6 +52,7 @@ const KelolaDataSiswa = () => {
         const res = await utilityAPI.listKelas();
         const data = res?.data?.responseData ?? [];
         console.log("data kelas:", data);
+        setRawKelasList(data);
         // cek jika paralel = null maka null jadikan string kosong
         const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel || ""}` }));
         setKelasList(list);
@@ -74,7 +82,10 @@ const KelolaDataSiswa = () => {
       nis: siswa.nis,
       nama: siswa.nama,
       jenkel: siswa.jenkel,
+      tingkat: siswa.kelas?.tingkat || "",
       jurusan: siswa.kelas?.jurusan?.nama_jurusan || "",
+      paralel: siswa.kelas?.paralel || "",
+      status: siswa.status || "aktif",
     });
   };
 
@@ -90,7 +101,28 @@ const KelolaDataSiswa = () => {
         nama: formData.nama,
         jenkel: formData.jenkel,
         username: formData.nis,
+        status: formData.status,
       };
+
+      // Find matching kelas_id
+      const selectedKelas = rawKelasList.find(k => {
+        const jurusanMatch = (k.jurusan?.nama_jurusan || k.jurusan) === formData.jurusan;
+        const tingkatMatch = String(k.tingkat) === String(formData.tingkat);
+        const paralelMatch = (k.paralel || "") === (formData.paralel || "");
+        return jurusanMatch && tingkatMatch && paralelMatch;
+      });
+
+      if (selectedKelas) {
+        payload.kelas_id = selectedKelas.kelas_id;
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: "Kelas tidak valid. Kombinasi Tingkat, Jurusan, dan Paralel tidak ditemukan."
+        });
+        return;
+      }
+
       if (formData.password && String(formData.password).length > 0) {
         payload.password = formData.password;
       }
@@ -112,6 +144,23 @@ const KelolaDataSiswa = () => {
   const handleCancel = () => {
     setEditingSiswa(null);
     setFormData({});
+  };
+
+  const handleViewRiwayat = async (siswa) => {
+    setSelectedSiswaName(siswa.nama);
+    setShowRiwayatModal(true);
+    setLoadingRiwayat(true);
+    setRiwayatList([]);
+    try {
+      const res = await adminAPI.getRiwayatKelas({ siswa_id: siswa.siswa_id });
+      const data = res?.data?.responseData?.riwayat ?? [];
+      setRiwayatList(data);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({ icon: "error", title: "Gagal", text: "Gagal memuat riwayat kelas" });
+    } finally {
+      setLoadingRiwayat(false);
+    }
   };
 
   const tingkatOptions = useMemo(() => {
@@ -249,15 +298,29 @@ const KelolaDataSiswa = () => {
       accessor: (item) => item.kelas?.paralel || '-'
     },
     {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      accessor: (item) => item.status || '-'
+    },
+    {
       key: 'actions',
       label: 'Aksi',
       render: (item) => (
-        <button 
-          onClick={() => handleEdit(item)} 
-          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-        >
-          Edit
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => handleEdit(item)}
+            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleViewRiwayat(item)}
+            className="text-green-600 hover:text-green-800 hover:underline transition-colors"
+          >
+            Riwayat
+          </button>
+        </div>
       )
     }
   ];
@@ -275,8 +338,8 @@ const KelolaDataSiswa = () => {
     <div className="flex flex-col p-6 md:p-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Kelola Data Siswa</h1>
-        <button 
-          onClick={() => setShowCreate((v) => !v)} 
+        <button
+          onClick={() => setShowCreate((v) => !v)}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           {showCreate ? "Tutup" : "Tambah Siswa"}
@@ -328,14 +391,14 @@ const KelolaDataSiswa = () => {
                 ))}
               </select>
               <div className="flex items-center justify-end gap-2 mt-2">
-                <button 
-                  onClick={() => setShowCreate(false)} 
+                <button
+                  onClick={() => setShowCreate(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
                   Batal
                 </button>
-                <button 
-                  onClick={createSiswa} 
+                <button
+                  onClick={createSiswa}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:opacity-85"
                 >
                   Simpan
@@ -353,7 +416,91 @@ const KelolaDataSiswa = () => {
           handleSave={handleSave}
           handleCancel={handleCancel}
           jurusanList={jurusanList}
+          tingkatOptions={tingkatOptions}
+          paralelOptions={paralelOptions}
         />
+      )}
+
+      {/* Riwayat Modal */}
+      {showRiwayatModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowRiwayatModal(false)} />
+          <div className="relative z-10 w-full max-w-2xl bg-white rounded-xl shadow-lg p-6 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Riwayat Kelas: {selectedSiswaName}
+              </h3>
+              <button
+                onClick={() => setShowRiwayatModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                &times;
+              </button>
+            </div>
+
+            {loadingRiwayat ? (
+              <Loading text="Memuat riwayat..." />
+            ) : riwayatList.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Tidak ada riwayat kelas tercatat.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 text-gray-700 font-medium border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3">No</th>
+                      <th className="px-4 py-3">Kelas</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Tanggal Pencatatan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {riwayatList.map((item, idx) => {
+                      const kelasStr = item.kelas
+                        ? `${item.kelas.tingkat} ${item.kelas.jurusan?.nama_jurusan || ""} ${item.kelas.paralel || ""}`
+                        : "-";
+                      const dateStr = item.created_at
+                        ? new Date(item.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
+                        : "-";
+
+                      return (
+                        <tr key={item.riwayat_kelas_id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3">{idx + 1}</td>
+                          <td className="px-4 py-3 font-medium text-gray-800">{kelasStr}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === "aktif"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                                }`}
+                            >
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{dateStr}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setShowRiwayatModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Additional Filters */}

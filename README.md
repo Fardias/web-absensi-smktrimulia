@@ -180,3 +180,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 **SMK Trimulia** - Sistem Absensi Digital
+
+
+
+
+
+pake ini klo mau https di lokal
+"dev": "vite --host",

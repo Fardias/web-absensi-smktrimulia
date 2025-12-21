@@ -281,7 +281,11 @@ export default function AdminPengaturan() {
     }
 
     // Check if we're on HTTPS (required for geolocation in modern browsers)
-    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // Allow localhost (both http and https) and standard HTTPS
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHttps = window.location.protocol === 'https:';
+
+    if (!isHttps && !isLocalhost) {
       Swal.fire({
         icon: 'warning',
         title: 'Koneksi Tidak Aman',
@@ -313,28 +317,31 @@ export default function AdminPengaturan() {
     });
 
     try {
-      // Get current position with better error handling
-      const position = await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(() => {
-          reject(new Error('TIMEOUT'));
-        }, 15000); // 15 second timeout
+      // Helper wrapper for getCurrentPosition
+      const getPosition = (options) => {
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, options);
+        });
+      };
 
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            clearTimeout(timeoutId);
-            resolve(pos);
-          },
-          (err) => {
-            clearTimeout(timeoutId);
-            reject(err);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 30000 // Reduce cache time
-          }
-        );
-      });
+      let position;
+      
+      // Attempt 1: High Accuracy
+      try {
+        position = await getPosition({
+          enableHighAccuracy: true,
+          timeout: 5000, // 5 seconds for high accuracy attempt
+          maximumAge: 0
+        });
+      } catch (err) {
+        console.warn("High accuracy geolocation failed, trying low accuracy...", err);
+        // Attempt 2: Low Accuracy (fallback)
+        position = await getPosition({
+          enableHighAccuracy: false,
+          timeout: 10000, // 10 seconds for low accuracy
+          maximumAge: 0
+        });
+      }
 
       const { latitude, longitude } = position.coords;
       
@@ -426,10 +433,7 @@ export default function AdminPengaturan() {
       let errorMessage = 'Gagal mendapatkan lokasi. ';
       let errorTitle = 'Gagal Mendapatkan Lokasi';
       
-      if (error.message === 'TIMEOUT') {
-        errorTitle = 'Waktu Tunggu Habis';
-        errorMessage = 'Tidak dapat mendapatkan lokasi dalam waktu yang ditentukan. Pastikan GPS aktif dan sinyal baik.';
-      } else if (error.code) {
+      if (error.code) {
         switch (error.code) {
           case 1: // PERMISSION_DENIED
             errorTitle = 'Akses Lokasi Ditolak';
