@@ -114,7 +114,7 @@ export const adminAPI = {
 		api.post('/admin/import-siswa', formData, { onUploadProgress }),
 
 
-	getDataSiswa: () => api.get('/admin/kelola-datasiswa'),
+	getDataSiswa: (params) => api.get('/admin/kelola-datasiswa', { params }),
 	createSiswa: (data) => api.post('/admin/kelola-datasiswa/create', data),
 	updateSiswa: (siswaId, data) => api.post('/admin/kelola-datasiswa/update', { siswa_id: siswaId, ...data }),
 };
@@ -148,6 +148,7 @@ export const generalAPI = {
 
 export const utilityAPI = {
 	listKelas: () => api.get('/utility/kelas'),
+	getDataSiswa: (params) => api.get('/utility/siswa', { params }),
 };
 
 

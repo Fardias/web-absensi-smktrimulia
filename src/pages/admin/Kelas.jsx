@@ -78,7 +78,7 @@ const Kelas = () => {
 
   async function submitForm(e) {
     e.preventDefault();
-    if (!/^[a-zA-Z0-9\s]+$/.test(paralel)) {
+    if (!/^[a-zA-Z0-9\s]+$/.test(paralel) && paralel.length > 0) {
       Swal.fire({ icon: "error", title: "Gagal", text: "Paralel hanya boleh huruf atau angka" });
       return;
     }

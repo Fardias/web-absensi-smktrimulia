@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { guruAPI, utilityAPI } from "../../services/api";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
-
+import autoTable from "jspdf-autotable";
 const STATUS = {
   HADIR: "hadir",
   TERLAMBAT: "terlambat",
@@ -56,7 +55,7 @@ export default function LihatAbsensi() {
       const data = res?.data?.responseData ?? [];
       const list = data.map((k) => ({
         id: k.kelas_id,
-        label: `${k.tingkat}-${k.jurusan}-${k.paralel}`,
+        label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel ?? ''}`,
       }));
       setKelasList(list);
       if (list.length > 0 && !kelas) setKelas(list[0].id);
@@ -165,7 +164,7 @@ export default function LihatAbsensi() {
       r.note || "",
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [["NIS", "Nama", "Status", "Waktu", "Catatan"]],
       body: tableData,
       startY: 30,
@@ -243,10 +242,9 @@ export default function LihatAbsensi() {
             key={st}
             onClick={() => toggleFilter(st)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition
-              ${
-                filterStatus === st
-                  ? `border-blue-500 bg-blue-50`
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+              ${filterStatus === st
+                ? `border-blue-500 bg-blue-50`
+                : "border-gray-200 bg-white hover:bg-gray-50"
               }`}
           >
             <span

@@ -82,9 +82,7 @@ const KelolaDataSiswa = () => {
       nis: siswa.nis,
       nama: siswa.nama,
       jenkel: siswa.jenkel,
-      tingkat: siswa.kelas?.tingkat || "",
-      jurusan: siswa.kelas?.jurusan?.nama_jurusan || "",
-      paralel: siswa.kelas?.paralel || "",
+      kelas_id: siswa.kelas_id || siswa.kelas?.kelas_id || "",
       status: siswa.status || "aktif",
     });
   };
@@ -104,21 +102,13 @@ const KelolaDataSiswa = () => {
         status: formData.status,
       };
 
-      // Find matching kelas_id
-      const selectedKelas = rawKelasList.find(k => {
-        const jurusanMatch = (k.jurusan?.nama_jurusan || k.jurusan) === formData.jurusan;
-        const tingkatMatch = String(k.tingkat) === String(formData.tingkat);
-        const paralelMatch = (k.paralel || "") === (formData.paralel || "");
-        return jurusanMatch && tingkatMatch && paralelMatch;
-      });
-
-      if (selectedKelas) {
-        payload.kelas_id = selectedKelas.kelas_id;
+      if (formData.kelas_id) {
+        payload.kelas_id = Number(formData.kelas_id);
       } else {
         Swal.fire({
           icon: "error",
           title: "Gagal",
-          text: "Kelas tidak valid. Kombinasi Tingkat, Jurusan, dan Paralel tidak ditemukan."
+          text: "Kelas wajib dipilih."
         });
         return;
       }
@@ -415,9 +405,7 @@ const KelolaDataSiswa = () => {
           handleChange={handleChange}
           handleSave={handleSave}
           handleCancel={handleCancel}
-          jurusanList={jurusanList}
-          tingkatOptions={tingkatOptions}
-          paralelOptions={paralelOptions}
+          kelasList={kelasList}
         />
       )}
 

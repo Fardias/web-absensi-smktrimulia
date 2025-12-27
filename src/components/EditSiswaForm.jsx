@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel, jurusanList = [], tingkatOptions = [], paralelOptions = [] }) => {
+const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel, kelasList = [] }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -48,51 +48,18 @@ const EditSiswaForm = ({ formData, handleChange, handleSave, handleCancel, jurus
             </select>
           </div>
 
-          {/* Tingkat */}
+          {/* Kelas */}
           <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">Tingkat</label>
+            <label className="text-sm font-semibold text-gray-700 mb-1">Kelas</label>
             <select
-              name="tingkat"
-              value={formData.tingkat || ""}
+              name="kelas_id"
+              value={formData.kelas_id || ""}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             >
-              <option value="">Pilih Tingkat</option>
-              {tingkatOptions.map((tingkat) => (
-                <option key={String(tingkat)} value={String(tingkat)}>{String(tingkat)}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Paralel */}
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">Paralel</label>
-            <select
-              name="paralel"
-              value={formData.paralel || ""}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            >
-              <option value="">Pilih Paralel</option>
-              {paralelOptions.map((paralel) => (
-                <option key={String(paralel)} value={String(paralel)}>{String(paralel)}</option>
-              ))}
-            </select>
-          </div>
-
-
-          {/* Jurusan */}
-          <div className="flex flex-col">
-            <label className="text-sm font-semibold text-gray-700 mb-1">Jurusan</label>
-            <select
-              name="jurusan"
-              value={formData.jurusan || ""}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            >
-              <option value="">Pilih Jurusan</option>
-              {jurusanList.map((j) => (
-                <option key={String(j.jurusan_id || j)} value={typeof j === 'string' ? j : j.nama_jurusan}>{typeof j === 'string' ? j : j.nama_jurusan}</option>
+              <option value="">Pilih Kelas</option>
+              {kelasList.map((k) => (
+                <option key={k.id} value={k.id}>{k.label}</option>
               ))}
             </select>
           </div>

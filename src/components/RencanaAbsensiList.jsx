@@ -122,7 +122,7 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
                 className="rounded-xl p-4 bg-gradient-to-br from-gray-50 to-white border border-gray-200 ">
                 <div className="flex items-center justify-between">
                   <p className="font-medium text-gray-800">
-                    {r.kelas.tingkat}-{r.kelas.jurusan.nama_jurusan}-{r.kelas.paralel}
+                    {r.kelas.tingkat} {r.kelas.jurusan.nama_jurusan}{r.kelas.paralel !== null ? `-${r.kelas.paralel}` : ''}
                   </p>
                   <span className={`text-xs px-2 py-1 rounded-full capitalize ${r.status_hari === "normal" ? "bg-green-100 text-green-700" :
                     r.status_hari === "libur" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
