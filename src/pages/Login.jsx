@@ -123,7 +123,7 @@ const Login = () => {
                 {/* Footer */}
                 <div className="mt-8 text-center">
                     <p className="text-sm text-gray-500">
-                        © 2025 SISENUS SMK TRIMULIA JAKARTA. All rights reserved.
+                        © {new Date().getFullYear()} SISENUS SMK TRIMULIA JAKARTA. All rights reserved.
                     </p>
                 </div>
             </div>

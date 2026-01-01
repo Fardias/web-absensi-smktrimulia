@@ -24,9 +24,7 @@ const KelolaDataSiswa = () => {
 
   // Additional filters for DataTable
   const [filterJenkel, setFilterJenkel] = useState("");
-  const [filterTingkat, setFilterTingkat] = useState("");
-  const [filterJurusan, setFilterJurusan] = useState("");
-  const [filterParalel, setFilterParalel] = useState("");
+  const [filterKelas, setFilterKelas] = useState("");
 
   useEffect(() => {
     const fetchDataSiswa = async () => {
@@ -153,42 +151,21 @@ const KelolaDataSiswa = () => {
     }
   };
 
-  const tingkatOptions = useMemo(() => {
-    const vals = siswaList.map((s) => s.kelas?.tingkat).filter(Boolean);
-    return Array.from(new Set(vals));
-  }, [siswaList]);
-
-  const jurusanOptions = useMemo(() => {
-    const vals = siswaList
-      .map((s) => s.kelas?.jurusan?.nama_jurusan || s.kelas?.jurusan)
-      .filter(Boolean);
-    return Array.from(new Set(vals));
-  }, [siswaList]);
-
-  const paralelOptions = useMemo(() => {
-    const vals = siswaList.map((s) => s.kelas?.paralel).filter(Boolean);
-    return Array.from(new Set(vals));
-  }, [siswaList]);
-
   // Filter data based on additional filters
   const filteredSiswaList = useMemo(() => {
     return siswaList.filter((s) => {
       if (filterJenkel && (s.jenkel || "").toString() !== filterJenkel) return false;
-      const tingkat = s.kelas?.tingkat ? String(s.kelas.tingkat) : "";
-      if (filterTingkat && tingkat !== filterTingkat) return false;
-      const jurusanVal = s.kelas?.jurusan?.nama_jurusan || s.kelas?.jurusan || "";
-      if (filterJurusan && String(jurusanVal) !== filterJurusan) return false;
-      const paralelVal = s.kelas?.paralel ? String(s.kelas.paralel) : "";
-      if (filterParalel && paralelVal !== filterParalel) return false;
+      if (filterKelas) {
+        const kelasId = s.kelas_id || s.kelas?.kelas_id;
+        if (!kelasId || String(kelasId) !== String(filterKelas)) return false;
+      }
       return true;
     });
-  }, [siswaList, filterJenkel, filterTingkat, filterJurusan, filterParalel]);
+  }, [siswaList, filterJenkel, filterKelas]);
 
   const resetFilter = () => {
     setFilterJenkel("");
-    setFilterTingkat("");
-    setFilterJurusan("");
-    setFilterParalel("");
+    setFilterKelas("");
   };
 
   const createSiswa = async () => {
@@ -492,7 +469,7 @@ const KelolaDataSiswa = () => {
       )}
 
       {/* Additional Filters */}
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <div>
           <select
             value={filterJenkel}
@@ -506,37 +483,13 @@ const KelolaDataSiswa = () => {
         </div>
         <div>
           <select
-            value={filterTingkat}
-            onChange={(e) => setFilterTingkat(e.target.value)}
+            value={filterKelas}
+            onChange={(e) => setFilterKelas(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2"
           >
-            <option value="">Semua Tingkat</option>
-            {tingkatOptions.map((opt) => (
-              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <select
-            value={filterJurusan}
-            onChange={(e) => setFilterJurusan(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          >
-            <option value="">Semua Jurusan</option>
-            {jurusanOptions.map((opt) => (
-              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <select
-            value={filterParalel}
-            onChange={(e) => setFilterParalel(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2"
-          >
-            <option value="">Semua Paralel</option>
-            {paralelOptions.map((opt) => (
-              <option key={String(opt)} value={String(opt)}>{String(opt)}</option>
+            <option value="">Semua Kelas</option>
+            {kelasList.map((k) => (
+              <option key={k.id} value={k.id}>{k.label}</option>
             ))}
           </select>
         </div>

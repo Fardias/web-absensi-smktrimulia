@@ -308,7 +308,7 @@ export const LihatAbsensiHariIni = () => {
         </div>
 
         {/* Info Box - Collapsible on mobile */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+        {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,7 +328,7 @@ export const LihatAbsensiHariIni = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Filter Section - Mobile Optimized */}

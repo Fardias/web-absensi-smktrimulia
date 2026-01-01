@@ -10,6 +10,7 @@ const ImportSiswa = () => {
     const [success, setSuccess] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Template data with preview images and download links
     const templates = [
@@ -52,6 +53,35 @@ const ImportSiswa = () => {
         setFile(e.target.files[0]);
         setMessage("");
         setSuccess(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const droppedFile = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!droppedFile) return;
+
+        const name = droppedFile.name || "";
+        const ext = name.split(".").pop().toLowerCase();
+        if (!["xls", "xlsx"].includes(ext)) {
+            setMessage("Format file tidak didukung. Gunakan .xls atau .xlsx");
+            setSuccess(false);
+            return;
+        }
+
+        setFile(droppedFile);
+        setMessage("");
+        setSuccess(false);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        if (!isDragging) setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        if (isDragging) setIsDragging(false);
     };
 
     const handleSubmit = async (e) => {
@@ -192,7 +222,14 @@ const ImportSiswa = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-[#003366] rounded-xl p-6 cursor-pointer transition">
+                            <div
+                                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition ${
+                                    isDragging ? "border-[#003366] bg-[#003366]/5" : "border-gray-300 hover:border-[#003366]"
+                                }`}
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                            >
                                 <input
                                     id="file"
                                     type="file"

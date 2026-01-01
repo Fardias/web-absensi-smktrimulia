@@ -6,7 +6,7 @@ const STATUS = { HADIR: "hadir", TERLAMBAT: "terlambat", IZIN: "izin", SAKIT: "s
 
 const formatDateInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
-  return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
 const startOfWeek = (d) => {
@@ -106,7 +106,7 @@ export default function AdminRekap() {
 
       if (period === 'harian') {
         const res = await adminAPI.rekap({ tanggal: range.tanggal });
-        const arr = res?.data?.rekap || res?.data?.responseData || [];
+        const arr = res?.data?.responseData?.rekap || [];
         setRekap(Array.isArray(arr) ? arr : []);
       } else {
         // Buat daftar tanggal dari start ke end
@@ -121,7 +121,7 @@ export default function AdminRekap() {
         const results = await Promise.all(
           days.map((tgl) =>
             adminAPI.rekap({ tanggal: tgl })
-              .then((r) => r?.data?.rekap || r?.data?.responseData || [])
+              .then((r) => r?.data?.responseData?.rekap || [])
               .catch(() => [])
           )
         );

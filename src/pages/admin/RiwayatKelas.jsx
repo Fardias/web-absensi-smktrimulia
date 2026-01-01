@@ -26,7 +26,7 @@ const RiwayatKelas = () => {
       const arr = res?.data?.responseData ?? []
       const normalized = Array.isArray(arr) ? arr.map((k) => ({
         id: k.kelas_id,
-        label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel}`.trim(),
+        label: `${k.tingkat ?? ''} ${k.jurusan?.nama_jurusan ?? k.jurusan ?? ''} ${k.paralel ?? ''}`.trim(),
       })) : []
       if (normalized.length === 0) throw new Error('empty')
       setKelasList(normalized)

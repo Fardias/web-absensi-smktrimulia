@@ -53,13 +53,18 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzin, cSakit] =
+        const today = new Date().toISOString().slice(0, 10);
+
+        const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzin, cSakit, absensiRes] =
           await Promise.all([
             handleTotalSiswa(),
             handleSiswaHadirHariIni(),
             handleSiswaTerlambat(),
             handleSiswaIzinHariIni(),
             handleSiswaSakitHariIni(),
+            guruAPI
+              .lihatAbsensiSiswa({ tanggal: today })
+              .catch(() => null),
           ]);
 
         setTotalSiswa(cTotalSiswa || 0);
@@ -67,21 +72,24 @@ const Dashboard = () => {
         setTerlambat(cTerlambat || 0);
         setIzin(cIzin || 0);
         setSakit(cSakit || 0);
-        
-        // Calculate alfa (absent without permission)
+
         const total = Number(cTotalSiswa || 0);
         const hadir = Number(cHadirHariIni || 0);
         const terlambatNum = Number(cTerlambat || 0);
-        const izinNum = Number(cIzin || 0);
-        const sakitNum = Number(cSakit || 0);
-        const alfaNum = Math.max(0, total - hadir - terlambatNum - izinNum - sakitNum);
-        setAlfa(alfaNum);
-        
+        const absensiList = absensiRes?.data?.responseData?.absensi ?? [];
+        const alfaCount = Array.isArray(absensiList)
+          ? absensiList.reduce((acc, item) => {
+            const status = String(item.status || item.jenis_absen || "").toLowerCase();
+            return status === "alfa" ? acc + 1 : acc;
+          }, 0)
+          : 0;
+        setAlfa(alfaCount);
+
         // Calculate belum hadir (not yet present - excluding alfa)
         const belumHadirNum = Math.max(0, total - hadir - terlambatNum);
         setBelumHadir(belumHadirNum);
-        
-        if (user?.role === "gurket") {
+
+        if (user?.role === "gurket" || user?.role === "admin") {
           const rate = total > 0 ? Math.round((hadir / total) * 100) : 0;
           setPresentRate(rate);
         }
@@ -100,7 +108,8 @@ const Dashboard = () => {
       if (user?.role !== "walas") return;
       try {
         const res = await guruAPI.walasInfo();
-        const data = res?.data?.responseData || res?.data?.data || null;
+        const data = res?.data?.responseData;
+        console.log(data);  
         setWalasInfo(data);
       } catch {
         // silently fail
@@ -172,7 +181,7 @@ const Dashboard = () => {
   const fetchSiswaByStatus = async (status) => {
     // Only fetch for supported statuses
     const supportedStatuses = ["hadir", "terlambat", "izin", "sakit"];
-    
+
     if (!supportedStatuses.includes(status)) {
       // For unsupported statuses like "alfa" and "belum_hadir", show empty list
       setSiswaList([]);
@@ -224,8 +233,8 @@ const Dashboard = () => {
       });
 
       // Update local state
-      setSiswaList(prev => prev.map(item => 
-        item.absensi_id === absensiId 
+      setSiswaList(prev => prev.map(item =>
+        item.absensi_id === absensiId
           ? { ...item, status: newStatus }
           : item
       ));
@@ -318,6 +327,11 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    if (user?.role !== "admin") {
+      setLoadingAktivitas(false);
+      return;
+    }
+
     const fetchAktivitas = async () => {
       try {
         const response = await guruAPI.aktifitasTerbaru();
@@ -338,10 +352,16 @@ const Dashboard = () => {
 
     fetchAktivitas();
 
-    // Polling otomatis setiap 5 detik
     const interval = setInterval(fetchAktivitas, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?.role]);
+
+  const totalGuru = Number(totalSiswa || 0);
+  const hadirGuru = Number(hadirHariIni || 0);
+  const belumGuru = Math.max(0, totalGuru - hadirGuru);
+  const pieRadius = 30;
+  const pieCircumference = 2 * Math.PI * pieRadius;
+  const hadirStroke = (presentRate / 100) * pieCircumference;
 
   if (!user) {
     return <Loading text="Memuat data user..." />;
@@ -370,21 +390,49 @@ const Dashboard = () => {
               {formatDate(new Date())}
             </p>
           </div>
-          {user.role === "gurket" && (
+          {(user.role === "gurket" || user.role === "admin") && (
             <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-3">
               <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
                 <div className="flex items-center">
-                  <div className="p-3 bg-teal-100 rounded-lg">
-                    <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-3.866 0-7 3.134-7 7h2a5 5 0 015-5V8z" />
+                  <div className="relative w-20 h-20">
+                    <svg className="w-20 h-20" viewBox="0 0 80 80">
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r={pieRadius}
+                        fill="transparent"
+                        stroke="#e5e7eb"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r={pieRadius}
+                        fill="transparent"
+                        stroke="#14b8a6"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${pieCircumference} ${pieCircumference}`}
+                        strokeDashoffset={pieCircumference - hadirStroke}
+                        transform="rotate(-90 40 40)"
+                      />
                     </svg>
-                  </div>
-                  <div className="ml-4 ">
-                    <p className="text-sm font-medium text-gray-600">Persentase Kehadiran</p>
-                    <p className="text-2xl font-bold text-gray-900">{presentRate}%</p>
-                    <div className="mt-2 h-2 bg-gray-200 rounded">
-                      <div className="h-2 bg-teal-500 rounded" style={{ width: `${presentRate}%` }}></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">
+                        {presentRate}%
+                      </span>
                     </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">
+                      Persentase Kehadiran
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      Hadir: <span className="font-semibold text-gray-900">{hadirGuru}</span> siswa
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      Belum Hadir: <span className="font-semibold text-gray-900">{belumGuru}</span> siswa
+                    </p>
                   </div>
                 </div>
               </div>
@@ -580,7 +628,7 @@ const Dashboard = () => {
           </div>
 
 
-          
+
 
 
           {/* Walas Info Card */}
@@ -605,7 +653,7 @@ const Dashboard = () => {
           )}
           {user.role === "admin" && (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-8">
-              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+              {/* <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
                 <h3 className="mb-4 text-lg font-semibold text-gray-900">Statistik Absensi Global</h3>
                 <div className="space-y-3 text-sm">
                   {[{ key: "Hadir", val: globalStats.hadir, color: "bg-green-500" }, { key: "Terlambat", val: globalStats.terlambat, color: "bg-yellow-500" }, { key: "Izin", val: globalStats.izin, color: "bg-blue-500" }, { key: "Sakit", val: globalStats.sakit, color: "bg-purple-500" }, { key: "Alfa", val: globalStats.alfa, color: "bg-red-500" }].map((it) => {
@@ -622,7 +670,7 @@ const Dashboard = () => {
                   })}
                   <div className="mt-2 text-xs text-gray-500">Total: {globalStats.total}</div>
                 </div>
-              </div>
+              </div> */}
               <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
                 <h3 className="mb-4 text-lg font-semibold text-gray-900">Tren Kehadiran 7 Hari</h3>
                 <div className="w-full h-36">
@@ -655,59 +703,61 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
-            </div>
-          )}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Aktivitas Terbaru */}
-            <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">
-                Aktivitas Terbaru
-              </h3>
+              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                  Aktivitas Terbaru
+                </h3>
 
-              {loadingAktivitas ? (
-                <p className="text-sm text-gray-500">Memuat aktivitas...</p>
-              ) : aktivitas.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  Belum ada aktivitas terbaru.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {aktivitas.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-3 transition rounded-lg bg-gray-50 hover:bg-gray-100"
-                    >
+                {loadingAktivitas ? (
+                  <p className="text-sm text-gray-500">Memuat aktivitas...</p>
+                ) : aktivitas.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Belum ada aktivitas terbaru.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {aktivitas.map((item, index) => (
                       <div
-                        className={`w-2 h-2 mr-3 rounded-full ${item.aksi === "created"
+                        key={index}
+                        className="flex items-center p-3 transition rounded-lg bg-gray-50 hover:bg-gray-100"
+                      >
+                        <div
+                          className={`w-2 h-2 mr-3 rounded-full ${item.aksi === "created"
                             ? "bg-green-500"
                             : item.aksi === "updated"
                               ? "bg-yellow-500"
                               : item.aksi === "deleted"
                                 ? "bg-red-500"
                                 : "bg-gray-400"
-                          }`}
-                      ></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">
-                          {item.deskripsi}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          ID Akun: {item.akun_id || "-"} •{" "}
-                          {new Date(item.created_at).toLocaleTimeString(
-                            "id-ID",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
+                            }`}
+                        ></div>
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">
+                            {item.deskripsi}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            ID Akun: {item.akun_id || "-"} •{" "}
+                            {new Date(item.created_at).toLocaleTimeString(
+                              "id-ID",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+          {/* {user.role === "admin" && (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              
+            </div>
+          )} */}
 
           {/* Filter & Tabel Daftar Siswa Hari Ini */}
           {user.role === "walas" && (
@@ -731,8 +781,8 @@ const Dashboard = () => {
                         setFilterStatus(opt.key);
                       }}
                       className={`px-3 py-1.5 rounded-md text-sm ${filterStatus === opt.key
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-700"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-700"
                         }`}
                     >
                       {opt.label}
@@ -745,7 +795,7 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-500">Memuat data siswa...</p>
               ) : siswaList.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                  {["alfa", "belum_hadir"].includes(filterStatus) 
+                  {["alfa", "belum_hadir"].includes(filterStatus)
                     ? `Fitur daftar siswa untuk status "${filterStatus.replace("_", " ")}" belum tersedia.`
                     : "Tidak ada data untuk status ini."
                   }
