@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { authAPI } from "../../services/api";
 import { Loading, BottomNavbar } from "../../components";
 import { User, School, Calendar, Clock, MapPin } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function SiswaProfil() {
   const { user, logout } = useAuth();
@@ -27,7 +28,21 @@ export default function SiswaProfil() {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    Swal.fire({
+      title: "Keluar dari akun?",
+      text: "Anda akan mengakhiri sesi dan kembali ke halaman login.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, keluar",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+      }
+    });
   };
 
   if (loading && !profile) {
@@ -132,15 +147,15 @@ export default function SiswaProfil() {
             </p>
             <p className="text-sm text-gray-500">Hari ini</p>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 text-center">
             <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mx-auto mb-3">
               <Clock className="w-6 h-6 text-green-600" />
             </div>
             <p className="text-2xl font-bold text-gray-900">
-              {new Date().toLocaleTimeString('id-ID', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+              {new Date().toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit'
               })}
             </p>
             <p className="text-sm text-gray-500">Waktu</p>
@@ -155,7 +170,7 @@ export default function SiswaProfil() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900">Informasi Sekolah</h3>
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Nama Sekolah</span>

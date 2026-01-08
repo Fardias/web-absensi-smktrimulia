@@ -4,6 +4,7 @@ import axios from 'axios';
 // const API_BASE_URL = 'http://localhost:8000/api';
 const API_BASE_URL = 'https://api-trimulia.aftlah.my.id/api';
 // const API_BASE_URL = 'http://192.168.100.7:8000/api';
+// const API_BASE_URL = 'https://10.238.99.232:8000/api';
 
 // Buat instance axios
 const api = axios.create({

@@ -14,6 +14,7 @@ const AbsenPulang = () => {
     const [location, setLocation] = useState(null);
     const [pengaturan, setPengaturan] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
     const mapRef = useRef(null);
     const markerSchoolRef = useRef(null);
     const markerUserRef = useRef(null);
@@ -47,13 +48,13 @@ const AbsenPulang = () => {
 
         // Show loading
         setIsLoading(true);
-        
+
         try {
-            const res = await handleAbsen('pulang', { 
-                latitude: location.latitude, 
-                longitude: location.longitude 
+            const res = await handleAbsen('pulang', {
+                latitude: location.latitude,
+                longitude: location.longitude
             });
-            
+
             if (res.success) {
                 Swal.fire({
                     icon: 'success',
@@ -90,6 +91,48 @@ const AbsenPulang = () => {
         return <Loading text="Memuat data user..." />;
     }
 
+    const getCurrentLocation = () => {
+        if (isLocating) return;
+        if (!navigator.geolocation) {
+            Swal.fire({
+                icon: 'error',
+                title: 'GPS Tidak Tersedia',
+                text: 'Browser Anda tidak mendukung geolokasi atau GPS tidak tersedia.',
+                confirmButtonColor: '#003366'
+            });
+            return;
+        }
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude, accuracy } = pos.coords;
+                setLocation({
+                    latitude,
+                    longitude,
+                });
+                const numericAccuracy = typeof accuracy === 'number' ? accuracy : null;
+                if (numericAccuracy !== null && numericAccuracy > 5) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Akurasi GPS Rendah',
+                        text: `Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter. Perbedaan dengan posisi sebenarnya bisa cukup jauh, pastikan Anda berada dekat titik sekolah.`,
+                        confirmButtonColor: '#003366',
+                    });
+                }
+                setIsLocating(false);
+            },
+            (error) => {
+                setIsLocating(false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengambil Lokasi',
+                    text: error?.message || 'Tidak dapat mengambil lokasi Anda. Pastikan GPS aktif dan izin lokasi diberikan.',
+                    confirmButtonColor: '#003366'
+                });
+            }
+        );
+    };
+
     useEffect(() => {
         generalAPI.getPengaturan()
             .then((res) => {
@@ -97,11 +140,8 @@ const AbsenPulang = () => {
                 setPengaturan(pengaturanData);
             })
             .catch(() => setPengaturan(null));
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-            });
-        }
+
+        getCurrentLocation();
     }, []);
 
     const injectLeaflet = () => {
@@ -177,16 +217,51 @@ const AbsenPulang = () => {
                 </div>
             </div>
 
-            
+
             <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <TimeCard title="Waktu Saat Ini" showDate={true} />
                     <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                         <div id="absen-map-pulang" className="w-full h-64 rounded-md overflow-hidden border" />
                     </div>
+
+                    <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 flex flex-col justify-center">
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                            Titik Lokasi Saat Ini
+                        </p>
+                        {location ? (
+                            <>
+                                <div className="text-sm text-gray-700 space-y-0.5">
+                                    <p>
+                                        Latitude:&nbsp;
+                                        <span className="font-mono">
+                                            {location.latitude.toFixed(6)}
+                                        </span>
+                                    </p>
+                                    <p>
+                                        Longitude:&nbsp;
+                                        <span className="font-mono">
+                                            {location.longitude.toFixed(6)}
+                                        </span>
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={getCurrentLocation}
+                                    disabled={isLocating}
+                                    className="mt-3 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-lg bg-yellow-50 text-yellow-800 hover:bg-yellow-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {isLocating ? 'Mengambil lokasi...' : 'Muat ulang lokasi'}
+                                </button>
+                            </>
+                        ) : (
+                            <p className="text-sm text-gray-500">
+                                {isLocating ? 'Mengambil lokasi...' : 'Sedang mengambil lokasi GPS...'}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
-               
                 <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center">
                     <div className="w-24 h-24 bg-[#f0ca30] bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg className="w-12 h-12 text-[#f0ca30]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,11 +280,10 @@ const AbsenPulang = () => {
                     <button
                         onClick={handleAbsenWrapper}
                         disabled={isLoading || !location}
-                        className={`px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 shadow-lg ${
-                            isLoading || !location
-                                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                                : 'bg-[#f0ca30] text-[#003366] hover:bg-[#e6b82a]'
-                        }`}
+                        className={`px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 shadow-lg ${isLoading || !location
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : 'bg-[#f0ca30] text-[#003366] hover:bg-[#e6b82a]'
+                            }`}
                     >
                         {isLoading ? (
                             <div className="flex items-center justify-center">
@@ -225,7 +299,7 @@ const AbsenPulang = () => {
                     </button>
                 </div>
 
-               
+
                 <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
                     <div className="flex items-start">
                         <div className="flex-shrink-0">
