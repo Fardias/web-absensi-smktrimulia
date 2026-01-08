@@ -266,11 +266,23 @@ export default function AdminPengaturan() {
   };
 
   const getCurrentLocation = async () => {
+    console.log('[Geolocation] Mulai proses getCurrentLocation');
+
     // Prevent multiple simultaneous requests
-    if (geoLoading) return;
+    if (geoLoading) {
+      console.log('[Geolocation] Dibatalkan karena geoLoading masih true');
+      return;
+    }
 
     // Check if geolocation is supported
     if (!navigator.geolocation) {
+      console.warn('[Geolocation] navigator.geolocation tidak tersedia', {
+        userAgent: navigator.userAgent,
+        location: {
+          protocol: window.location.protocol,
+          hostname: window.location.hostname,
+        },
+      });
       Swal.fire({
         icon: 'error',
         title: 'GPS Tidak Tersedia',
@@ -285,7 +297,19 @@ export default function AdminPengaturan() {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const isHttps = window.location.protocol === 'https:';
 
+    console.log('[Geolocation] Context', {
+      isLocalhost,
+      isHttps,
+      protocol: window.location.protocol,
+      hostname: window.location.hostname,
+      existingFormCoords: {
+        latitude: form.latitude,
+        longitude: form.longitude,
+      },
+    });
+
     if (!isHttps && !isLocalhost) {
+      console.warn('[Geolocation] Diblokir karena bukan HTTPS/localhost');
       Swal.fire({
         icon: 'warning',
         title: 'Koneksi Tidak Aman',
@@ -317,15 +341,15 @@ export default function AdminPengaturan() {
     });
 
     try {
-      // Helper wrapper for getCurrentPosition
       const getPosition = (options) => {
+        console.log('[Geolocation] Memanggil navigator.geolocation.getCurrentPosition dengan options', options);
         return new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, options);
         });
       };
 
       let position;
-      
+
       // Attempt 1: High Accuracy
       try {
         position = await getPosition({
@@ -333,26 +357,102 @@ export default function AdminPengaturan() {
           timeout: 5000, // 5 seconds for high accuracy attempt
           maximumAge: 0
         });
+        console.log('[Geolocation] Berhasil (high accuracy)', {
+          coords: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed,
+          },
+          timestamp: position.timestamp,
+          source: 'highAccuracy',
+        });
       } catch (err) {
-        console.warn("High accuracy geolocation failed, trying low accuracy...", err);
+        console.warn("[Geolocation] High accuracy gagal, coba low accuracy", {
+          error: err,
+          code: err?.code,
+          message: err?.message,
+        });
         // Attempt 2: Low Accuracy (fallback)
         position = await getPosition({
           enableHighAccuracy: false,
           timeout: 10000, // 10 seconds for low accuracy
           maximumAge: 0
         });
+        console.log('[Geolocation] Berhasil (low accuracy)', {
+          coords: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            altitudeAccuracy: position.coords.altitudeAccuracy,
+            heading: position.coords.heading,
+            speed: position.coords.speed,
+          },
+          timestamp: position.timestamp,
+          source: 'lowAccuracy',
+        });
       }
 
-      const { latitude, longitude } = position.coords;
-      
+      const { latitude, longitude, accuracy } = position.coords;
+
       // Validate coordinates
       if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
         throw new Error('Invalid coordinates received');
       }
 
-      // Close loading dialog
-      loadingSwal.close();
-      
+      console.log('[Geolocation] Koordinat diterima', {
+        rawCoords: position.coords,
+        usedCoords: {
+          latitude,
+          longitude,
+        },
+      });
+
+      // Check accuracy threshold
+      const accuracyThreshold = 20; // meter
+      const numericAccuracy = typeof accuracy === 'number' ? accuracy : null;
+
+      if (numericAccuracy !== null && numericAccuracy > accuracyThreshold) {
+        loadingSwal.close();
+
+        console.warn('[Geolocation] Akurasi di atas threshold', {
+          accuracy: numericAccuracy,
+          threshold: accuracyThreshold,
+        });
+
+        const result = await Swal.fire({
+          icon: 'warning',
+          title: 'Akurasi GPS Rendah',
+          html: `
+            <div class="text-sm">
+              Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter.<br/>
+              Titik lokasi bisa cukup jauh dari posisi sebenarnya.
+            </div>
+            <div class="text-xs text-gray-500 mt-3">
+              Disarankan menggunakan <strong>HP (smartphone)</strong> dengan GPS aktif,<br/>
+              dibandingkan laptop/PC yang biasanya hanya memakai lokasi perkiraan.
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Tetap Gunakan Titik Ini',
+          cancelButtonText: 'Batalkan',
+          confirmButtonColor: '#3b82f6',
+          cancelButtonColor: '#6b7280',
+        });
+
+        if (!result.isConfirmed) {
+          console.log('[Geolocation] Pengguna membatalkan penggunaan titik dengan akurasi rendah');
+          return;
+        }
+      } else {
+        // Close loading dialog jika akurasi dianggap cukup baik atau tidak tersedia
+        loadingSwal.close();
+      }
+
       // Update form state
       setForm(prev => ({
         ...prev,
@@ -364,11 +464,11 @@ export default function AdminPengaturan() {
       if (mapRef.current && window.L) {
         const L = window.L;
         const newLatLng = [latitude, longitude];
-        
+
         try {
           // Update map view
           mapRef.current.setView(newLatLng, 17);
-          
+
           // Update or create marker
           if (markerRef.current) {
             markerRef.current.setLatLng(newLatLng);
@@ -383,7 +483,7 @@ export default function AdminPengaturan() {
               }));
             });
           }
-          
+
           // Update or create circle
           if (circleRef.current) {
             circleRef.current.setLatLng(newLatLng);
@@ -398,7 +498,10 @@ export default function AdminPengaturan() {
             }).addTo(mapRef.current);
           }
         } catch (mapError) {
-          console.warn('Map update failed:', mapError);
+          console.warn('Map update failed:', {
+            error: mapError,
+            newLatLng,
+          });
           // Continue even if map update fails
         }
       }
@@ -423,16 +526,21 @@ export default function AdminPengaturan() {
       });
 
     } catch (error) {
+      console.error('[Geolocation] Terjadi error saat getCurrentLocation', {
+        error,
+        code: error?.code,
+        message: error?.message,
+        name: error?.name,
+      });
+
       // Close loading dialog if still open
       if (loadingSwal && loadingSwal.isVisible && loadingSwal.isVisible()) {
         loadingSwal.close();
       }
 
-      console.error('Geolocation error:', error);
-
       let errorMessage = 'Gagal mendapatkan lokasi. ';
       let errorTitle = 'Gagal Mendapatkan Lokasi';
-      
+
       if (error.code) {
         switch (error.code) {
           case 1: // PERMISSION_DENIED
@@ -508,7 +616,7 @@ export default function AdminPengaturan() {
                 </div>
               )}
             </div>
-            
+
             {/* Tombol Get Current Location */}
             <div className="mt-4 flex justify-center">
               <button
@@ -534,13 +642,13 @@ export default function AdminPengaturan() {
                 )}
               </button>
             </div>
-            
+
             <div className="mt-2 text-center">
               <p className="text-xs text-gray-500">
                 Pastikan browser mengizinkan akses lokasi dan GPS aktif
               </p>
             </div>
-            
+
             <p className="mt-3 text-sm text-gray-600">Klik pada peta atau seret marker untuk mengatur lokasi. Latitude dan longitude akan terisi otomatis.</p>
           </div>
 
