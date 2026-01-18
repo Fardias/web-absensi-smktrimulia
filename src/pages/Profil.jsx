@@ -123,11 +123,20 @@ export default function Profil() {
                 <input value={nama} onChange={(e) => setNama(e.target.value)} className="flex-1 border border-gray-300 rounded px-3 py-2" placeholder="Nama" />
                 <button disabled={saving} onClick={async () => {
                   try {
+                    const namaTrim = nama.trim();
+                    if (!namaTrim) {
+                      Swal.fire({ icon: "error", title: "Gagal", text: "Nama tidak boleh kosong" });
+                      return;
+                    }
+                    if (!/^[a-zA-Z\s]+$/.test(namaTrim)) {
+                      Swal.fire({ icon: "error", title: "Gagal", text: "Nama profil hanya boleh berisi huruf dan spasi" });
+                      return;
+                    }
                     setSaving(true); setErr(null);
                     if (user?.role === "admin") {
-                      await adminAPI.updateMyProfile({ nama });
+                      await adminAPI.updateMyProfile({ nama: namaTrim });
                     } else {
-                      await authAPI.updateProfile({ nama });
+                      await authAPI.updateProfile({ nama: namaTrim });
                     }
                     const r = await authAPI.profile();
                     setProfile(r?.data?.responseData);

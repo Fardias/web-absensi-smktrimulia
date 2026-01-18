@@ -316,7 +316,7 @@ const Dashboard = () => {
   const getRoleDisplayName = (role) => {
     switch (role) {
       case "admin":
-        return "Kepala Sekolah (Administrator)";
+        return "Kepala Sekolah";
       case "gurket":
         return "Guru Piket";
       case "walas":
