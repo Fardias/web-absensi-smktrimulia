@@ -193,7 +193,7 @@ const GuruPiket = () => {
             <form onSubmit={submitForm}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">NIP/Username</label>
                   <input type="text" value={nip} onChange={(e)=>setNip(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="NIP"  required/>
                 </div>
                 <div>

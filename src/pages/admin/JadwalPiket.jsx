@@ -21,12 +21,12 @@ const JadwalPiket = () => {
     const [y, m, d] = (ymd || '').split('-').map(Number);
     return new Date(y, (m || 1) - 1, d || 1);
   }
-  
+
   function getHari(ymd) {
     const dt = parseDateYmd(ymd);
     return hariNama[dt.getDay()] || '-';
   }
-  
+
   function formatTanggal(ymd) {
     const [y, m, d] = (ymd || '').split('-');
     if (!y || !m || !d) return ymd || '-';
@@ -232,8 +232,8 @@ const JadwalPiket = () => {
       label: 'Action',
       render: (item) => (
         <div className="space-x-2">
-          <button 
-            onClick={() => openEdit(item)} 
+          <button
+            onClick={() => openEdit(item)}
             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             Edit
@@ -283,11 +283,7 @@ const JadwalPiket = () => {
             <h2 className="text-lg font-bold mb-4">{editing ? 'Edit Jadwal Piket' : 'Tambah Jadwal Piket'}</h2>
             <form onSubmit={submitForm}>
               {editing ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                    <input type="date" value={tanggal} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setTanggal(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" />
-                  </div>
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Guru Piket</label>
                     <select value={gurketId} onChange={(e) => setGurketId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
