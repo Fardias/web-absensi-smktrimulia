@@ -75,7 +75,7 @@ const AbsenPulang = () => {
                     confirmButtonColor: '#003366'
                 });
             }
-        } catch (error) {
+        } catch {
             Swal.fire({
                 icon: 'error',
                 title: 'Terjadi Kesalahan',
@@ -111,11 +111,12 @@ const AbsenPulang = () => {
                     longitude,
                 });
                 const numericAccuracy = typeof accuracy === 'number' ? accuracy : null;
-                if (numericAccuracy !== null && numericAccuracy > 5) {
+                // Ambang batas akurasi disamakan dengan absen datang (100 meter) agar tidak terlalu sensitif
+                if (numericAccuracy !== null && numericAccuracy > 100) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Akurasi GPS Rendah',
-                        text: `Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter. Perbedaan dengan posisi sebenarnya bisa cukup jauh, pastikan Anda berada dekat titik sekolah.`,
+                        text: `Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter. Cobalah pindah ke area terbuka agar lokasi lebih akurat.`,
                         confirmButtonColor: '#003366',
                     });
                 }
@@ -123,12 +124,26 @@ const AbsenPulang = () => {
             },
             (error) => {
                 setIsLocating(false);
+                let errorMsg = 'Tidak dapat mengambil lokasi Anda.';
+                if (error.code === error.TIMEOUT) {
+                    errorMsg = 'Waktu pengambilan lokasi habis. Pastikan sinyal GPS bagus.';
+                } else if (error.code === error.PERMISSION_DENIED) {
+                    errorMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser Anda.';
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    errorMsg = 'Informasi lokasi tidak tersedia.';
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Gagal Mengambil Lokasi',
-                    text: error?.message || 'Tidak dapat mengambil lokasi Anda. Pastikan GPS aktif dan izin lokasi diberikan.',
+                    text: errorMsg,
                     confirmButtonColor: '#003366'
                 });
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
         );
     };
