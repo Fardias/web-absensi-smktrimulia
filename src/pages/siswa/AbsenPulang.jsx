@@ -19,6 +19,7 @@ const AbsenPulang = () => {
     const markerSchoolRef = useRef(null);
     const markerUserRef = useRef(null);
     const circleRef = useRef(null);
+    const watchIdRef = useRef(null);
     const navigate = useNavigate();
 
     const handleAbsenWrapper = async () => {
@@ -91,8 +92,10 @@ const AbsenPulang = () => {
         return <Loading text="Memuat data user..." />;
     }
 
-    const getCurrentLocation = () => {
-        if (isLocating) return;
+    const startWatchingLocation = () => {
+        if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+
+        setIsLocating(true);
         if (!navigator.geolocation) {
             Swal.fire({
                 icon: 'error',
@@ -102,47 +105,30 @@ const AbsenPulang = () => {
             });
             return;
         }
-        setIsLocating(true);
-        navigator.geolocation.getCurrentPosition(
+
+        watchIdRef.current = navigator.geolocation.watchPosition(
             (pos) => {
                 const { latitude, longitude, accuracy } = pos.coords;
                 setLocation({
                     latitude,
                     longitude,
                 });
-                const numericAccuracy = typeof accuracy === 'number' ? accuracy : null;
-                // Ambang batas akurasi disamakan dengan absen datang (100 meter) agar tidak terlalu sensitif
-                if (numericAccuracy !== null && numericAccuracy > 100) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Akurasi GPS Rendah',
-                        text: `Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter. Cobalah pindah ke area terbuka agar lokasi lebih akurat.`,
-                        confirmButtonColor: '#003366',
-                    });
-                }
                 setIsLocating(false);
             },
             (error) => {
-                setIsLocating(false);
-                let errorMsg = 'Tidak dapat mengambil lokasi Anda.';
-                if (error.code === error.TIMEOUT) {
-                    errorMsg = 'Waktu pengambilan lokasi habis. Pastikan sinyal GPS bagus.';
-                } else if (error.code === error.PERMISSION_DENIED) {
-                    errorMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser Anda.';
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    errorMsg = 'Informasi lokasi tidak tersedia.';
+                if (!location) {
+                    setIsLocating(false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Mengambil Lokasi',
+                        text: 'Pastikan GPS aktif dan izin lokasi diberikan.',
+                        confirmButtonColor: '#003366'
+                    });
                 }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal Mengambil Lokasi',
-                    text: errorMsg,
-                    confirmButtonColor: '#003366'
-                });
             },
             {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 20000,
                 maximumAge: 0
             }
         );
@@ -156,7 +142,11 @@ const AbsenPulang = () => {
             })
             .catch(() => setPengaturan(null));
 
-        getCurrentLocation();
+        startWatchingLocation();
+
+        return () => {
+            if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+        };
     }, []);
 
     const injectLeaflet = () => {
@@ -262,11 +252,11 @@ const AbsenPulang = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={getCurrentLocation}
+                                    onClick={startWatchingLocation}
                                     disabled={isLocating}
                                     className="mt-3 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-lg bg-yellow-50 text-yellow-800 hover:bg-yellow-100 disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
-                                    {isLocating ? 'Mengambil lokasi...' : 'Muat ulang lokasi'}
+                                    {isLocating ? 'Mencari lokasi...' : 'Refresh GPS'}
                                 </button>
                             </>
                         ) : (

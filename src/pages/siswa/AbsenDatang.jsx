@@ -20,6 +20,7 @@ const AbsenDatang = () => {
     const markerSchoolRef = useRef(null);
     const markerUserRef = useRef(null);
     const circleRef = useRef(null);
+    const watchIdRef = useRef(null);
     const navigate = useNavigate();
 
     const handleAbsenWrapper = async () => {
@@ -92,8 +93,10 @@ const AbsenDatang = () => {
         return <Loading text="Memuat data user..." />;
     }
 
-    const getCurrentLocation = () => {
-        if (isLocating) return;
+    const startWatchingLocation = () => {
+        if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+
+        setIsLocating(true);
         if (!navigator.geolocation) {
             Swal.fire({
                 icon: 'error',
@@ -103,46 +106,33 @@ const AbsenDatang = () => {
             });
             return;
         }
-        setIsLocating(true);
-        navigator.geolocation.getCurrentPosition(
+
+        watchIdRef.current = navigator.geolocation.watchPosition(
             (pos) => {
                 const { latitude, longitude, accuracy } = pos.coords;
                 setLocation({
                     latitude,
                     longitude,
                 });
-                const numericAccuracy = typeof accuracy === 'number' ? accuracy : null;
-                if (numericAccuracy !== null && numericAccuracy > 100) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Akurasi GPS Rendah',
-                        text: `Akurasi lokasi saat ini sekitar ±${Math.round(numericAccuracy)} meter. Cobalah pindah ke area terbuka agar lokasi lebih akurat.`,
-                        confirmButtonColor: '#003366',
-                    });
-                }
+                // Kita tidak mematikan isLocating di sini agar status tetap 'mencari' jika ingin update terus, 
+                // tapi untuk UX tombol 'Refresh', kita set false setelah dapat update pertama.
                 setIsLocating(false);
             },
             (error) => {
-                setIsLocating(false);
-                let errorMsg = 'Tidak dapat mengambil lokasi Anda.';
-                if (error.code === error.TIMEOUT) {
-                    errorMsg = 'Waktu pengambilan lokasi habis. Pastikan sinyal GPS bagus.';
-                } else if (error.code === error.PERMISSION_DENIED) {
-                    errorMsg = 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser Anda.';
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    errorMsg = 'Informasi lokasi tidak tersedia.';
+                // Hanya tampilkan error jika belum ada lokasi sama sekali
+                if (!location) {
+                    setIsLocating(false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Mengambil Lokasi',
+                        text: 'Pastikan GPS aktif dan izin lokasi diberikan.',
+                        confirmButtonColor: '#003366'
+                    });
                 }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal Mengambil Lokasi',
-                    text: errorMsg,
-                    confirmButtonColor: '#003366'
-                });
             },
             {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 20000,
                 maximumAge: 0
             }
         );
@@ -156,7 +146,11 @@ const AbsenDatang = () => {
             })
             .catch(() => setPengaturan(null));
 
-        getCurrentLocation();
+        startWatchingLocation();
+
+        return () => {
+            if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+        };
     }, []);
 
     const injectLeaflet = () => {
@@ -177,16 +171,22 @@ const AbsenDatang = () => {
     };
 
     useEffect(() => {
-        const init = async () => {
+        const updateMap = async () => {
             await injectLeaflet();
             const L = window.L;
             const container = document.getElementById('absen-map-datang');
             if (!container || !L) return;
-            if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
-            const center = pengaturan ? [pengaturan.latitude, pengaturan.longitude] : [-6.2, 106.8];
-            mapRef.current = L.map(container).setView(center, 17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapRef.current);
+
+            // Initialize map if not exists
+            if (!mapRef.current) {
+                const center = pengaturan ? [pengaturan.latitude, pengaturan.longitude] : [-6.2, 106.8];
+                mapRef.current = L.map(container).setView(center, 17);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapRef.current);
+            }
+
+            // Update School Marker
             if (pengaturan) {
+                const schoolCenter = [pengaturan.latitude, pengaturan.longitude];
                 const schoolSvg = renderToStaticMarkup(<School color="#357ABD" size={20} strokeWidth={2} />);
                 const schoolIcon = L.divIcon({
                     html: `<div style="width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #357ABD">${schoolSvg}</div>`,
@@ -194,30 +194,52 @@ const AbsenDatang = () => {
                     iconSize: [36, 36],
                     iconAnchor: [18, 36],
                 });
-                if (markerSchoolRef.current) markerSchoolRef.current.remove();
-                markerSchoolRef.current = L.marker(center, { icon: schoolIcon }).addTo(mapRef.current);
+                
+                if (!markerSchoolRef.current) {
+                    markerSchoolRef.current = L.marker(schoolCenter, { icon: schoolIcon }).addTo(mapRef.current);
+                } else {
+                    markerSchoolRef.current.setLatLng(schoolCenter);
+                }
+
                 if (circleRef.current) circleRef.current.remove();
-                circleRef.current = L.circle(center, { radius: Number(pengaturan.radius_meter) || 0, color: '#4A90E2', weight: 2, fillColor: '#4A90E2', fillOpacity: 0.15 }).addTo(mapRef.current);
+                circleRef.current = L.circle(schoolCenter, { radius: Number(pengaturan.radius_meter) || 0, color: '#4A90E2', weight: 2, fillColor: '#4A90E2', fillOpacity: 0.15 }).addTo(mapRef.current);
             }
+
+            // Update User Marker
             if (location) {
-                const user = [location.latitude, location.longitude];
+                const userPos = [location.latitude, location.longitude];
                 const userIcon = L.divIcon({
                     html: renderToStaticMarkup(<PersonStanding size={36} color="#357ABD" />),
                     className: 'user-marker-icon',
                     iconSize: [36, 36],
                     iconAnchor: [18, 36],
                 });
-                if (markerUserRef.current) markerUserRef.current.remove();
-                markerUserRef.current = L.marker(user, { icon: userIcon }).addTo(mapRef.current);
+
+                if (markerUserRef.current) {
+                    markerUserRef.current.setLatLng(userPos);
+                    mapRef.current.panTo(userPos);
+                } else {
+                    markerUserRef.current = L.marker(userPos, { icon: userIcon }).addTo(mapRef.current);
+                    mapRef.current.setView(userPos, 17);
+                }
             }
-            const bounds = [];
-            if (pengaturan) bounds.push(center);
-            if (location) bounds.push([location.latitude, location.longitude]);
-            if (bounds.length >= 2) { mapRef.current.fitBounds(bounds, { padding: [20, 20] }); }
         };
-        init();
-        return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } markerSchoolRef.current = null; markerUserRef.current = null; circleRef.current = null; };
+
+        updateMap();
     }, [pengaturan, location]);
+
+    // Cleanup map on unmount
+    useEffect(() => {
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+            markerSchoolRef.current = null;
+            markerUserRef.current = null;
+            circleRef.current = null;
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
@@ -263,11 +285,11 @@ const AbsenDatang = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={getCurrentLocation}
+                                    onClick={startWatchingLocation}
                                     disabled={isLocating}
                                     className="mt-3 inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
-                                    {isLocating ? 'Mengambil lokasi...' : 'Muat ulang lokasi'}
+                                    {isLocating ? 'Mencari lokasi...' : 'Refresh GPS'}
                                 </button>
                             </>
                         ) : (
