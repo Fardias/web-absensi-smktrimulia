@@ -167,7 +167,7 @@ const AbsenPulang = () => {
     };
 
     useEffect(() => {
-        const init = async () => {
+        const updateMap = async () => {
             await injectLeaflet();
             const L = window.L;
             const container = document.getElementById('absen-map-pulang');
@@ -204,7 +204,7 @@ const AbsenPulang = () => {
             if (location) bounds.push([location.latitude, location.longitude]);
             if (bounds.length >= 2) { mapRef.current.fitBounds(bounds, { padding: [20, 20] }); }
         };
-        init();
+        updateMap();
         return () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; } markerSchoolRef.current = null; markerUserRef.current = null; circleRef.current = null; };
     }, [pengaturan, location]);
 

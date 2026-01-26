@@ -54,8 +54,8 @@ export const useDataSiswa = () => {
 
             return responseData.total_hadir;
         } catch (error) {
-            console.error('Error fetching siswa hadir hari ini:', error);
-            setError('Failed to fetch siswa hadir hari ini');
+            // console.error('Error fetching siswa izin hari ini:', error);
+            setError('Failed to fetch siswa izin hari ini');
             return null;
         } finally {
             setLoading(false);
@@ -102,7 +102,7 @@ export const useDataSiswa = () => {
             }
             return responseData.total_izin;
         } catch (error) {
-            console.error('Error fetching siswa izin:', error);
+            // console.error('Error fetching siswa izin:', error);
             setError('Failed to fetch siswa izin');
             return null;
         } finally {

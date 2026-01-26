@@ -1,6 +1,6 @@
 // Dashboard.jsx
 import { useAuth } from "../contexts/AuthContext";
-import { Loading, SideBar } from "../components";
+import { Loading, SideBar, Error } from "../components";
 import { formatDate } from "../utils";
 import { useState, useEffect } from "react";
 import { useDataSiswa } from "../hooks/useDataSiswa";
@@ -54,6 +54,7 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const today = new Date().toISOString().slice(0, 10);
+        const userRole = user?.role?.toLowerCase();
 
         const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzin, cSakit, absensiRes] =
           await Promise.all([
@@ -62,9 +63,9 @@ const Dashboard = () => {
             handleSiswaTerlambat(),
             handleSiswaIzinHariIni(),
             handleSiswaSakitHariIni(),
-            guruAPI
-              .lihatAbsensiSiswa({ tanggal: today })
-              .catch(() => null),
+            userRole === 'gurket' || userRole === 'walas'
+              ? guruAPI.lihatAbsensiSiswa({ tanggal: today }).catch(() => null)
+              : Promise.resolve(null),
           ]);
 
         setTotalSiswa(cTotalSiswa || 0);
@@ -101,6 +102,22 @@ const Dashboard = () => {
     fetchDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (error) {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+      Toast.fire({
+        icon: 'warning',
+        title: error
+      });
+    }
+  }, [error]);
 
   // Fetch walas info jika role walas
   useEffect(() => {
@@ -182,8 +199,9 @@ const Dashboard = () => {
     // Only fetch for supported statuses
     const supportedStatuses = ["hadir", "terlambat", "izin", "sakit"];
 
-    if (!supportedStatuses.includes(status)) {
-      // For unsupported statuses like "alfa" and "belum_hadir", show empty list
+    // Only fetch for supported statuses and authorized roles
+    const userRole = user?.role?.toLowerCase();
+    if (!supportedStatuses.includes(status) || (userRole !== "gurket" && userRole !== "walas")) {
       setSiswaList([]);
       return;
     }
@@ -195,7 +213,7 @@ const Dashboard = () => {
       const list = payload?.absensi || [];
       setSiswaList(Array.isArray(list) ? list : []);
     } catch (error) {
-      console.error("Error fetching siswa by status:", error);
+      // console.error("Error fetching siswa by status:", error);
       setSiswaList([]);
     } finally {
       setListLoading(false);
@@ -327,7 +345,16 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (user?.role !== "admin") {
+    const userRole = user?.role?.toLowerCase();
+
+    // Admin does not have access to aktivitas terbaru via guruAPI
+    if (userRole === "admin") {
+      setLoadingAktivitas(false);
+      setAktivitas([]);
+      return;
+    }
+
+    if (userRole !== "gurket" && userRole !== "walas") {
       setLoadingAktivitas(false);
       return;
     }
@@ -338,13 +365,10 @@ const Dashboard = () => {
         if (response.data.responseStatus) {
           setAktivitas(response.data.responseData || []);
         } else {
-          console.error(
-            "Gagal ambil aktivitas:",
-            response.data.responseMessage
-          );
+          // console.error("Gagal ambil aktivitas:", response.data.responseMessage);
         }
       } catch (error) {
-        console.error("Gagal memuat aktivitas:", error);
+        // console.error("Gagal memuat aktivitas:", error);
       } finally {
         setLoadingAktivitas(false);
       }
@@ -371,9 +395,9 @@ const Dashboard = () => {
     return <Loading text="Loading..." />;
   }
 
-  if (error) {
-    return <Error />;
-  }
+  // if (error) {
+  //   return <Error message={error} />;
+  // }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
