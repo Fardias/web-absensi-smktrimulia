@@ -1,6 +1,5 @@
-// Dashboard.jsx
 import { useAuth } from "../contexts/AuthContext";
-import { Loading, SideBar, Error } from "../components";
+import { Loading } from "../components";
 import { formatDate } from "../utils";
 import { useState, useEffect } from "react";
 import { useDataSiswa } from "../hooks/useDataSiswa";
@@ -22,7 +21,7 @@ const Dashboard = () => {
   const [aktivitas, setAktivitas] = useState([]);
   const [loadingAktivitas, setLoadingAktivitas] = useState(true);
   const [presentRate, setPresentRate] = useState(0);
-  const [globalStats, setGlobalStats] = useState({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0, total: 0 });
+  // const [globalStats, setGlobalStats] = useState({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0, total: 0 });
   const [trendData, setTrendData] = useState([]);
 
   // Walas info & filter daftar siswa hari ini
@@ -55,6 +54,7 @@ const Dashboard = () => {
       try {
         const today = new Date().toISOString().slice(0, 10);
         const userRole = user?.role?.toLowerCase();
+        console.log("✨✨✨✨userRole:", userRole);
 
         const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzin, cSakit, absensiRes] =
           await Promise.all([
@@ -63,35 +63,36 @@ const Dashboard = () => {
             handleSiswaTerlambat(),
             handleSiswaIzinHariIni(),
             handleSiswaSakitHariIni(),
-            userRole === 'gurket' || userRole === 'walas'
+            userRole === 'gurket' || userRole === 'walas' || userRole === 'admin'
               ? guruAPI.lihatAbsensiSiswa({ tanggal: today }).catch(() => null)
               : Promise.resolve(null),
           ]);
 
-        setTotalSiswa(cTotalSiswa || 0);
-        setHadirHariIni(cHadirHariIni || 0);
-        setTerlambat(cTerlambat || 0);
-        setIzin(cIzin || 0);
-        setSakit(cSakit || 0);
+        setTotalSiswa(cTotalSiswa);
+        setHadirHariIni(cHadirHariIni);
+        setTerlambat(cTerlambat);
+        setIzin(cIzin);
+        setSakit(cSakit);
 
-        const total = Number(cTotalSiswa || 0);
-        const hadir = Number(cHadirHariIni || 0);
-        const terlambatNum = Number(cTerlambat || 0);
+        const total = Number(cTotalSiswa);
+        const hadir = Number(cHadirHariIni);
+        const terlambatNum = Number(cTerlambat);
         const absensiList = absensiRes?.data?.responseData?.absensi ?? [];
+        // console.log("✨✨✨✨absensiList:", absensiList);
+
         const alfaCount = Array.isArray(absensiList)
           ? absensiList.reduce((acc, item) => {
-            const status = String(item.status || item.jenis_absen || "").toLowerCase();
+            const status = String(item.status).toLowerCase();
             return status === "alfa" ? acc + 1 : acc;
           }, 0)
           : 0;
         setAlfa(alfaCount);
 
-        // Calculate belum hadir (not yet present - excluding alfa)
-        const belumHadirNum = Math.max(0, total - hadir - terlambatNum);
+        const belumHadirNum = total - hadir - terlambatNum;
         setBelumHadir(belumHadirNum);
 
         if (user?.role === "gurket" || user?.role === "admin") {
-          const rate = total > 0 ? Math.round((hadir / total) * 100) : 0;
+          const rate = Math.round((hadir / total) * 100);
           setPresentRate(rate);
         }
       } catch (err) {
@@ -126,7 +127,7 @@ const Dashboard = () => {
       try {
         const res = await guruAPI.walasInfo();
         const data = res?.data?.responseData;
-        console.log(data);  
+        console.log(data);
         setWalasInfo(data);
       } catch {
         // silently fail
@@ -149,17 +150,18 @@ const Dashboard = () => {
         const list = resToday?.data?.rekap || [];
         const totals = list.reduce(
           (acc, k) => {
-            acc.hadir += Number(k.hadir || 0);
-            acc.terlambat += Number(k.terlambat || 0);
-            acc.izin += Number(k.izin || 0);
-            acc.sakit += Number(k.sakit || 0);
-            acc.alfa += Number(k.alfa || 0);
+            acc.hadir += Number(k.hadir);
+            acc.terlambat += Number(k.terlambat);
+            acc.izin += Number(k.izin);
+            acc.sakit += Number(k.sakit);
+            acc.alfa += Number(k.alfa);
             return acc;
           },
           { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0 }
         );
-        const totalAll = totals.hadir + totals.terlambat + totals.izin + totals.sakit + totals.alfa;
-        setGlobalStats({ ...totals, total: totalAll });
+
+        // const totalAll = totals.hadir + totals.terlambat + totals.izin + totals.sakit + totals.alfa;
+        // setGlobalStats({ ...totals, total: totalAll });
 
         const days = Array.from({ length: 7 }).map((_, i) => {
           const d = new Date();
@@ -172,11 +174,11 @@ const Dashboard = () => {
         const trend = results.map(({ d, data }) => {
           const agg = data.reduce(
             (acc, k) => {
-              acc.hadir += Number(k.hadir || 0);
-              acc.terlambat += Number(k.terlambat || 0);
-              acc.izin += Number(k.izin || 0);
-              acc.sakit += Number(k.sakit || 0);
-              acc.alfa += Number(k.alfa || 0);
+              acc.hadir += Number(k.hadir);
+              acc.terlambat += Number(k.terlambat);
+              acc.izin += Number(k.izin);
+              acc.sakit += Number(k.sakit);
+              acc.alfa += Number(k.alfa);
               return acc;
             },
             { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0 }
@@ -380,9 +382,10 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [user?.role]);
 
-  const totalGuru = Number(totalSiswa || 0);
-  const hadirGuru = Number(hadirHariIni || 0);
-  const belumGuru = Math.max(0, totalGuru - hadirGuru);
+  // Persentase Kehadiran
+  const totalSiswaCard = Number(totalSiswa);
+  const hadirSiswaHariIni = Number(hadirHariIni);
+  const belumHadirs = Math.max(0, totalSiswaCard - hadirSiswaHariIni);
   const pieRadius = 30;
   const pieCircumference = 2 * Math.PI * pieRadius;
   const hadirStroke = (presentRate / 100) * pieCircumference;
@@ -452,10 +455,10 @@ const Dashboard = () => {
                       Persentase Kehadiran
                     </p>
                     <p className="text-sm text-gray-700">
-                      Hadir: <span className="font-semibold text-gray-900">{hadirGuru}</span> siswa
+                      Hadir: <span className="font-semibold text-gray-900">{hadirSiswaHariIni}</span> siswa
                     </p>
                     <p className="text-sm text-gray-700">
-                      Belum Hadir: <span className="font-semibold text-gray-900">{belumGuru}</span> siswa
+                      Belum Hadir: <span className="font-semibold text-gray-900">{belumHadirs}</span> siswa
                     </p>
                   </div>
                 </div>

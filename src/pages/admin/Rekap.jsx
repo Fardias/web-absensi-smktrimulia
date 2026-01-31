@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Loading } from "../../components";
 import { adminAPI, utilityAPI } from "../../services/api";
 
-const STATUS = { HADIR: "hadir", TERLAMBAT: "terlambat", IZIN: "izin", SAKIT: "sakit", ALFA: "alfa" };
-
 const formatDateInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -67,7 +65,12 @@ export default function AdminRekap() {
     try {
       const res = await utilityAPI.listKelas();
       const data = res?.data?.responseData || [];
-      const list = data.map((k) => ({ id: k.kelas_id, label: `${k.tingkat} ${k.jurusan} ${k.paralel || ""}`.trim() }));
+      const list = data.map((k) => (
+        { 
+          id: k.kelas_id, 
+          label: `${k.tingkat} ${k.jurusan} ${k.paralel || ""}`.trim() 
+        }
+      ));
       setKelasList(list);
     } catch (e) {
       // Fallback: tetap lanjut tanpa list kelas
