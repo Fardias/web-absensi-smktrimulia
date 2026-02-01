@@ -104,7 +104,7 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
               onClick={() => {
                 setEditingDate(tanggal);
                 const s = summarize(records);
-                const defaultStatus = s.libur === s.total ? 'libur' : (s.normal === s.total ? 'normal' : 'acara khusus');
+                const defaultStatus = s.libur === s.total ? 'libur' : (s.normal === s.total ? 'normal' : '');
                 setEditStatus(defaultStatus);
                 setEditNote('');
               }}
@@ -180,7 +180,6 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
                 >
                   <option value="normal">Normal</option>
                   <option value="libur">Libur</option>
-                  <option value="acara khusus">Acara Khusus</option>
                 </select>
               </div>
               <div>
