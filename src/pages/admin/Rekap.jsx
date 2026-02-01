@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loading } from "../../components";
 import { adminAPI, utilityAPI } from "../../services/api";
+import * as XLSX from "xlsx";
 
 const formatDateInput = (d) => {
   const pad = (n) => String(n).padStart(2, "0");
@@ -148,24 +149,27 @@ export default function AdminRekap() {
     });
   }, [rekap, kelasFilter]);
 
-  const exportCSV = () => {
-    const headers = ["Kelas", "Hadir", "Terlambat", "Izin", "Sakit", "Alfa"];
-    const rows = rekapDisplay.map((r) => [
-      r.kelas_nama || r.kelas || "-",
-      r.hadir || 0,
-      r.terlambat || 0,
-      r.izin || 0,
-      r.sakit || 0,
-      r.alfa || 0,
-    ]);
-    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `rekap_${period}_${range.tanggal || `${range.start}_${range.end}`}${kelasFilter ? `_${kelasFilter.replace(/\s+/g, '-')}` : ''}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportExcel = () => {
+    const sheetData = [
+      ["Kelas", "Hadir", "Terlambat", "Izin", "Sakit", "Alfa"],
+      ...rekapDisplay.map((r) => [
+        r.kelas_nama || r.kelas || "-",
+        r.hadir || 0,
+        r.terlambat || 0,
+        r.izin || 0,
+        r.sakit || 0,
+        r.alfa || 0,
+      ]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rekap");
+    const filenameBase =
+      range.tanggal || `${range.start}_${range.end}`;
+    const kelasSuffix = kelasFilter
+      ? `_${kelasFilter.replace(/\s+/g, "-")}`
+      : "";
+    XLSX.writeFile(wb, `rekap_${period}_${filenameBase}${kelasSuffix}.xlsx`);
   };
 
   const printPDF = () => {
@@ -216,7 +220,7 @@ export default function AdminRekap() {
             </select>
 
             <div className="ml-auto flex gap-2">
-              <button onClick={exportCSV} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Export Excel</button>
+              <button onClick={exportExcel} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Export Excel</button>
               <button onClick={printPDF} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Export PDF</button>
             </div>
           </div>
@@ -228,7 +232,7 @@ export default function AdminRekap() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden rekap-print-area">
           <div className="overflow-x-auto">
             <table className="table-base">
               <thead className="table-thead">

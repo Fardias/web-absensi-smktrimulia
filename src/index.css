@@ -14,3 +14,22 @@
 
 /* Pastikan SweetAlert2 muncul di atas modal aplikasi */
 .swal2-container { z-index: 9999 !important; }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .rekap-print-area,
+  .rekap-print-area * {
+    visibility: visible;
+  }
+
+  .rekap-print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
