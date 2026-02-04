@@ -93,7 +93,7 @@ const Dashboard = () => {
 
         if (user?.role === "gurket" || user?.role === "admin") {
           const rate = Math.round((hadir / total) * 100);
-          setPresentRate(rate);
+          setPresentRate(rate || 0);
         }
       } catch (err) {
         console.error("Error fetch dashboard data:", err);
@@ -870,5 +870,6 @@ const Dashboard = () => {
     </div>
   );
 };
+
 
 export default Dashboard;

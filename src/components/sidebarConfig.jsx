@@ -21,6 +21,7 @@ export const createSidebarItems = (handleLogout, role) => {
       },
       { key: "pengaturan", label: "Pengaturan Sistem", href: "/dashboard/pengaturan", icon: "SettingsIcon" },
       { key: "profil", label: "Profil", href: "/profil", icon: "UserIcon" },
+      { key: "petunjuk_penggunaan", label: "petunjuk_penggunaan", href: "/petunjuk_penggunaan", icon: "UserIcon" },
       { key: "logout", label: "Logout", href: "#", icon: "LogoutIcon", onClick: handleLogout },
     ];
   }

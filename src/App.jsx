@@ -32,6 +32,7 @@ import WaliKelas from "./pages/admin/WaliKelas";
 import GuruPiket from "./pages/admin/GuruPiket";
 import JadwalPiket from "./pages/admin/JadwalPiket";
 import RiwayatKelas from "./pages/admin/RiwayatKelas";
+import PetunjukPenggunaan from "./pages/admin/PetunjukPenggunaan";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -348,6 +349,17 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
             <IzinSakit />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/petunjuk_penggunaan"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas"]}>
+            <Layout>
+              <PetunjukPenggunaan />
+            </Layout>
           </ProtectedRoute>
         }
       />

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { CloudUpload, CheckCircle, XCircle, Download, Eye, FileSpreadsheet, FileText } from "lucide-react";
 import { adminAPI } from "../../services/api";
+import * as XLSX from "xlsx";
+import Swal from "sweetalert2";
 
 const ImportSiswa = () => {
     const [file, setFile] = useState(null);
@@ -45,7 +47,11 @@ const ImportSiswa = () => {
             document.body.removeChild(link);
         } catch (error) {
             console.error('Error downloading template:', error);
-            alert('Terjadi kesalahan saat mendownload template. Silakan coba lagi.');
+            Swal.fire({
+                icon: "error",
+                title: "Gagal mendownload template",
+                text: "Terjadi kesalahan saat mendownload template. Silakan coba lagi.",
+            });
         }
     };
 
@@ -84,11 +90,104 @@ const ImportSiswa = () => {
         if (isDragging) setIsDragging(false);
     };
 
+    const validateNisInFile = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: "array" });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rows = XLSX.utils.sheet_to_json(worksheet, {
+                        header: 1,
+                        defval: "",
+                    });
+
+                    const startRowIndex = 14;
+                    let hasDataRow = false;
+                    let emptyNisCount = 0;
+
+                    for (let i = startRowIndex; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.length === 0) {
+                            continue;
+                        }
+
+                        const nis = String(row[1] ?? "").trim();
+                        const nama = String(row[2] ?? "").trim();
+
+                        if (!nis && !nama) {
+                            continue;
+                        }
+
+                        hasDataRow = true;
+
+                        if (!nis) {
+                            emptyNisCount++;
+                        }
+                    }
+
+                    if (!hasDataRow) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Data kosong",
+                            text: "File tidak berisi data siswa dengan NIS dan Nama. Mohon isi data terlebih dahulu.",
+                        }).then(() => {
+                            resolve(false);
+                        });
+                        return;
+                    }
+
+                    if (emptyNisCount > 0) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "NIS belum lengkap",
+                            text: `Terdapat ${emptyNisCount} baris dengan NIS kosong. Mohon lengkapi NIS sebelum import.`,
+                        }).then(() => {
+                            resolve(false);
+                        });
+                        return;
+                    }
+
+                    resolve(true);
+                } catch (error) {
+                    console.error("Gagal membaca file import siswa:", error);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal membaca file",
+                        text: "Gagal membaca file. Pastikan format mengikuti template yang disediakan.",
+                    }).then(() => {
+                        resolve(false);
+                    });
+                }
+            };
+
+            reader.onerror = () => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal membaca file",
+                    text: "Gagal membaca file. Silakan pilih file lain atau coba lagi.",
+                }).then(() => {
+                    resolve(false);
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!file) {
             setMessage("Silakan pilih file terlebih dahulu.");
+            return;
+        }
+
+        const isValid = await validateNisInFile(file);
+        if (!isValid) {
             return;
         }
 
@@ -107,8 +206,19 @@ const ImportSiswa = () => {
             });
 
             if (response.status === 200) {
+                const responseData = response.data?.responseData;
                 setMessage("Data siswa berhasil diimpor!");
                 setSuccess(true);
+
+                const duplicateNis = responseData?.nis_duplikat;
+                if (Array.isArray(duplicateNis) && duplicateNis.length > 0) {
+                    const listText = duplicateNis.join(", ");
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Sebagian NIS sudah terdaftar",
+                        text: `NIS berikut sudah ada di database dan tidak diimport ulang: ${listText}`,
+                    });
+                }
             } else {
                 setMessage("Gagal mengimpor data siswa.");
                 setSuccess(false);
@@ -159,7 +269,7 @@ const ImportSiswa = () => {
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-gray-900">{template.name}</h3>
                                                 <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-                                                
+
                                                 {/* Format Info */}
                                                 <div className="mt-2">
                                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -223,9 +333,8 @@ const ImportSiswa = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div
-                                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition ${
-                                    isDragging ? "border-[#003366] bg-[#003366]/5" : "border-gray-300 hover:border-[#003366]"
-                                }`}
+                                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition ${isDragging ? "border-[#003366] bg-[#003366]/5" : "border-gray-300 hover:border-[#003366]"
+                                    }`}
                                 onDrop={handleDrop}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
@@ -330,8 +439,8 @@ const ImportSiswa = () => {
                                 <h4 className="font-semibold text-gray-900 mb-3">Preview Template:</h4>
                                 <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                                     <div className="flex items-center justify-center p-4">
-                                        <img 
-                                            src={selectedTemplate.previewImage} 
+                                        <img
+                                            src={selectedTemplate.previewImage}
                                             alt={`Preview ${selectedTemplate.name}`}
                                             className="max-w-full h-auto rounded shadow-sm"
                                             onError={(e) => {
@@ -339,7 +448,7 @@ const ImportSiswa = () => {
                                                 e.target.nextSibling.style.display = 'block';
                                             }}
                                         />
-                                        <div 
+                                        <div
                                             className="hidden text-center p-8 text-gray-500"
                                         >
                                             <FileSpreadsheet className="w-16 h-16 mx-auto mb-4 text-gray-400" />
