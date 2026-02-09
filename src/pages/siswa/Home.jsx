@@ -61,7 +61,7 @@ const SiswaHome = () => {
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Max width wrapper untuk tampilan mobile-like di semua device */}
       <div className="mx-auto max-w-md">
-        <div className="px-4 pt-8 pb-10 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+        <div className="px-4 pt-8 pb-10 bg-gradient-to-br from-[#4A90E2] to-[#357ABD] rounded-b-3xl">
           <div className="text-white">
             <p className="text-2xl font-bold">Hai, {profile?.nama || user?.nama || user?.username}</p>
             <p className="text-sm opacity-90">

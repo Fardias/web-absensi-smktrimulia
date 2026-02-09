@@ -108,9 +108,10 @@ const IzinSakit = () => {
 
    return (
       <div className="min-h-screen bg-gray-50 pb-20">
-         {/* Header */}
-         <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+         {/* Max width wrapper untuk tampilan mobile-like di semua device */}
+         <div className="mx-auto max-w-md">
+            {/* Header */}
+            <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
                <div className="flex items-center justify-between text-white">
                   <div>
                      <p className="text-2xl font-bold">Izin / Sakit</p>
@@ -124,9 +125,8 @@ const IzinSakit = () => {
                   </button>
                </div>
             </div>
-         </div>
 
-         <main className="max-w-2xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
+         <main className="px-4 py-8">
             <div className="p-8 bg-white shadow-lg rounded-2xl">
                <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">
                   Form Pengajuan Izin / Sakit
@@ -260,6 +260,7 @@ const IzinSakit = () => {
 
          {/* Bottom Navigation */}
          <BottomNavbar />
+         </div>
       </div>
    );
 };
