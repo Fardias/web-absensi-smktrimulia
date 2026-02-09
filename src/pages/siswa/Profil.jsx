@@ -46,22 +46,93 @@ export default function SiswaProfil() {
   };
 
   if (loading && !profile) {
-    return <Loading text="Memuat profil..." />;
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="mx-auto max-w-md">
+          {/* Header Skeleton */}
+          <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+            <div className="text-white text-center">
+              <div className="h-8 bg-white bg-opacity-20 rounded w-32 mx-auto mb-2 animate-pulse"></div>
+              <div className="h-4 bg-white bg-opacity-20 rounded w-24 mx-auto animate-pulse"></div>
+            </div>
+          </div>
+
+          <main className="px-4 py-8">
+            {/* Profile Card Skeleton */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100 animate-pulse">
+              {/* Avatar Skeleton */}
+              <div className="text-center mb-6">
+                <div className="w-24 h-24 rounded-full bg-gray-200 mx-auto mb-4"></div>
+                <div className="h-7 bg-gray-200 rounded w-40 mx-auto mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded w-20 mx-auto"></div>
+              </div>
+
+              {/* Info Cards Skeleton */}
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <div className="w-10 h-10 rounded-lg bg-gray-200 mr-4"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                      <div className="h-5 bg-gray-200 rounded w-32"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Stats Skeleton */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {[1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 text-center animate-pulse">
+                  <div className="w-12 h-12 rounded-lg bg-gray-200 mx-auto mb-3"></div>
+                  <div className="h-8 bg-gray-200 rounded w-12 mx-auto mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-16 mx-auto"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* School Info Skeleton */}
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100 animate-pulse">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 rounded-lg bg-gray-200 mr-3"></div>
+                <div className="h-6 bg-gray-200 rounded w-40"></div>
+              </div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Logout Button Skeleton */}
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+              <div className="h-12 bg-gray-200 rounded-xl w-full"></div>
+            </div>
+          </main>
+
+          <BottomNavbar />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+      {/* Max width wrapper untuk tampilan mobile-like di semua device */}
+      <div className="mx-auto max-w-md">
+        {/* Header */}
+        <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
           <div className="text-white text-center">
             <p className="text-2xl font-bold">Profil Saya</p>
             <p className="text-sm opacity-90">SMK Trimulia</p>
           </div>
         </div>
-      </div>
 
-      <main className="px-4 py-8 mx-auto max-w-2xl">
+        <main className="px-4 py-8">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
           {/* Avatar & Basic Info */}
@@ -136,56 +207,41 @@ export default function SiswaProfil() {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 text-center">
-            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {new Date().toLocaleDateString('id-ID', { day: 'numeric' })}
-            </p>
-            <p className="text-sm text-gray-500">Hari ini</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 text-center">
-            <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center mx-auto mb-3">
-              <Clock className="w-6 h-6 text-green-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {new Date().toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </p>
-            <p className="text-sm text-gray-500">Waktu</p>
-          </div>
-        </div>
-
-        {/* School Info */}
+        {/* Student Info Section */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
           <div className="flex items-center mb-4">
             <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mr-3">
               <School className="w-5 h-5 text-indigo-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Informasi Sekolah</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Informasi Siswa</h3>
           </div>
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Nama Sekolah</span>
-              <span className="font-medium text-gray-900">SMK Trimulia</span>
+              <span className="text-gray-600">Kelas</span>
+              <span className="font-medium text-gray-900">
+                {profile?.kelas?.tingkat || '-'} {profile?.kelas?.jurusan?.nama_jurusan || ''} {profile?.kelas?.paralel || ''}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Tahun Ajaran</span>
-              <span className="font-medium text-gray-900">2024/2025</span>
+              <span className="text-gray-600">Wali Kelas</span>
+              <span className="font-medium text-gray-900">
+                {profile?.kelas?.walas?.nama || '-'}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Semester</span>
-              <span className="font-medium text-gray-900">Ganjil</span>
+              <span className="text-gray-600">Status</span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Aktif
+              </span>
             </div>
           </div>
         </div>
+
+        
+
+     
+  
 
         {/* Error Display */}
         {err && (
@@ -213,6 +269,7 @@ export default function SiswaProfil() {
 
       {/* Bottom Navigation */}
       <BottomNavbar />
+    </div>
     </div>
   );
 }

@@ -43,10 +43,10 @@ export const createSidebarItems = (handleLogout, role) => {
       label: "Absensi",
       icon: "CheckIcon",
       children: [
+        { key: "rencana-absensi", label: "Rencana Absensi", href: "/dashboard/rencana-absensi", icon: "CalendarPlusIcon" },
         { key: "absen-hari-ini", label: "Absen Hari Ini", href: "/dashboard/absensi-hari-ini", icon: "CalendarCheckIcon" },
         { key: "izin-sakit", label: "Izin / Sakit", href: "/dashboard/siswa-izinsakit", icon: "HeartHandshakeIcon" },
         { key: "lihat-absensi", label: "Lihat Absensi", href: "/dashboard/lihat-absensi", icon: "EyeIcon" },
-        { key: "rencana-absensi", label: "Rencana Absensi", href: "/dashboard/rencana-absensi", icon: "CalendarPlusIcon" }
       ],
     },
     // {

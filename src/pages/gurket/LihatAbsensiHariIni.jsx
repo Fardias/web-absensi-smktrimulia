@@ -5,7 +5,7 @@ import { Loading } from '../../components';
 import Error from '../../components/Error';
 import Swal from 'sweetalert2';
 
-export const LihatAbsensiHariIni = () => {
+const LihatAbsensiHariIni = () => {
   const [absensi, setAbsensi] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -57,8 +57,18 @@ export const LihatAbsensiHariIni = () => {
       if (status) params.status = status;
       const res = await guruAPI.lihatAbsensiSiswa(params);
       const data = res?.data?.responseData?.absensi ?? [];
+      console.log('=== FETCH ABSENSI DEBUG ===');
+      console.log('Raw response:', res?.data);
+      console.log('Absensi data:', data);
+      console.log('Is array?', Array.isArray(data));
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('First item:', data[0]);
+        console.log('First item absensi_id type:', typeof data[0].absensi_id, data[0].absensi_id);
+        console.log('First item nis type:', typeof data[0].nis, data[0].nis);
+      }
       setAbsensi(Array.isArray(data) ? data : []);
     } catch (err) {
+      console.error('Error fetching absensi:', err);
       setError(err.message || 'Terjadi kesalahan saat memuat data');
       setAbsensi([]);
     } finally {
@@ -286,6 +296,13 @@ export const LihatAbsensiHariIni = () => {
     const nama = String(item.nama || "").toLowerCase();
     return nis.includes(q) || nama.includes(q);
   });
+
+  console.log('=== FILTERED DATA DEBUG ===');
+  console.log('Filtered count:', filtered.length);
+  if (filtered.length > 0) {
+    console.log('First filtered item:', filtered[0]);
+    console.log('Keys:', Object.keys(filtered[0]));
+  }
 
   if (loading) return <Loading text="Loading..." />;
   if (error) return <Error message={error} />;
@@ -629,3 +646,5 @@ export const LihatAbsensiHariIni = () => {
     </div>
   );
 };
+
+export default LihatAbsensiHariIni;

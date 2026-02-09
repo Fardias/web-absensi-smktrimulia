@@ -326,7 +326,46 @@ const KelolaDataSiswa = () => {
         setSiswaList(updated.data.responseData);
         setShowCreate(false);
         setNewSiswa({ nis: "", nama: "", jenkel: "L", kelas_id: "" });
-        Swal.fire({ icon: "success", title: "Berhasil", text: "Siswa berhasil ditambahkan." });
+        
+        const generatedPassword = res?.data?.responseData?.password || 'TRI12345';
+        
+        // Show success message with credential information
+        Swal.fire({
+          icon: "success",
+          title: "Siswa Berhasil Ditambahkan",
+          html: `
+            <div class="text-left">
+              <p class="mb-3 text-green-600 font-semibold">✅ Siswa berhasil ditambahkan!</p>
+              
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-blue-800 mb-2">📋 Informasi Login:</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Username:</span>
+                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">${nis}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Password:</span>
+                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">${generatedPassword}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h4 class="font-semibold text-orange-800 mb-2">⚠️ Penting:</h4>
+                <p class="text-sm text-orange-700">
+                  Harap segera minta siswa untuk <strong>mengganti password default</strong> 
+                  setelah login pertama kali untuk keamanan akun.
+                </p>
+              </div>
+            </div>
+          `,
+          confirmButtonText: "OK, Mengerti",
+          confirmButtonColor: "#003366",
+          width: 500,
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
       } else {
         Swal.fire({ icon: "error", title: "Gagal", text: res.data.responseMessage || "Gagal menambah siswa" });
       }

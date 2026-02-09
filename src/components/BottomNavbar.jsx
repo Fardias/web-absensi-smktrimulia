@@ -7,32 +7,12 @@ const BottomNavbar = () => {
 
   const menuItems = [
     {
-      id: 'home',
-      label: 'Home',
-      path: '/siswa/home',
-      icon: (isActive) => (
-        <svg 
-          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
-          />
-        </svg>
-      )
-    },
-    {
       id: 'riwayat',
       label: 'Riwayat',
       path: '/siswa/riwayat',
       icon: (isActive) => (
         <svg 
-          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} 
+          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -47,12 +27,32 @@ const BottomNavbar = () => {
       )
     },
     {
+      id: 'home',
+      label: 'Home',
+      path: '/siswa/home',
+      icon: (isActive) => (
+        <svg 
+          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" 
+          />
+        </svg>
+      )
+    },
+    {
       id: 'profil',
       label: 'Profil',
       path: '/siswa/profil',
       icon: (isActive) => (
         <svg 
-          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} 
+          className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} 
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -73,32 +73,34 @@ const BottomNavbar = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-      <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => handleNavigation(item.path)}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
-                isActive 
-                  ? 'bg-blue-50 transform scale-105' 
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              {item.icon(isActive)}
-              <span 
-                className={`text-xs mt-1 font-medium ${
-                  isActive ? 'text-blue-600' : 'text-gray-400'
+    <div className="fixed bottom-6 left-0 right-0 z-50 px-6">
+      <div className="max-w-md mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200">
+        <div className="flex justify-around items-center py-3 px-4">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleNavigation(item.path)}
+                className={`flex flex-col items-center justify-center py-2 px-4 rounded-xl transition-all duration-200 ${
+                  isActive 
+                    ? 'transform scale-105' 
+                    : 'hover:bg-gray-50'
                 }`}
               >
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+                {item.icon(isActive)}
+                <span 
+                  className={`text-xs mt-1 font-medium ${
+                    isActive ? 'text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

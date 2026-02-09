@@ -11,7 +11,7 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
 
   if (Object.keys(grouped).length === 0) {
     return (
-      <p className="text-gray-600 text-center py-10 bg-gray-50 rounded-lg shadow-inner">
+      <p className="text-gray-600 text-center py-10 bg-gray-50 rounded-lg">
         Belum ada data rencana absensi.
       </p>
     );

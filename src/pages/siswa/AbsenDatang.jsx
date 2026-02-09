@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAbsensi } from '../../hooks';
 import { TimeCard, Loading, BottomNavbar } from '../../components';
-import { generalAPI } from '../../services/api';
+import { generalAPI, absensiAPI } from '../../services/api';
 import { PersonStanding, School } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Swal from 'sweetalert2';
@@ -16,10 +16,12 @@ const AbsenDatang = () => {
     const [pengaturan, setPengaturan] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isLocating, setIsLocating] = useState(false);
+    const [distanceInfo, setDistanceInfo] = useState(null);
     const mapRef = useRef(null);
     const markerSchoolRef = useRef(null);
     const markerUserRef = useRef(null);
     const circleRef = useRef(null);
+    const polylineRef = useRef(null);
     const watchIdRef = useRef(null);
     const navigate = useNavigate();
 
@@ -114,6 +116,18 @@ const AbsenDatang = () => {
                     latitude,
                     longitude,
                 });
+                
+                // Panggil API cek jarak
+                absensiAPI.cekJarak({ latitude, longitude })
+                    .then((res) => {
+                        if (res.data?.responseData) {
+                            setDistanceInfo(res.data.responseData);
+                        }
+                    })
+                    .catch(() => {
+                        setDistanceInfo(null);
+                    });
+                
                 // Kita tidak mematikan isLocating di sini agar status tetap 'mencari' jika ingin update terus, 
                 // tapi untuk UX tombol 'Refresh', kita set false setelah dapat update pertama.
                 setIsLocating(false);
@@ -222,6 +236,22 @@ const AbsenDatang = () => {
                     markerUserRef.current = L.marker(userPos, { icon: userIcon }).addTo(mapRef.current);
                     mapRef.current.setView(userPos, 17);
                 }
+
+                // Draw dashed red line between user and school
+                if (pengaturan) {
+                    const schoolPos = [pengaturan.latitude, pengaturan.longitude];
+                    
+                    if (polylineRef.current) {
+                        polylineRef.current.remove();
+                    }
+                    
+                    polylineRef.current = L.polyline([userPos, schoolPos], {
+                        color: '#ef4444',
+                        weight: 2,
+                        opacity: 0.8,
+                        dashArray: '10, 10'
+                    }).addTo(mapRef.current);
+                }
             }
         };
 
@@ -238,13 +268,15 @@ const AbsenDatang = () => {
             markerSchoolRef.current = null;
             markerUserRef.current = null;
             circleRef.current = null;
+            polylineRef.current = null;
         };
     }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
+            {/* Max width wrapper untuk tampilan mobile-like di semua device */}
+            <div className="mx-auto max-w-md">
+                <div className="px-4 pt-8 pb-6 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
                     <div className="flex items-center justify-between text-white">
                         <div>
                             <p className="text-2xl font-bold">Absen Datang</p>
@@ -253,12 +285,11 @@ const AbsenDatang = () => {
                         <button onClick={() => navigate('/siswa/home')} className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded">Kembali</button>
                     </div>
                 </div>
-            </div>
 
 
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <TimeCard title="Waktu Saat Ini" showDate={true} />
+            <main className="px-4 py-8">
+                <div className="grid grid-cols-1 gap-6 mb-8">
+                    {/* <TimeCard title="Waktu Saat Ini" showDate={true} /> */}
                     <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                         <div id="absen-map-datang" className="w-full h-64 rounded-md overflow-hidden border" />
                     </div>
@@ -300,69 +331,80 @@ const AbsenDatang = () => {
                     </div>
                 </div>
 
-
-                <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 text-center">
-                    <div className="w-24 h-24 bg-[#003366] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-12 h-12 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                        Absen Datang
-                    </h3>
-
-                    <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                        Klik tombol di bawah untuk melakukan absensi datang. Pastikan Anda berada di dalam lingkungan sekolah.
-                    </p>
-
-                    <button
-                        onClick={handleAbsenWrapper}
-                        disabled={isLoading || !location}
-                        className={`px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 shadow-lg ${isLoading || !location
-                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                            : 'bg-[#003366] text-white hover:bg-[#002244]'
-                            }`}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Memproses...
+                {/* Informasi Jarak ke Radius */}
+                {location && pengaturan && distanceInfo && (
+                    <div className={`rounded-xl shadow-sm p-4 border mb-6 ${
+                        distanceInfo.dalam_radius 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-red-50 border-red-200'
+                    }`}>
+                        <div className="flex items-start gap-3">
+                            {distanceInfo.dalam_radius ? (
+                                <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                            ) : (
+                                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                            )}
+                            <div className="flex-1">
+                                <p className={`font-semibold text-sm mb-1 ${
+                                    distanceInfo.dalam_radius ? 'text-green-800' : 'text-red-800'
+                                }`}>
+                                    {distanceInfo.dalam_radius 
+                                        ? 'Anda berada di dalam radius sekolah' 
+                                        : 'Anda berada di luar radius sekolah'}
+                                </p>
+                                <p className={`text-sm ${
+                                    distanceInfo.dalam_radius ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                    Jarak Anda: <span className="font-mono font-semibold">{distanceInfo.distance}</span> meter dari sekolah
+                                </p>
+                                {!distanceInfo.dalam_radius && distanceInfo.sisa_meter > 0 && (
+                                    <p className="text-sm text-red-700 mt-1">
+                                        Anda perlu mendekat <span className="font-mono font-semibold">{distanceInfo.sisa_meter}</span> meter lagi
+                                    </p>
+                                )}
                             </div>
-                        ) : (
-                            'Absen Datang'
-                        )}
-                    </button>
-                </div>
-
-
-                <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-                    <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div className="ml-3">
-                            <h4 className="text-sm font-medium text-blue-800 mb-2">
-                                Informasi Penting
-                            </h4>
-                            <ul className="text-sm text-blue-700 space-y-1">
-                                <li>• Absensi hanya dapat dilakukan di dalam radius 50 meter dari sekolah</li>
-                                <li>• Pastikan GPS aktif dan browser mengizinkan akses lokasi</li>
-                                <li>• Absensi datang dapat dilakukan mulai pukul 06:00 WIB</li>
-                                <li>• Jika terlambat, status akan otomatis berubah menjadi "Terlambat"</li>
-                            </ul>
                         </div>
                     </div>
-                </div>
+                )}
+
+
+                {/* Absen Button */}
+                <button
+                    onClick={handleAbsenWrapper}
+                    disabled={isLoading || !location}
+                    className={`w-full px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 shadow-lg ${isLoading || !location
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-[#003366] text-white hover:bg-[#002244]'
+                        }`}
+                >
+                    {isLoading ? (
+                        <div className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Memproses...
+                        </div>
+                    ) : (
+                        'Absen Datang'
+                    )}
+                </button>
+
+
+               
             </main>
 
             {/* Bottom Navigation */}
             <BottomNavbar />
+        </div>
         </div>
     );
 };

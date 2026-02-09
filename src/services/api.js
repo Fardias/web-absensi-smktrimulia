@@ -134,6 +134,7 @@ export const absensiAPI = {
 	absen: (data) => api.post('/absensi', data),
 	absenPulang: (data) => api.post('/absensi/pulang', data),
 	izinSakit: (data) => api.post('/absensi/izinsakit', data),
+	cekJarak: (data) => api.post('/absensi/cek-jarak', data),
 	riwayat: () => api.get('/absensi/riwayat'),
 	riwayatAbsenHariIni: () => api.get('/absensi/hariini'),
 };
