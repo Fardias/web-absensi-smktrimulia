@@ -1,7 +1,8 @@
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { authAPI, adminAPI } from "../services/api";
-import { Loading } from "../components";
+import { Loading, LoadingButton } from "../components";
+import { ProfileSkeleton } from "../components/LoadingSkeleton";
 import Swal from "sweetalert2";
 
 export default function Profil() {
@@ -35,7 +36,11 @@ export default function Profil() {
   }, []);
 
   if (loading && !profile) {
-    return <Loading text="Memuat profil..." />;
+    return (
+      <div className="px-4 py-8 max-w-4xl mx-auto sm:px-6 lg:px-8">
+        <ProfileSkeleton />
+      </div>
+    );
   }
 
   const roleColor =

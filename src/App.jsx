@@ -4,35 +4,39 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { queryClient } from "./lib/queryClient";
 
-// Pages
+// Pages - Import only Login directly, others will be lazy loaded
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import SiswaHome from "./pages/siswa/Home";
-import AbsenDatang from "./pages/siswa/AbsenDatang";
-import AbsenPulang from "./pages/siswa/AbsenPulang";
-import RiwayatAbsensi from "./pages/siswa/RiwayatAbsensi";
-import IzinSakit from "./pages/siswa/IzinSakit";
-import SiswaProfil from "./pages/siswa/Profil";
-import ImportSiswa from "./pages/admin/ImportSiswa";
-import SiswaIzinSakit from "./pages/gurket/SiswaIzinSakit";
-import LihatAbsensi from "./pages/gurket/LihatAbsensi";
-import { LihatAbsensiHariIni } from "./pages/gurket/LihatAbsensiHariIni";
-import KelolaDataSiswa from "./pages/admin/KelolaDataSiswa";
-import RencanaAbsensi from "./pages/gurket/RencanaAbsensi";
-import AdminRekap from "./pages/admin/Rekap";
-import AdminPengaturan from "./pages/admin/Pengaturan";
-import RekapWalas from "./pages/walas/RekapWalas";
-import Profil from "./pages/Profil";
-import Jurusan from "./pages/admin/Jurusan";
-import Kelas from "./pages/admin/Kelas";
-import WaliKelas from "./pages/admin/WaliKelas";
-import GuruPiket from "./pages/admin/GuruPiket";
-import JadwalPiket from "./pages/admin/JadwalPiket";
-import RiwayatKelas from "./pages/admin/RiwayatKelas";
-import PetunjukPenggunaan from "./pages/admin/PetunjukPenggunaan";
+import {
+  LazyDashboard,
+  LazySiswaHome,
+  LazyAbsenDatang,
+  LazyAbsenPulang,
+  LazyRiwayatAbsensi,
+  LazyIzinSakit,
+  LazySiswaProfil,
+  LazyImportSiswa,
+  LazySiswaIzinSakit,
+  LazyLihatAbsensi,
+  LazyLihatAbsensiHariIni,
+  LazyKelolaDataSiswa,
+  LazyRencanaAbsensi,
+  LazyAdminRekap,
+  LazyAdminPengaturan,
+  LazyRekapWalas,
+  LazyProfil,
+  LazyJurusan,
+  LazyKelas,
+  LazyWaliKelas,
+  LazyGuruPiket,
+  LazyJadwalPiket,
+  LazyRiwayatKelas,
+} from "./components/LazyComponents";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -96,7 +100,16 @@ const Unauthorized = () => (
 
 // Main Routes
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003366]"></div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -121,7 +134,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin", "gurket", "walas"]}>
             <Layout>
-              <Dashboard />
+              <LazyDashboard />
             </Layout>
           </ProtectedRoute>
         }
@@ -132,7 +145,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <ImportSiswa />
+              <LazyImportSiswa />
             </Layout>
           </ProtectedRoute>
         }
@@ -143,7 +156,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
-              <LihatAbsensiHariIni />
+              <LazyLihatAbsensiHariIni />
             </Layout>
           </ProtectedRoute>
         }
@@ -154,7 +167,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
-              <SiswaIzinSakit />
+              <LazySiswaIzinSakit />
             </Layout>
           </ProtectedRoute>
         }
@@ -165,7 +178,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
-              <LihatAbsensi />
+              <LazyLihatAbsensi />
             </Layout>
           </ProtectedRoute>
         }
@@ -176,7 +189,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <KelolaDataSiswa />
+              <LazyKelolaDataSiswa />
             </Layout>
           </ProtectedRoute>
         }
@@ -187,7 +200,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <RiwayatKelas />
+              <LazyRiwayatKelas />
             </Layout>
           </ProtectedRoute>
         }
@@ -198,7 +211,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["gurket"]}>
             <Layout>
-              <RencanaAbsensi />
+              <LazyRencanaAbsensi />
             </Layout>
           </ProtectedRoute>
         }
@@ -210,7 +223,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <AdminRekap />
+              <LazyAdminRekap />
             </Layout>
           </ProtectedRoute>
         }
@@ -221,7 +234,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["walas"]}>
             <Layout>
-              <RekapWalas />
+              <LazyRekapWalas />
             </Layout>
           </ProtectedRoute>
         }
@@ -231,7 +244,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <AdminPengaturan />
+              <LazyAdminPengaturan />
             </Layout>
           </ProtectedRoute>
         }
@@ -241,7 +254,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <Jurusan />
+              <LazyJurusan />
             </Layout>
           </ProtectedRoute>
         }
@@ -251,7 +264,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <Kelas />
+              <LazyKelas />
             </Layout>
           </ProtectedRoute>
         }
@@ -262,7 +275,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <WaliKelas />
+              <LazyWaliKelas />
             </Layout>
           </ProtectedRoute>
         }
@@ -273,7 +286,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <GuruPiket />
+              <LazyGuruPiket />
             </Layout>
           </ProtectedRoute>
         }
@@ -284,7 +297,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <Layout>
-              <JadwalPiket />
+              <LazyJadwalPiket />
             </Layout>
           </ProtectedRoute>
         }
@@ -296,7 +309,7 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas"]}>
             <Layout>
-              <Profil />
+              <LazyProfil />
             </Layout>
           </ProtectedRoute>
         }
@@ -306,7 +319,7 @@ const AppRoutes = () => {
         path="/siswa/profil"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <SiswaProfil />
+            <LazySiswaProfil />
           </ProtectedRoute>
         }
       />
@@ -316,7 +329,7 @@ const AppRoutes = () => {
         path="/siswa/home"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <SiswaHome />
+            <LazySiswaHome />
           </ProtectedRoute>
         }
       />
@@ -324,7 +337,7 @@ const AppRoutes = () => {
         path="/siswa/absen-datang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <AbsenDatang />
+            <LazyAbsenDatang />
           </ProtectedRoute>
         }
       />
@@ -332,7 +345,7 @@ const AppRoutes = () => {
         path="/siswa/absen-pulang"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <AbsenPulang />
+            <LazyAbsenPulang />
           </ProtectedRoute>
         }
       />
@@ -340,7 +353,7 @@ const AppRoutes = () => {
         path="/siswa/riwayat"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <RiwayatAbsensi />
+            <LazyRiwayatAbsensi />
           </ProtectedRoute>
         }
       />
@@ -348,21 +361,12 @@ const AppRoutes = () => {
         path="/siswa/izin"
         element={
           <ProtectedRoute allowedRoles={["siswa"]}>
-            <IzinSakit />
+            <LazyIzinSakit />
           </ProtectedRoute>
         }
       />
 
-      <Route
-        path="/petunjuk_penggunaan"
-        element={
-          <ProtectedRoute allowedRoles={["admin", "kepala_sekolah", "gurket", "walas"]}>
-            <Layout>
-              <PetunjukPenggunaan />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+     
 
       {/* Unauthorized Route */}
       <Route path="/unauthorized" element={<Unauthorized />} />
@@ -418,13 +422,17 @@ const AppRoutes = () => {
 // Root App Component
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <AppRoutes />
-        </div>
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Router>
+            <div className="App">
+              <AppRoutes />
+            </div>
+          </Router>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

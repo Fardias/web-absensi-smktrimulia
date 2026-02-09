@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Loading } from '../components';
+import { Loading, LoadingButton } from '../components';
+import { validateForm, validators } from '../utils/validation';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -38,7 +39,11 @@ const Login = () => {
                 navigate('/dashboard');
             }
         } else {
-            setError(result.message);
+            // Don't show regular error message for schedule validation errors
+            // because SweetAlert is already shown in AuthContext
+            if (!result.isScheduleError) {
+                setError(result.message);
+            }
         }
 
         setLoading(false);
@@ -104,20 +109,13 @@ const Login = () => {
                         </div>
                     )}
 
-                    <button
+                    <LoadingButton
                         type="submit"
-                        disabled={loading}
+                        loading={loading}
                         className="w-full bg-[#003366] text-white py-3 px-4 rounded-lg font-medium hover:bg-[#002244] focus:ring-2 focus:ring-[#003366] focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? (
-                            <div className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                Memproses...
-                            </div>
-                        ) : (
-                            'Masuk'
-                        )}
-                    </button>
+                        Masuk
+                    </LoadingButton>
                 </form>
 
                 {/* Footer */}

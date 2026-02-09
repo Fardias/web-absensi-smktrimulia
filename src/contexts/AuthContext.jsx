@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import { handleApiError } from '../services/api';
+import Swal from 'sweetalert2';
 
 const AuthContext = createContext();
 
@@ -15,36 +17,35 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
+    // Prevent multiple initialization
+    if (initialized) return;
 
-      if (storedToken && storedUser) {
-        try {
-          // Verifikasi token dengan backend
-          const response = await authAPI.me();
-          if (response.data.responseStatus) {
-            setUser(JSON.parse(storedUser));
-            setToken(storedToken);
-          } else {
-            // Token tidak valid, hapus dari storage
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
-        } catch (error) {
-          // Token expired atau tidak valid
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+    const initAuth = async () => {
+      try {
+        // Verifikasi token dengan backend (token ada di httpOnly cookie)
+        const response = await authAPI.me();
+        if (response.data.responseStatus) {
+          setUser(response.data.responseData);
+        } else {
+          // Response tidak valid, set user ke null
+          setUser(null);
         }
+      } catch (error) {
+        // Token expired, tidak valid, atau error lainnya
+        console.log('No valid session found:', error.response?.status);
+        setUser(null);
+      } finally {
+        // Pastikan loading selalu di-set ke false
+        setLoading(false);
+        setInitialized(true);
       }
-      setLoading(false);
     };
 
     initAuth();
-  }, []);
+  }, [initialized]);
 
   const login = async (credentials) => {
     try {
@@ -52,18 +53,9 @@ export const AuthProvider = ({ children }) => {
       const data = response.data;
 
       if (data.responseStatus) {
-        const access_token =
-          data?.responseData?.access_token ??
-          data?.responseHeader?.access_token;
-        const userData =
-          data?.responseData?.user ?? data?.responseData;
+        const userData = data?.responseData?.user ?? data?.responseData;
 
-        // Simpan ke localStorage
-        localStorage.setItem('token', access_token);
-        localStorage.setItem('user', JSON.stringify(userData));
-
-        // Update state
-        setToken(access_token);
+        // Update state - token disimpan otomatis di httpOnly cookie
         setUser(userData);
 
         return { success: true, data: userData };
@@ -71,9 +63,66 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.responseMessage };
       }
     } catch (error) {
+      // Handle schedule validation error for guru piket
+      if (error.response?.status === 403 && error.response?.data?.responseMessage?.includes('Jadwal Piket')) {
+        const errorData = error.response.data.errors;
+        
+        // Show detailed SweetAlert for schedule validation
+        Swal.fire({
+          icon: 'error',
+          title: 'Akses Ditolak',
+          html: `
+            <div class="text-left">
+              <p class="mb-3 text-red-600 font-semibold">🚫 Anda tidak terjadwal sebagai guru piket hari ini</p>
+              
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-blue-800 mb-2">📅 Informasi Hari Ini:</h4>
+                <div class="space-y-1 text-sm">
+                  <div><strong>Hari:</strong> ${errorData.hari_ini}</div>
+                  <div><strong>Tanggal:</strong> ${errorData.tanggal_ini}</div>
+                  ${errorData.guru_piket_hari_ini 
+                    ? `<div><strong>Guru Piket Hari Ini:</strong> ${errorData.guru_piket_hari_ini.nama} (${errorData.guru_piket_hari_ini.username})</div>`
+                    : '<div><strong>Guru Piket Hari Ini:</strong> Tidak ada yang terjadwal</div>'
+                  }
+                </div>
+              </div>
+              
+              ${errorData.jadwal_terdekat 
+                ? `<div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h4 class="font-semibold text-green-800 mb-2">📋 Jadwal Piket Anda Berikutnya:</h4>
+                    <div class="text-sm">
+                      <div><strong>Hari:</strong> ${errorData.jadwal_terdekat.hari}</div>
+                      <div><strong>Tanggal:</strong> ${errorData.jadwal_terdekat.tanggal_formatted}</div>
+                    </div>
+                  </div>`
+                : `<div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-semibold text-orange-800 mb-2">⚠️ Perhatian:</h4>
+                    <p class="text-sm text-orange-700">
+                      Anda belum memiliki jadwal piket yang terdaftar. 
+                      Silakan hubungi admin untuk mengatur jadwal piket Anda.
+                    </p>
+                  </div>`
+              }
+            </div>
+          `,
+          confirmButtonText: 'Mengerti',
+          confirmButtonColor: '#dc2626',
+          width: 500,
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
+        
+        return { 
+          success: false, 
+          message: error.response.data.responseMessage,
+          isScheduleError: true 
+        };
+      }
+      
+      const errorMessage = handleApiError(error, 'Gagal login. Periksa username dan password Anda.');
       return {
         success: false,
-        message: error.response?.data?.responseMessage || 'Terjadi kesalahan pada server'
+        message: errorMessage
       };
     }
   };
@@ -84,10 +133,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Hapus dari localStorage dan state
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setToken(null);
+      // Reset state - cookie akan dihapus oleh backend
       setUser(null);
     }
   };
@@ -98,11 +144,7 @@ export const AuthProvider = ({ children }) => {
       const data = response.data;
 
       if (data.responseStatus) {
-        const access_token =
-          data?.responseData?.access_token ??
-          data?.responseHeader?.access_token;
-        localStorage.setItem('token', access_token);
-        setToken(access_token);
+        // Token baru disimpan otomatis di httpOnly cookie
         return true;
       }
       return false;
@@ -115,12 +157,11 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    token,
     loading,
     login,
     logout,
     refreshToken,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
   };
 
   return (

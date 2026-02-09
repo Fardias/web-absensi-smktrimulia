@@ -1,8 +1,9 @@
 import { useAuth } from '../../contexts/AuthContext';
-import { Loading, BottomNavbar } from '../../components';
+import { Loading, BottomNavbar, LoadingButton } from '../../components';
 import { useState } from 'react';
 import { useAbsensi } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
+import { validateForm, validators, validateFile } from '../../utils/validation';
 import toast, { Toaster } from 'react-hot-toast';
 
 const IzinSakit = () => {
@@ -37,14 +38,29 @@ const IzinSakit = () => {
    const handleSubmit = async (e) => {
       e.preventDefault();
 
-      let newErrors = {};
-      if (!formData.keterangan.trim()) newErrors.keterangan = "Keterangan wajib diisi";
-      // HAPUS: bukti wajib diupload
-      // if (!formData.bukti) newErrors.bukti = "Bukti wajib diupload";
-      setErrors(newErrors);
+      // Validation using utility
+      const validationRules = {
+         keterangan: [validators.required, validators.minLength(10)],
+         tanggal: [validators.required]
+      };
 
-      if (Object.keys(newErrors).length > 0) {
-         toast.error("Harap lengkapi keterangan ❌");
+      const { isValid, errors: validationErrors } = validateForm(formData, validationRules);
+      
+      // File validation
+      if (formData.bukti) {
+         const fileError = validateFile(formData.bukti, {
+            maxSize: 5 * 1024 * 1024, // 5MB
+            allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+         });
+         if (fileError) {
+            validationErrors.bukti = fileError;
+         }
+      }
+
+      setErrors(validationErrors);
+
+      if (!isValid) {
+         toast.error("Harap perbaiki kesalahan pada form ❌");
          return;
       }
 
@@ -224,17 +240,15 @@ const IzinSakit = () => {
 
                   {/* Submit Button */}
                   <div className="pt-2">
-                     <button
+                     <LoadingButton
                         type="submit"
-                        disabled={loading}
+                        loading={loading}
                         className="w-full px-4 py-3 font-medium text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                      >
-                        {loading
-                           ? 'Mengirim...'
-                           : selectedType === 'izin'
-                              ? 'Kirim Pengajuan Izin'
-                              : 'Kirim Pengajuan Sakit'}
-                     </button>
+                        {selectedType === 'izin'
+                           ? 'Kirim Pengajuan Izin'
+                           : 'Kirim Pengajuan Sakit'}
+                     </LoadingButton>
                   </div>
                </form>
             </div>

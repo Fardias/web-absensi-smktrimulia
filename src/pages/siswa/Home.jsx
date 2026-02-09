@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Loading, BottomNavbar } from '../../components';
+import { CardSkeleton } from '../../components/LoadingSkeleton';
 import RiwayatAbsenHarian from '../siswa/RiwayatAbsenHarian';
 import { generalAPI } from '../../services/api';
 

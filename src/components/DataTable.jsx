@@ -48,7 +48,7 @@ const DataTable = ({
       
       // Handle different data types
       if (aValue instanceof Date && bValue instanceof Date) {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        return sortDirection === 'asc' ? aValue.getTime() - bValue.getTime() : bValue.getTime() - aValue.getTime();
       }
       
       // Convert to string for comparison
@@ -284,7 +284,7 @@ const DataTable = ({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {currentItems.map((item, index) => (
-              <tr key={item.id || index}>
+              <tr key={item.id ? String(item.id) : `row-${startIndex + index}`}>
                 {columns.map((column) => (
                   <td key={column.key} className="px-4 py-2">
                     {column.render ? column.render(item, startIndex + index) : 

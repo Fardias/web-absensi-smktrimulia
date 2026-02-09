@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Trash } from "lucide-react";
 import { adminAPI } from "../../services/api";
 import { Loading, DataTable } from "../../components";
 import Swal from "sweetalert2";
@@ -195,6 +196,79 @@ const JadwalPiket = () => {
     }
   }
 
+  async function handleDeleteAll() {
+    const result = await Swal.fire({
+      title: 'Hapus Semua Jadwal Piket',
+      html: `
+        <div class="text-left">
+          <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>SEMUA JADWAL PIKET</strong>?</p>
+          <p class="text-red-600 font-semibold mb-2">⚠️ PERINGATAN:</p>
+          <ul class="text-sm text-gray-700 list-disc list-inside">
+            <li>Semua jadwal piket akan dihapus permanen</li>
+            <li>Semua data piket harian akan hilang</li>
+            <li>Sistem akan kehilangan jadwal piket</li>
+          </ul>
+          <p class="mt-3 text-red-600 font-bold">Tindakan ini TIDAK DAPAT DIBATALKAN!</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus Semua!',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+      // Konfirmasi kedua untuk keamanan ekstra
+      const secondConfirm = await Swal.fire({
+        title: 'Konfirmasi Terakhir',
+        text: 'Ketik "HAPUS SEMUA" untuk melanjutkan',
+        input: 'text',
+        inputPlaceholder: 'Ketik: HAPUS SEMUA',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Hapus Semua Data',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+          if (value !== 'HAPUS SEMUA') {
+            return 'Anda harus mengetik "HAPUS SEMUA" dengan benar!';
+          }
+        }
+      });
+
+      if (secondConfirm.isConfirmed) {
+        try {
+          const response = await adminAPI.deleteAllJadwalPiket();
+          if (response.status === 200 && response.data.responseStatus) {
+            setList([]);
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Semua jadwal piket berhasil dihapus'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.data.responseMessage || 'Gagal menghapus semua jadwal piket'
+            });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.responseMessage || 'Terjadi kesalahan saat menghapus semua jadwal piket';
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg
+          });
+        }
+      }
+    }
+  }
+
   if (loading && !showModal) {
     return <Loading text="Memuat data jadwal piket..." />;
   }
@@ -261,7 +335,17 @@ const JadwalPiket = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Jadwal Piket</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Jadwal</button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteAll}
+            disabled={list.length === 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash size={16} />
+            Hapus Semua
+          </button>
+          <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Jadwal</button>
+        </div>
       </div>
 
       {error && (
@@ -288,7 +372,7 @@ const JadwalPiket = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Guru Piket</label>
                     <select value={gurketId} onChange={(e) => setGurketId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
                       {gurketList.map((a) => (
-                        <option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>
+                        <option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>
                       ))}
                     </select>
                   </div>
@@ -304,35 +388,35 @@ const JadwalPiket = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">Senin</label>
                       <select value={assignments.senin} onChange={(e) => setAssignments((p) => ({ ...p, senin: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2">
                         <option value="">Pilih Guru</option>
-                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>))}
+                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Selasa</label>
                       <select value={assignments.selasa} onChange={(e) => setAssignments((p) => ({ ...p, selasa: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2">
                         <option value="">Pilih Guru</option>
-                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>))}
+                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Rabu</label>
                       <select value={assignments.rabu} onChange={(e) => setAssignments((p) => ({ ...p, rabu: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2">
                         <option value="">Pilih Guru</option>
-                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>))}
+                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Kamis</label>
                       <select value={assignments.kamis} onChange={(e) => setAssignments((p) => ({ ...p, kamis: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2">
                         <option value="">Pilih Guru</option>
-                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>))}
+                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Jumat</label>
                       <select value={assignments.jumat} onChange={(e) => setAssignments((p) => ({ ...p, jumat: e.target.value }))} className="w-full border border-gray-300 rounded px-3 py-2">
                         <option value="">Pilih Guru</option>
-                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.nip}</option>))}
+                        {gurketList.map((a) => (<option key={a.gurket_id} value={a.gurket_id}>{a.nama} — {a.username}</option>))}
                       </select>
                     </div>
                   </div>

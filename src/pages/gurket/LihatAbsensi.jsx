@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { guruAPI, utilityAPI } from "../../services/api";
+import { TableSkeleton } from "../../components/LoadingSkeleton";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -279,7 +280,7 @@ export default function LihatAbsensi() {
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-gray-500">Memuat data...</div>
+          <TableSkeleton rows={8} columns={5} />
         ) : error ? (
           <div className="p-6 text-center text-red-500">{error}</div>
         ) : attendance.length === 0 ? (

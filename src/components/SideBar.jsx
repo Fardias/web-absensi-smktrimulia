@@ -4,12 +4,24 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createSidebarItems, iconComponents } from "./sidebarConfig.jsx";
 import Swal from "sweetalert2";
 
-export default function SideBar({ defaultCollapsed = false, onToggle }) {
+export default function SideBar({ defaultCollapsed = false, onToggle, isMobileOpen = false, onMobileToggle }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [openMenus, setOpenMenus] = useState(new Set());
+  const [isMobile, setIsMobile] = useState(false);
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const handleLogout = React.useCallback(async () => {
     const result = await Swal.fire({
@@ -81,13 +93,32 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
       return;
     }
     navigate(item.href);
+    // Tutup mobile sidebar setelah navigasi
+    if (onMobileToggle) {
+      onMobileToggle(false);
+    }
   };
 
   return (
-    <aside
-      className={`fixed top-0 left-0 flex flex-col bg-slate-900 text-slate-100 transition-all duration-200 
-      ${collapsed ? "w-[72px]" : "w-[260px]"} h-screen p-3 z-20`}
-    >
+    <>
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+          onClick={() => onMobileToggle && onMobileToggle(false)}
+        />
+      )}
+      
+      <aside
+        className={`fixed top-0 left-0 flex flex-col bg-slate-900 text-slate-100 transition-all duration-200 z-20
+        ${
+          // Mobile: hidden by default, show when isMobileOpen is true
+          // Desktop: show based on collapsed state
+          isMobile 
+            ? (isMobileOpen ? "translate-x-0" : "-translate-x-full") + " w-[260px]"
+            : (collapsed ? "w-[72px]" : "w-[260px]") + " translate-x-0"
+        } h-screen p-3`}
+      >
       {/* Header */}
       <div className="flex items-center gap-3 p-2">
         {!collapsed && (
@@ -99,19 +130,6 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
           </div>
         )}
       </div>
-
-      {/* Toggle Button (di atas Beranda) */}
-      <button
-        onClick={toggleSidebar}
-        aria-label="toggle sidebar"
-        className={`
-          flex items-center gap-2 px-2 py-2 rounded-md mb-3 transition
-          bg-slate-800 hover:bg-slate-700 text-sm
-          ${collapsed ? "justify-center" : "w-full"}
-        `}
-      >
-        {collapsed ? "☰" : "← Tutup Sidebar"}
-      </button>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto">
@@ -147,7 +165,14 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
                   <div className="w-7 flex justify-center">
                     {iconComponents[item.icon]()}
                   </div>
-                  {!collapsed && (
+                  {!collapsed && !isMobile && (
+                    <span
+                      className={`text-sm ${activeMain ? "font-semibold" : ""}`}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                  {isMobile && (
                     <span
                       className={`text-sm ${activeMain ? "font-semibold" : ""}`}
                     >
@@ -157,7 +182,12 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
                 </div>
 
                 {/* Arrow submenu */}
-                {item.children && !collapsed && (
+                {item.children && !collapsed && !isMobile && (
+                  <div className="text-xs">
+                    {openMenus.has(item.key) ? "▾" : "▸"}
+                  </div>
+                )}
+                {item.children && isMobile && (
                   <div className="text-xs">
                     {openMenus.has(item.key) ? "▾" : "▸"}
                   </div>
@@ -165,19 +195,26 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
               </div>
 
               {/* Submenu */}
-              {item.children && !collapsed && openMenus.has(item.key) && (
+              {item.children && 
+                ((!isMobile && !collapsed) || isMobile) && 
+                openMenus.has(item.key) && (
                 <div className="ml-7 mt-1">
                   {item.children.map((child) => (
                     <div
                       key={child.key}
                       onClick={() => navigate(child.href)}
-                      className={`px-2 py-2 rounded-md text-sm cursor-pointer transition 
+                      className={`flex items-center gap-3 px-2 py-2 rounded-md text-sm cursor-pointer transition 
                       ${isActive(child.href)
                           ? "bg-blue-600/40 text-white"
                           : "text-slate-400 hover:bg-white/5"
                         }`}
                     >
-                      {child.label}
+                      {child.icon && (
+                        <div className="w-4 flex justify-center">
+                          {iconComponents[child.icon]()}
+                        </div>
+                      )}
+                      <span>{child.label}</span>
                     </div>
                   ))}
                 </div>
@@ -192,5 +229,6 @@ export default function SideBar({ defaultCollapsed = false, onToggle }) {
         {/* {!collapsed ? "Versi 1.0 — © SMK Trimulia" : "v1.0"} */}
       </div>
     </aside>
+    </>
   );
 }

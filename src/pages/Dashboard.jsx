@@ -5,6 +5,10 @@ import { useState, useEffect } from "react";
 import { useDataSiswa } from "../hooks/useDataSiswa";
 import { useCountUp } from "../hooks";
 import { guruAPI, adminAPI } from "../services/api";
+import { AttendancePieChart, AttendanceTrendChart } from "../components/AttendanceChart";
+import { DashboardSkeleton, CardSkeleton } from "../components/LoadingSkeleton";
+import { handleApiError } from "../services/api";
+import { useDashboardStats, useDashboardActivities, useDashboardTrends } from "../hooks/useQueries";
 import Swal from 'sweetalert2';
 
 const Dashboard = () => {
@@ -386,16 +390,21 @@ const Dashboard = () => {
   const totalSiswaCard = Number(totalSiswa);
   const hadirSiswaHariIni = Number(hadirHariIni);
   const belumHadirs = Math.max(0, totalSiswaCard - hadirSiswaHariIni);
-  const pieRadius = 30;
-  const pieCircumference = 2 * Math.PI * pieRadius;
-  const hadirStroke = (presentRate / 100) * pieCircumference;
 
   if (!user) {
     return <Loading text="Memuat data user..." />;
   }
 
   if (loading) {
-    return <Loading text="Loading..." />;
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <div className="flex flex-col flex-1">
+          <main className="px-4 py-8 max-w-7xl sm:px-6 lg:px-14">
+            <DashboardSkeleton />
+          </main>
+        </div>
+      </div>
+    );
   }
 
   // if (error) {
@@ -419,50 +428,11 @@ const Dashboard = () => {
           </div>
           {(user.role === "gurket" || user.role === "admin") && (
             <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-3">
-              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                <div className="flex items-center">
-                  <div className="relative w-20 h-20">
-                    <svg className="w-20 h-20" viewBox="0 0 80 80">
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r={pieRadius}
-                        fill="transparent"
-                        stroke="#e5e7eb"
-                        strokeWidth="8"
-                      />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r={pieRadius}
-                        fill="transparent"
-                        stroke="#14b8a6"
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={`${pieCircumference} ${pieCircumference}`}
-                        strokeDashoffset={pieCircumference - hadirStroke}
-                        transform="rotate(-90 40 40)"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-bold text-gray-900">
-                        {presentRate}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">
-                      Persentase Kehadiran
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      Hadir: <span className="font-semibold text-gray-900">{hadirSiswaHariIni}</span> siswa
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      Belum Hadir: <span className="font-semibold text-gray-900">{belumHadirs}</span> siswa
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <AttendancePieChart 
+                hadirCount={hadirSiswaHariIni}
+                belumHadirCount={belumHadirs}
+                presentRate={presentRate}
+              />
             </div>
           )}
 
@@ -698,38 +668,7 @@ const Dashboard = () => {
                   <div className="mt-2 text-xs text-gray-500">Total: {globalStats.total}</div>
                 </div>
               </div> */}
-              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Tren Kehadiran 7 Hari</h3>
-                <div className="w-full h-36">
-                  {trendData.length === 0 ? (
-                    <div className="text-sm text-gray-500">Tidak ada data tren.</div>
-                  ) : (
-                    <svg viewBox="0 0 300 120" className="w-full h-full">
-                      {(() => {
-                        const maxY = 100;
-                        const pts = trendData.map((t, i) => {
-                          const x = (i / (trendData.length - 1)) * 280 + 10;
-                          const y = 110 - (t.rate / maxY) * 100;
-                          return `${x},${y}`;
-                        }).join(" ");
-                        return (
-                          <g>
-                            <polyline fill="none" stroke="#0ea5e9" strokeWidth="2" points={pts} />
-                            {trendData.map((t, i) => {
-                              const x = (i / (trendData.length - 1)) * 280 + 10;
-                              const y = 110 - (t.rate / maxY) * 100;
-                              return <circle key={i} cx={x} cy={y} r="3" fill="#0ea5e9" />;
-                            })}
-                          </g>
-                        );
-                      })()}
-                      {trendData.map((t, i) => (
-                        <text key={i} x={(i / (trendData.length - 1)) * 280 + 10} y={118} fontSize="8" textAnchor="middle" fill="#6b7280">{t.label}</text>
-                      ))}
-                    </svg>
-                  )}
-                </div>
-              </div>
+              <AttendanceTrendChart trendData={trendData} />
               <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
                 <h3 className="mb-4 text-lg font-semibold text-gray-900">
                   Aktivitas Terbaru

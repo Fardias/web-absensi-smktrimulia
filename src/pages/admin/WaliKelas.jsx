@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Trash } from "lucide-react";
 import { adminAPI } from "../../services/api";
 import { Loading, DataTable } from "../../components";
 import Swal from "sweetalert2";
@@ -11,7 +12,7 @@ const WaliKelas = () => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const [nip, setNip] = useState('');
+  const [username, setUsername] = useState('');
   const [nama, setNama] = useState('');
   const [akunId, setAkunId] = useState('');
 
@@ -36,7 +37,7 @@ const WaliKelas = () => {
 
   function openAdd() {
     setEditing(null);
-    setNip('');
+    setUsername('');
     setNama('');
     setAkunId('');
     setShowModal(true);
@@ -44,7 +45,7 @@ const WaliKelas = () => {
 
   function openEdit(item) {
     setEditing(item);
-    setNip(item?.nip || '');
+    setUsername(item?.username || '');
     setNama(item?.nama || '');
     setAkunId('');
     setShowModal(true);
@@ -57,8 +58,8 @@ const WaliKelas = () => {
 
   async function submitForm(e) {
     e.preventDefault();
-    if (!/^\d+$/.test(nip)) {
-      Swal.fire({ icon: "error", title: "Gagal", text: "NIP hanya boleh mengandung angka" });
+    if (!username.trim()) {
+      Swal.fire({ icon: "error", title: "Gagal", text: "Username tidak boleh kosong" });
       return;
     }
     if ((!/^[a-zA-Z\s]+$/.test(nama))) {
@@ -66,7 +67,7 @@ const WaliKelas = () => {
       return;
     }
     const payload = {
-      nip: nip.trim(),
+      username: username.trim(),
       nama: nama.trim(),
     };
     try {
@@ -79,8 +80,46 @@ const WaliKelas = () => {
       } else {
         const res = await adminAPI.createWaliKelas(payload);
         const created = res?.data?.responseData?.walas;
+        const generatedPassword = res?.data?.responseData?.password || 'TRI12345';
         setList((prev) => [created, ...prev]);
-        Swal.fire({ icon: "success", title: "Berhasil", text: "Wali kelas berhasil ditambahkan" });
+        
+        // Show success message with credential information
+        Swal.fire({
+          icon: "success",
+          title: "Wali Kelas Berhasil Ditambahkan",
+          html: `
+            <div class="text-left">
+              <p class="mb-3 text-green-600 font-semibold">✅ Wali kelas berhasil ditambahkan!</p>
+              
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-blue-800 mb-2">📋 Informasi Login:</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Username:</span>
+                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">${payload.username}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Password:</span>
+                    <span class="font-mono bg-gray-100 px-2 py-1 rounded">${generatedPassword}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h4 class="font-semibold text-orange-800 mb-2">⚠️ Penting:</h4>
+                <p class="text-sm text-orange-700">
+                  Harap segera minta wali kelas untuk <strong>mengganti password default</strong> 
+                  setelah login pertama kali untuk keamanan akun.
+                </p>
+              </div>
+            </div>
+          `,
+          confirmButtonText: "OK, Mengerti",
+          confirmButtonColor: "#003366",
+          width: 500,
+          allowOutsideClick: false,
+          allowEscapeKey: false
+        });
       }
       closeModal();
     } catch (e) {
@@ -95,7 +134,7 @@ const WaliKelas = () => {
   async function handleDelete(item) {
     const result = await Swal.fire({
       title: 'Hapus wali kelas',
-      text: `Hapus wali kelas ${item.nama} (${item.nip})?`,
+      text: `Hapus wali kelas ${item.nama} (${item.username})?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -118,6 +157,79 @@ const WaliKelas = () => {
     }
   }
 
+  async function handleDeleteAll() {
+    const result = await Swal.fire({
+      title: 'Hapus Semua Wali Kelas',
+      html: `
+        <div class="text-left">
+          <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>SEMUA DATA WALI KELAS</strong>?</p>
+          <p class="text-red-600 font-semibold mb-2">⚠️ PERINGATAN:</p>
+          <ul class="text-sm text-gray-700 list-disc list-inside">
+            <li>Semua data wali kelas akan dihapus permanen</li>
+            <li>Semua akun login wali kelas akan dihapus</li>
+            <li>Kelas yang terkait akan kehilangan wali kelas</li>
+          </ul>
+          <p class="mt-3 text-red-600 font-bold">Tindakan ini TIDAK DAPAT DIBATALKAN!</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus Semua!',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+      // Konfirmasi kedua untuk keamanan ekstra
+      const secondConfirm = await Swal.fire({
+        title: 'Konfirmasi Terakhir',
+        text: 'Ketik "HAPUS SEMUA" untuk melanjutkan',
+        input: 'text',
+        inputPlaceholder: 'Ketik: HAPUS SEMUA',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Hapus Semua Data',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+          if (value !== 'HAPUS SEMUA') {
+            return 'Anda harus mengetik "HAPUS SEMUA" dengan benar!';
+          }
+        }
+      });
+
+      if (secondConfirm.isConfirmed) {
+        try {
+          const response = await adminAPI.deleteAllWaliKelas();
+          if (response.status === 200 && response.data.responseStatus) {
+            setList([]);
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Semua data wali kelas berhasil dihapus'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.data.responseMessage || 'Gagal menghapus semua wali kelas'
+            });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.responseMessage || 'Terjadi kesalahan saat menghapus semua wali kelas';
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg
+          });
+        }
+      }
+    }
+  }
+
   if (loading && !showModal) {
     return <Loading text="Memuat data wali kelas..." />;
   }
@@ -130,10 +242,10 @@ const WaliKelas = () => {
       render: (item, index) => index + 1
     },
     {
-      key: 'nip',
-      label: 'NIP/Username',
+      key: 'username',
+      label: 'Username',
       sortable: true,
-      accessor: (item) => item.nip
+      accessor: (item) => item.username
     },
     {
       key: 'nama',
@@ -164,24 +276,30 @@ const WaliKelas = () => {
   ];
 
   // Define search fields
-  const searchFields = ['nip', 'nama'];
+  const searchFields = ['username', 'nama'];
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Wali Kelas</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Wali Kelas</button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteAll}
+            disabled={list.length === 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash size={16} />
+            Hapus Semua
+          </button>
+          <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Wali Kelas</button>
+        </div>
       </div>
-
-      {error && (
-        <div className="mb-3 text-red-600 font-semibold">{error}</div>
-      )}
 
       <DataTable
         data={list}
         columns={columns}
         searchFields={searchFields}
-        searchPlaceholder="Cari NIP atau nama wali kelas..."
+        searchPlaceholder="Cari username atau nama wali kelas..."
         emptyMessage="Belum ada wali kelas"
         defaultSort={{ field: 'nama', direction: 'asc' }}
       />
@@ -193,14 +311,14 @@ const WaliKelas = () => {
             <form onSubmit={submitForm}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">NIP</label>
-                  <input type="text" value={nip} onChange={(e) => setNip(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="NIP" required />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="Username" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
                   <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2" required placeholder="Nama Wali Kelas" />
                 </div>
-                {/* Akun dibuat otomatis dari NIP saat tambah */}
+                {/* Akun dibuat otomatis dari username saat tambah */}
               </div>
               <div className="flex justify-end space-x-2 mt-4">
                 <button type="button" onClick={closeModal} className="px-4 py-2 rounded border border-gray-300">Batal</button>

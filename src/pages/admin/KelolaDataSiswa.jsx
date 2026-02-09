@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
+import { Edit2, Eye, Trash2, Trash } from "lucide-react";
 import { adminAPI, utilityAPI } from "../../services/api";
 import { Loading, DataTable } from "../../components";
+import { TableSkeleton, ListSkeleton } from "../../components/LoadingSkeleton";
 import EditSiswaForm from "../../components/EditSiswaForm";
 
 const KelolaDataSiswa = () => {
@@ -151,6 +153,123 @@ const KelolaDataSiswa = () => {
     }
   };
 
+  const handleDelete = async (siswa) => {
+    const result = await Swal.fire({
+      title: 'Hapus Siswa',
+      text: `Apakah Anda yakin ingin menghapus siswa ${siswa.nama} (${siswa.nis})? Data absensi dan riwayat kelas akan ikut terhapus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await adminAPI.deleteSiswa(siswa.siswa_id);
+        if (response.status === 200 && response.data.responseStatus) {
+          // Refresh data siswa
+          const updated = await adminAPI.getDataSiswa();
+          setSiswaList(updated.data.responseData);
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Siswa berhasil dihapus'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: response.data.responseMessage || 'Gagal menghapus siswa'
+          });
+        }
+      } catch (error) {
+        const msg = error?.response?.data?.responseMessage || 'Terjadi kesalahan saat menghapus siswa';
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: msg
+        });
+      }
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    const result = await Swal.fire({
+      title: 'Hapus Semua Siswa',
+      html: `
+        <div class="text-left">
+          <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>SEMUA DATA SISWA</strong>?</p>
+          <p class="text-red-600 font-semibold mb-2">⚠️ PERINGATAN:</p>
+          <ul class="text-sm text-gray-700 list-disc list-inside">
+            <li>Semua data siswa akan dihapus permanen</li>
+            <li>Semua riwayat kelas akan dihapus</li>
+            <li>Semua data absensi akan dihapus</li>
+            <li>Semua akun login siswa akan dihapus</li>
+          </ul>
+          <p class="mt-3 text-red-600 font-bold">Tindakan ini TIDAK DAPAT DIBATALKAN!</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus Semua!',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+      // Konfirmasi kedua untuk keamanan ekstra
+      const secondConfirm = await Swal.fire({
+        title: 'Konfirmasi Terakhir',
+        text: 'Ketik "HAPUS SEMUA" untuk melanjutkan',
+        input: 'text',
+        inputPlaceholder: 'Ketik: HAPUS SEMUA',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Hapus Semua Data',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+          if (value !== 'HAPUS SEMUA') {
+            return 'Anda harus mengetik "HAPUS SEMUA" dengan benar!';
+          }
+        }
+      });
+
+      if (secondConfirm.isConfirmed) {
+        try {
+          const response = await adminAPI.deleteAllSiswa();
+          if (response.status === 200 && response.data.responseStatus) {
+            // Refresh data siswa
+            setSiswaList([]);
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Semua data siswa berhasil dihapus'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.data.responseMessage || 'Gagal menghapus semua siswa'
+            });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.responseMessage || 'Terjadi kesalahan saat menghapus semua siswa';
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg
+          });
+        }
+      }
+    }
+  };
+
   // Filter data based on additional filters
   const filteredSiswaList = useMemo(() => {
     return siswaList.filter((s) => {
@@ -218,7 +337,19 @@ const KelolaDataSiswa = () => {
   };
 
   // Loading & Error state
-  if (loading) return <Loading text="Loading data siswa..." />;
+  if (loading) {
+    return (
+      <div className="px-4 py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-48"></div>
+          </div>
+        </div>
+        <TableSkeleton rows={10} columns={6} />
+      </div>
+    );
+  }
   if (error) return <div className="p-4 text-red-600">{error}</div>;
 
   // Define columns for DataTable
@@ -274,18 +405,27 @@ const KelolaDataSiswa = () => {
       key: 'actions',
       label: 'Aksi',
       render: (item) => (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => handleEdit(item)}
-            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Edit"
           >
-            Edit
+            <Edit2 size={16} />
           </button>
           <button
             onClick={() => handleViewRiwayat(item)}
-            className="text-green-600 hover:text-green-800 hover:underline transition-colors"
+            className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition-colors"
+            title="Lihat Riwayat"
           >
-            Riwayat
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(item)}
+            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+            title="Hapus"
+          >
+            <Trash2 size={16} />
           </button>
         </div>
       )
@@ -305,12 +445,22 @@ const KelolaDataSiswa = () => {
     <div className="flex flex-col p-6 md:p-8">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Kelola Data Siswa</h1>
-        <button
-          onClick={() => setShowCreate((v) => !v)}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-        >
-          {showCreate ? "Tutup" : "Tambah Siswa"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteAll}
+            disabled={siswaList.length === 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash size={16} />
+            Hapus Semua
+          </button>
+          <button
+            onClick={() => setShowCreate((v) => !v)}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
+            {showCreate ? "Tutup" : "Tambah Siswa"}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -404,7 +554,7 @@ const KelolaDataSiswa = () => {
             </div>
 
             {loadingRiwayat ? (
-              <Loading text="Memuat riwayat..." />
+              <ListSkeleton items={5} />
             ) : riwayatList.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 Tidak ada riwayat kelas tercatat.

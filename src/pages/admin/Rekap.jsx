@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loading } from "../../components";
+import { TableSkeleton } from "../../components/LoadingSkeleton";
 import { adminAPI, utilityAPI } from "../../services/api";
 import * as XLSX from "xlsx";
 
@@ -176,7 +177,19 @@ export default function AdminRekap() {
     window.print();
   };
 
-  if (loading && rekap.length === 0) return <Loading text="Memuat rekap..." />;
+  if (loading && rekap.length === 0) {
+    return (
+      <div className="px-4 py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-48"></div>
+          </div>
+        </div>
+        <TableSkeleton rows={8} columns={7} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

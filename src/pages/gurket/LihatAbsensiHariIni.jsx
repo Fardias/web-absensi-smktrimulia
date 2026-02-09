@@ -34,7 +34,7 @@ export const LihatAbsensiHariIni = () => {
         console.log("raw data:", data);
         const list = data.map((k) => ({
           id: k.kelas_id,
-          label: `${k.tingkat} ${k.jurusan?.nama_jurusan ?? k.jurusan} ${k.paralel ?? ''}`,
+          label: `${k.tingkat || ''} ${k.jurusan?.nama_jurusan || ''} ${k.paralel || ''}`.trim(),
         }));
         // cetak list
         console.log("kelasList:", list);
@@ -279,7 +279,7 @@ export const LihatAbsensiHariIni = () => {
   };
 
   const filtered = absensi.filter((item) => {
-    if (status && String(item.status).toLowerCase() !== String(status).toLowerCase()) return false;
+    if (status && String(item.status || '').toLowerCase() !== String(status || '').toLowerCase()) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
     const nis = String(item.nis || "").toLowerCase();
@@ -393,7 +393,7 @@ export const LihatAbsensiHariIni = () => {
       <div className="text-xs text-gray-600 mb-3 p-2 bg-gray-50 rounded-md">
         <span className="font-medium">Filter aktif:</span>
         <span className="ml-1">
-          Kelas: {kelas ? kelasList.find((k) => String(k.id) === String(kelas))?.label : 'Semua'}
+          Kelas: {kelas ? kelasList.find((k) => String(k.id || '') === String(kelas || ''))?.label : 'Semua'}
         </span>
         <span className="mx-1">•</span>
         <span>Status: {status ? status : 'Semua'}</span>
@@ -412,7 +412,7 @@ export const LihatAbsensiHariIni = () => {
           ) : (
             <div className="divide-y divide-gray-200">
               {filtered.map((item, idx) => (
-                <div key={item.absensi_id ?? `${item.nis}-${idx}`} className="p-4">
+                <div key={`mobile-${idx}-${item.absensi_id || ''}-${item.nis || ''}`} className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <div className="font-medium text-gray-900">{item.nama}</div>
@@ -422,7 +422,7 @@ export const LihatAbsensiHariIni = () => {
                   </div>
 
                   <div className="text-sm text-gray-600 mb-3">
-                    {item.tingkat} {item.jurusan?.nama_jurusan ?? item.jurusan} {item.paralel}
+                    {item.tingkat} {item.jurusan?.nama_jurusan || ''} {item.paralel || ''}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -471,12 +471,12 @@ export const LihatAbsensiHariIni = () => {
                 </tr>
               ) : (
                 filtered.map((item, idx) => (
-                  <tr key={item.absensi_id ?? `${item.nis}-${idx}`} className="table-tr">
+                  <tr key={`desktop-${idx}-${item.absensi_id || ''}-${item.nis || ''}`} className="table-tr">
                     <td className="table-td">{idx + 1}</td>
                     <td className="table-td">{item.nis}</td>
                     <td className="table-td">{item.nama}</td>
                     <td className="table-td">
-                      {item.tingkat} {item.jurusan?.nama_jurusan ?? item.jurusan} {item.paralel}
+                      {item.tingkat} {item.jurusan?.nama_jurusan || ''} {item.paralel || ''}
                     </td>
                     <td className="table-td">
                       <StatusDropdown item={item} />
@@ -547,9 +547,9 @@ export const LihatAbsensiHariIni = () => {
                 {!selectedSiswa && manualSearch && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                     {filteredManualSiswa.length > 0 ? (
-                      filteredManualSiswa.map((s) => (
+                      filteredManualSiswa.map((s, sIdx) => (
                         <button
-                          key={s.siswa_id}
+                          key={`siswa-${sIdx}-${s.siswa_id || ''}-${s.nis || ''}`}
                           onClick={() => {
                             setSelectedSiswa(s);
                             setManualSearch(s.nama);
@@ -557,7 +557,7 @@ export const LihatAbsensiHariIni = () => {
                           className="w-full text-left px-4 py-2 hover:bg-gray-50 flex flex-col border-b border-gray-50 last:border-0"
                         >
                           <span className="font-medium text-gray-800">{s.nama}</span>
-                          <span className="text-xs text-gray-500">NIS: {s.nis} • {s.kelas?.tingkat ?? ''} {s.kelas?.jurusan?.nama_jurusan ?? s.kelas?.jurusan ?? ''} {s.kelas?.paralel ?? ''}</span>
+                          <span className="text-xs text-gray-500">NIS: {s.nis} • {s.kelas?.tingkat || ''} {s.kelas?.jurusan?.nama_jurusan || ''} {s.kelas?.paralel || ''}</span>
                         </button>
                       ))
                     ) : (

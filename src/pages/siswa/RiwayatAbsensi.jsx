@@ -1,5 +1,6 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { Loading, BottomNavbar } from '../../components';
+import { ListSkeleton } from '../../components/LoadingSkeleton';
 import { absensiAPI } from '../../services/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,7 +36,24 @@ const RiwayatAbsensi = () => {
     );
   };
   if (!user) return <Loading text="Memuat data user..." />;
-  if (loading) return <Loading text="Memuat riwayat absensi..." />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="px-4 pt-8 pb-10 bg-gradient-to-br from-[#4A90E2] to-[#357ABD]">
+          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-white bg-opacity-20 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-white bg-opacity-20 rounded w-48"></div>
+            </div>
+          </div>
+        </div>
+        <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <ListSkeleton items={8} />
+        </main>
+        <BottomNavbar />
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

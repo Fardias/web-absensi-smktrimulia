@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Trash } from "lucide-react";
 import { adminAPI } from "../../services/api";
 import { Loading, DataTable } from "../../components";
 import Swal from "sweetalert2";
@@ -151,6 +152,79 @@ const Kelas = () => {
     }
   }
 
+  async function handleDeleteAll() {
+    const result = await Swal.fire({
+      title: 'Hapus Semua Kelas',
+      html: `
+        <div class="text-left">
+          <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>SEMUA DATA KELAS</strong>?</p>
+          <p class="text-red-600 font-semibold mb-2">⚠️ PERINGATAN:</p>
+          <ul class="text-sm text-gray-700 list-disc list-inside">
+            <li>Semua data kelas akan dihapus permanen</li>
+            <li>Semua siswa akan kehilangan kelas</li>
+            <li>Semua riwayat kelas akan dihapus</li>
+          </ul>
+          <p class="mt-3 text-red-600 font-bold">Tindakan ini TIDAK DAPAT DIBATALKAN!</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus Semua!',
+      cancelButtonText: 'Batal',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+      // Konfirmasi kedua untuk keamanan ekstra
+      const secondConfirm = await Swal.fire({
+        title: 'Konfirmasi Terakhir',
+        text: 'Ketik "HAPUS SEMUA" untuk melanjutkan',
+        input: 'text',
+        inputPlaceholder: 'Ketik: HAPUS SEMUA',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Hapus Semua Data',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+          if (value !== 'HAPUS SEMUA') {
+            return 'Anda harus mengetik "HAPUS SEMUA" dengan benar!';
+          }
+        }
+      });
+
+      if (secondConfirm.isConfirmed) {
+        try {
+          const response = await adminAPI.deleteAllKelas();
+          if (response.status === 200 && response.data.responseStatus) {
+            setList([]);
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Semua data kelas berhasil dihapus'
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: response.data.responseMessage || 'Gagal menghapus semua kelas'
+            });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.responseMessage || 'Terjadi kesalahan saat menghapus semua kelas';
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: msg
+          });
+        }
+      }
+    }
+  }
+
   if (loading && !showModal) {
     return <Loading text="Memuat data kelas..." />;
   }
@@ -210,7 +284,17 @@ const Kelas = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Kelola Kelas</h1>
-        <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Kelas</button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteAll}
+            disabled={list.length === 0}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash size={16} />
+            Hapus Semua
+          </button>
+          <button onClick={openAdd} className="bg-[#003366] text-white px-4 py-2 rounded hover:bg-[#002244]">Tambah Kelas</button>
+        </div>
       </div>
 
       {error && (
@@ -256,7 +340,7 @@ const Kelas = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Wali Kelas</label>
                   <select value={walasId} onChange={(e) => setWalasId(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2">
                     {walas.map((w) => (
-                      <option key={w.walas_id} value={w.walas_id}>{w.nama} ({w.nip})</option>
+                      <option key={w.walas_id} value={w.walas_id}>{w.nama} ({w.username})</option>
                     ))}
                   </select>
                 </div>
