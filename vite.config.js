@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
   
   // Build optimizations
   build: {
+    // Output ke folder Laravel public
+    outDir: '../api-absensi-smktrimulia/public',
+    emptyOutDir: false, // Jangan hapus file Laravel lainnya
+    
     // Generate source maps for debugging
     sourcemap: mode === 'development',
     
@@ -56,14 +60,8 @@ export default defineConfig(({ mode }) => ({
       },
     },
     
-    // Minification
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-      },
-    },
+    // Minification (esbuild lebih cepat dari terser)
+    minify: 'esbuild',
     
     // Chunk size warnings
     chunkSizeWarningLimit: 1000,
