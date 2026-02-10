@@ -2,7 +2,8 @@ import axios from 'axios';
 import { createRateLimiter } from '../utils/validation';
 
 // Base URL untuk API
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
 // Rate limiters for different endpoints
 const loginRateLimit = createRateLimiter(
