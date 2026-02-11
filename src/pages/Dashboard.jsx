@@ -2,17 +2,22 @@ import { useAuth } from "../contexts/AuthContext";
 import { Loading } from "../components";
 import { formatDate } from "../utils";
 import { useState, useEffect } from "react";
-import { useDataSiswa } from "../hooks/useDataSiswa";
 import { useCountUp } from "../hooks";
-import { guruAPI, adminAPI } from "../services/api";
+import { guruAPI } from "../services/api";
 import { AttendancePieChart, AttendanceTrendChart } from "../components/AttendanceChart";
-import { DashboardSkeleton, CardSkeleton } from "../components/LoadingSkeleton";
-import { handleApiError } from "../services/api";
-import { useDashboardStats, useDashboardActivities, useDashboardTrends } from "../hooks/useQueries";
+import { DashboardSkeleton } from "../components/LoadingSkeleton";
 import Swal from 'sweetalert2';
+import { useDashboardStats, useWalasInfo, useAdminTrendData, useAktivitas } from "../hooks/useDashboardData";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const userRole = user?.role?.toLowerCase();
+
+  // Use custom hooks with caching
+  const { stats, loading: statsLoading } = useDashboardStats(userRole);
+  const { walasInfo, walasStats, walasPresentRate } = useWalasInfo(userRole);
+  const { trendData } = useAdminTrendData(userRole);
+  const { aktivitas, loading: loadingAktivitas } = useAktivitas(userRole);
 
   const [totalSiswa, setTotalSiswa] = useState(0);
   const [hadirHariIni, setHadirHariIni] = useState(0);
@@ -21,19 +26,30 @@ const Dashboard = () => {
   const [sakit, setSakit] = useState(0);
   const [alfa, setAlfa] = useState(0);
   const [belumHadir, setBelumHadir] = useState(0);
-
-  const [aktivitas, setAktivitas] = useState([]);
-  const [loadingAktivitas, setLoadingAktivitas] = useState(true);
   const [presentRate, setPresentRate] = useState(0);
-  // const [globalStats, setGlobalStats] = useState({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0, total: 0 });
-  const [trendData, setTrendData] = useState([]);
 
   // Walas info & filter daftar siswa hari ini
-  const [walasInfo, setWalasInfo] = useState(null);
   const [filterStatus, setFilterStatus] = useState("hadir");
   const [listLoading, setListLoading] = useState(false);
   const [siswaList, setSiswaList] = useState([]);
   const [updatingStatus, setUpdatingStatus] = useState({});
+
+  // Update stats when data is loaded
+  useEffect(() => {
+    if (stats) {
+      setTotalSiswa(stats.total_siswa || 0);
+      setHadirHariIni(stats.hadir || 0);
+      setTerlambat(stats.terlambat || 0);
+      setIzin(stats.izin || 0);
+      setSakit(stats.sakit || 0);
+      setAlfa(stats.alfa || 0);
+      setBelumHadir(stats.belum_hadir || 0);
+      
+      if (userRole === 'gurket' || userRole === 'admin') {
+        setPresentRate(stats.present_rate || 0);
+      }
+    }
+  }, [stats, userRole]);
 
   const animTotalSiswa = useCountUp(totalSiswa, 500);
   const animHadir = useCountUp(hadirHariIni, 500);
@@ -42,163 +58,6 @@ const Dashboard = () => {
   const animSakit = useCountUp(sakit, 500);
   const animAlfa = useCountUp(alfa, 500);
   const animBelumHadir = useCountUp(belumHadir, 500);
-
-  const {
-    handleTotalSiswa,
-    handleSiswaHadirHariIni,
-    handleSiswaTerlambat,
-    handleSiswaIzinHariIni,
-    handleSiswaSakitHariIni,
-    loading,
-    error,
-  } = useDataSiswa();
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const today = new Date().toISOString().slice(0, 10);
-        const userRole = user?.role?.toLowerCase();
-        console.log("✨✨✨✨userRole:", userRole);
-
-        const [cTotalSiswa, cHadirHariIni, cTerlambat, cIzin, cSakit, absensiRes] =
-          await Promise.all([
-            handleTotalSiswa(),
-            handleSiswaHadirHariIni(),
-            handleSiswaTerlambat(),
-            handleSiswaIzinHariIni(),
-            handleSiswaSakitHariIni(),
-            userRole === 'gurket' || userRole === 'walas' || userRole === 'admin'
-              ? guruAPI.lihatAbsensiSiswa({ tanggal: today }).catch(() => null)
-              : Promise.resolve(null),
-          ]);
-
-        setTotalSiswa(cTotalSiswa);
-        setHadirHariIni(cHadirHariIni);
-        setTerlambat(cTerlambat);
-        setIzin(cIzin);
-        setSakit(cSakit);
-
-        const total = Number(cTotalSiswa);
-        const hadir = Number(cHadirHariIni);
-        const terlambatNum = Number(cTerlambat);
-        const absensiList = absensiRes?.data?.responseData?.absensi ?? [];
-        // console.log("✨✨✨✨absensiList:", absensiList);
-
-        const alfaCount = Array.isArray(absensiList)
-          ? absensiList.reduce((acc, item) => {
-            const status = String(item.status).toLowerCase();
-            return status === "alfa" ? acc + 1 : acc;
-          }, 0)
-          : 0;
-        setAlfa(alfaCount);
-
-        const belumHadirNum = total - hadir - terlambatNum;
-        setBelumHadir(belumHadirNum);
-
-        if (user?.role === "gurket" || user?.role === "admin") {
-          const rate = Math.round((hadir / total) * 100);
-          setPresentRate(rate || 0);
-        }
-      } catch (err) {
-        console.error("Error fetch dashboard data:", err);
-      }
-    };
-
-    fetchDashboardData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (error) {
-      const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-      });
-      Toast.fire({
-        icon: 'warning',
-        title: error
-      });
-    }
-  }, [error]);
-
-  // Fetch walas info jika role walas
-  useEffect(() => {
-    const fetchInfo = async () => {
-      if (user?.role !== "walas") return;
-      try {
-        const res = await guruAPI.walasInfo();
-        const data = res?.data?.responseData;
-        console.log(data);
-        setWalasInfo(data);
-      } catch {
-        // silently fail
-        setWalasInfo(null);
-      }
-    };
-    fetchInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.role]);
-
-  useEffect(() => {
-    const fetchAdminGlobal = async () => {
-      if (user?.role !== "admin") return;
-      try {
-        const today = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-
-        const resToday = await adminAPI.rekap({ tanggal: fmt(today) });
-        const list = resToday?.data?.rekap || [];
-        const totals = list.reduce(
-          (acc, k) => {
-            acc.hadir += Number(k.hadir);
-            acc.terlambat += Number(k.terlambat);
-            acc.izin += Number(k.izin);
-            acc.sakit += Number(k.sakit);
-            acc.alfa += Number(k.alfa);
-            return acc;
-          },
-          { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0 }
-        );
-
-        // const totalAll = totals.hadir + totals.terlambat + totals.izin + totals.sakit + totals.alfa;
-        // setGlobalStats({ ...totals, total: totalAll });
-
-        const days = Array.from({ length: 7 }).map((_, i) => {
-          const d = new Date();
-          d.setDate(today.getDate() - (6 - i));
-          return d;
-        });
-        const results = await Promise.all(
-          days.map((d) => adminAPI.rekap({ tanggal: fmt(d) }).then((r) => ({ d, data: r?.data?.rekap || [] })).catch(() => ({ d, data: [] })))
-        );
-        const trend = results.map(({ d, data }) => {
-          const agg = data.reduce(
-            (acc, k) => {
-              acc.hadir += Number(k.hadir);
-              acc.terlambat += Number(k.terlambat);
-              acc.izin += Number(k.izin);
-              acc.sakit += Number(k.sakit);
-              acc.alfa += Number(k.alfa);
-              return acc;
-            },
-            { hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0 }
-          );
-          const total = agg.hadir + agg.terlambat + agg.izin + agg.sakit + agg.alfa;
-          const rate = total > 0 ? Math.round((agg.hadir / total) * 100) : 0;
-          return { label: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`, rate };
-        });
-        setTrendData(trend);
-      } catch {
-        setGlobalStats({ hadir: 0, terlambat: 0, izin: 0, sakit: 0, alfa: 0, total: 0 });
-        setTrendData([]);
-      }
-    };
-    fetchAdminGlobal();
-  }, [user?.role]);
 
   // Fetch daftar siswa hari ini berdasarkan status
   const fetchSiswaByStatus = async (status) => {
@@ -217,7 +76,11 @@ const Dashboard = () => {
       const res = await guruAPI.lihatAbsensiSiswa({ status });
       const payload = res?.data?.responseData || res?.data || {};
       const list = payload?.absensi || [];
-      setSiswaList(Array.isArray(list) ? list : []);
+      // console.log("list",list);
+      
+      setSiswaList(list);
+      // console.log("siswa list", siswaList);
+      
     } catch (error) {
       // console.error("Error fetching siswa by status:", error);
       setSiswaList([]);
@@ -332,6 +195,11 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
+    // Only fetch if user is authorized
+    if (!user) return;
+    const userRole = user?.role?.toLowerCase();
+    if (userRole !== "gurket" && userRole !== "walas") return;
+    
     // auto load list untuk status awal
     fetchSiswaByStatus(filterStatus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -350,42 +218,6 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    const userRole = user?.role?.toLowerCase();
-
-    // Admin does not have access to aktivitas terbaru via guruAPI
-    if (userRole === "admin") {
-      setLoadingAktivitas(false);
-      setAktivitas([]);
-      return;
-    }
-
-    if (userRole !== "gurket" && userRole !== "walas") {
-      setLoadingAktivitas(false);
-      return;
-    }
-
-    const fetchAktivitas = async () => {
-      try {
-        const response = await guruAPI.aktifitasTerbaru();
-        if (response.data.responseStatus) {
-          setAktivitas(response.data.responseData || []);
-        } else {
-          // console.error("Gagal ambil aktivitas:", response.data.responseMessage);
-        }
-      } catch (error) {
-        // console.error("Gagal memuat aktivitas:", error);
-      } finally {
-        setLoadingAktivitas(false);
-      }
-    };
-
-    fetchAktivitas();
-
-    const interval = setInterval(fetchAktivitas, 5000);
-    return () => clearInterval(interval);
-  }, [user?.role]);
-
   // Persentase Kehadiran
   const totalSiswaCard = Number(totalSiswa);
   const hadirSiswaHariIni = Number(hadirHariIni);
@@ -395,7 +227,7 @@ const Dashboard = () => {
     return <Loading text="Memuat data user..." />;
   }
 
-  if (loading) {
+  if (statsLoading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <div className="flex flex-col flex-1">
@@ -407,10 +239,6 @@ const Dashboard = () => {
     );
   }
 
-  // if (error) {
-  //   return <Error message={error} />;
-  // }
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex flex-col flex-1 ">
@@ -419,10 +247,9 @@ const Dashboard = () => {
           {/* Welcome Section */}
           <div className="mb-8">
             <h2 className="mb-2 text-2xl font-bold text-gray-900">
-              Selamat datang, {getRoleDisplayName(user.role)}👋
+              Selamat datang, {user.nama}👋
             </h2>
             <p className="text-gray-600">
-              Dashboard {getRoleDisplayName(user.role)} -{" "}
               {formatDate(new Date())}
             </p>
           </div>
@@ -432,6 +259,16 @@ const Dashboard = () => {
                 hadirCount={hadirSiswaHariIni}
                 belumHadirCount={belumHadirs}
                 presentRate={presentRate}
+              />
+            </div>
+          )}
+
+          {user.role === "walas" && (
+            <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-3">
+              <AttendancePieChart 
+                hadirCount={walasStats.hadir}
+                belumHadirCount={walasStats.total - walasStats.hadir}
+                presentRate={walasPresentRate}
               />
             </div>
           )}
@@ -780,12 +617,14 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="table-tbody">
+                      {/* {console.log('siswaList:', siswaList)} */}
                       {siswaList.map((row, idx) => (
+                        
                         <tr key={idx} className="table-tr hover:bg-gray-50">
                           <td className="table-td">{row.nis || '-'}</td>
                           <td className="table-td">{row.nama || '-'}</td>
                           <td className="table-td">
-                            {row.tingkat ? `Kelas ${row.tingkat} ${row.jurusan || ''} ${row.paralel || ''}` : '-'}
+                            {row.tingkat ? `${row.tingkat} ${row.jurusan.nama_jurusan || ''} ${row.paralel || ''}` : '-'}
                           </td>
                           <td className="table-td">
                             {row.absensi_id ? (

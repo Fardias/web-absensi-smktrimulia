@@ -297,9 +297,6 @@ const Kelas = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-3 text-red-600 font-semibold">{error}</div>
-      )}
 
       <DataTable
         data={list}

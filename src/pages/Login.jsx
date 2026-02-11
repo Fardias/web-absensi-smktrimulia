@@ -56,7 +56,7 @@ const Login = () => {
                 <div className="text-center mb-8">
                     
                     <h1 className="text-2xl font-bold text-[#003366] uppercase mb-2">SMK Trimulia Jakarta</h1>
-                    <p className="text-gray-600 text-sm">SISENUS - Sistem Absensi Radius</p>
+                    <p className="text-gray-600 text-sm">SATRIA - Sistem Absensi Trimulia Jakarta</p>
                 </div>
 
                 {/* Form Login */}
@@ -121,7 +121,7 @@ const Login = () => {
                 {/* Footer */}
                 <div className="mt-8 text-center">
                     <p className="text-sm text-gray-500">
-                        © {new Date().getFullYear()} SISENUS SMK TRIMULIA JAKARTA. All rights reserved.
+                        © {new Date().getFullYear()} SATRIA - SMK TRIMULIA JAKARTA. All rights reserved.
                     </p>
                 </div>
             </div>

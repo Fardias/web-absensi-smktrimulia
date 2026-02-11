@@ -8,16 +8,18 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit }) =>
     if (!formData.tanggal) return "";
     const start = new Date(formData.tanggal + "T00:00:00");
     const end = new Date(start);
-    end.setDate(start.getDate() + 29);
+    end.setDate(start.getDate() + 364); // 365 hari (1 tahun)
     const months = [
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
     const startDay = start.getDate();
+    const startMonth = months[start.getMonth()];
+    const startYear = start.getFullYear();
     const endDay = end.getDate();
-    const monthName = months[end.getMonth()];
-    const year = end.getFullYear();
-    return `Rencana absensi akan dibuat untuk tanggal ${startDay}–${endDay} ${monthName} ${year}.`;
+    const endMonth = months[end.getMonth()];
+    const endYear = end.getFullYear();
+    return `Rencana absensi akan dibuat untuk tanggal ${startDay} ${startMonth} ${startYear} s.d. ${endDay} ${endMonth} ${endYear} (1 tahun ke depan).`;
   };
 
   return (
@@ -46,7 +48,7 @@ const RencanaAbsensiModal = ({ show, onClose, formData, onChange, onSubmit }) =>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Buat selama 30 hari ke depan
+              Buat selama 1 tahun ke depan
             </label>
             <select
               name="mode"

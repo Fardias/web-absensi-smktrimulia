@@ -43,7 +43,20 @@ const JadwalPiket = () => {
         adminAPI.getGuruPiket(),
       ]);
       const arr = jadRes?.data?.responseData?.jadwal ?? [];
-      setList(Array.isArray(arr) ? arr : []);
+      
+      // Filter data: hanya tampilkan dari tanggal hari ini ke depan
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const filteredArr = Array.isArray(arr) 
+        ? arr.filter(item => {
+            const itemDate = parseDateYmd(item.tanggal);
+            itemDate.setHours(0, 0, 0, 0);
+            return itemDate >= today;
+          })
+        : [];
+      
+      setList(filteredArr);
       setGurketList(gurketRes?.data?.responseData?.gurket ?? []);
     } catch (e) {
       setError("Gagal memuat data jadwal piket");
@@ -121,10 +134,10 @@ const JadwalPiket = () => {
           setLoading(false);
           return;
         }
-        let createdCount = 0;
-        let skippedCount = 0;
-        const newlyCreated = [];
-        for (let i = 0; i < 30; i++) {
+
+        // Prepare bulk data
+        const bulkData = [];
+        for (let i = 0; i < 365; i++) {
           const dt = new Date(start);
           dt.setDate(start.getDate() + i);
           const y = dt.getFullYear();
@@ -132,7 +145,10 @@ const JadwalPiket = () => {
           const d = String(dt.getDate()).padStart(2, '0');
           const ymd = `${y}-${m}-${d}`;
           const dow = dt.getDay();
+          
+          // Skip weekend
           if (dow === 0 || dow === 6) continue;
+          
           const mapId = {
             1: assignments.senin,
             2: assignments.selasa,
@@ -140,25 +156,28 @@ const JadwalPiket = () => {
             4: assignments.kamis,
             5: assignments.jumat,
           }[dow];
-          if (!mapId) { skippedCount++; continue; }
-          if (list.some((x) => x.tanggal === ymd)) { skippedCount++; continue; }
-          try {
-            const res = await adminAPI.createJadwalPiket({ tanggal: ymd, gurket_id: Number(mapId) });
-            const created = res?.data?.responseData?.jadwal;
-            if (created) {
-              newlyCreated.push(created);
-              createdCount++;
-            } else {
-              skippedCount++;
-            }
-          } catch (err) {
-            skippedCount++;
+          
+          if (mapId) {
+            bulkData.push({
+              tanggal: ymd,
+              gurket_id: Number(mapId)
+            });
           }
         }
-        if (newlyCreated.length > 0) {
-          setList((prev) => [...newlyCreated, ...prev]);
+
+        // Send bulk request
+        const res = await adminAPI.bulkCreateJadwalPiket({ jadwal: bulkData });
+        const result = res?.data?.responseData;
+        
+        if (result) {
+          // Refresh data setelah bulk create
+          await fetchAll();
+          Swal.fire({ 
+            icon: "success", 
+            title: "Berhasil", 
+            text: `Jadwal dibuat: ${result.created}. Dilewati: ${result.skipped}.` 
+          });
         }
-        Swal.fire({ icon: "success", title: "Berhasil", text: `Jadwal dibuat: ${createdCount}. Dilewati: ${skippedCount}.` });
         closeModal();
       }
     } catch (e) {
@@ -420,7 +439,7 @@ const JadwalPiket = () => {
                       </select>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500">Sistem akan membuat jadwal otomatis untuk 30 hari ke depan (hanya hari kerja).</p>
+                  <p className="text-xs text-gray-500">Sistem akan membuat jadwal otomatis untuk 1 tahun ke depan (365 hari, hanya hari kerja Senin-Jumat).</p>
                 </div>
               )}
               <div className="flex justify-end space-x-2 mt-4">

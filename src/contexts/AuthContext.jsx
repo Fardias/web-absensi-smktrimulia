@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { authAPI } from '../services/api';
 import { handleApiError } from '../services/api';
 import Swal from 'sweetalert2';
@@ -17,11 +17,12 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const initRef = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple initialization
-    if (initialized) return;
+    // Prevent multiple initialization in strict mode
+    if (initRef.current) return;
+    initRef.current = true;
 
     const initAuth = async () => {
       try {
@@ -40,12 +41,11 @@ export const AuthProvider = ({ children }) => {
       } finally {
         // Pastikan loading selalu di-set ke false
         setLoading(false);
-        setInitialized(true);
       }
     };
 
     initAuth();
-  }, [initialized]);
+  }, []); // Empty dependency array
 
   const login = async (credentials) => {
     try {

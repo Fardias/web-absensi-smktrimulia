@@ -586,7 +586,7 @@ export default function AdminPengaturan() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Map Picker */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Pilih Lokasi Sekolah</h3>
             {/* <MapsLinkInput
               onResult={(coords) => {
@@ -650,6 +650,7 @@ export default function AdminPengaturan() {
             </div>
 
             <p className="mt-3 text-sm text-gray-600">Klik pada peta atau seret marker untuk mengatur lokasi. Latitude dan longitude akan terisi otomatis.</p>
+            <p className="mt-3 text-sm text-gray-600">Atau pergi ke google maps dan copy paste latitude dan longitude posisi yang diinginkan secara manual.</p>
           </div>
 
           {/* Form Settings */}
@@ -670,11 +671,11 @@ export default function AdminPengaturan() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Datang</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Batas Jam Datang</label>
                   <input type="time" name="jam_masuk" value={form.jam_masuk} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Pulang</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mulai Jam Pulang</label>
                   <input type="time" name="jam_pulang" value={form.jam_pulang} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
                 </div>
               </div>

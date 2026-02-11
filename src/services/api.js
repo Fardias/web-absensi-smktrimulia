@@ -2,8 +2,8 @@ import axios from 'axios';
 import { createRateLimiter } from '../utils/validation';
 
 // Base URL untuk API
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// const API_BASE_URL = 'http://localhost:8000/api';
 
 // Rate limiters for different endpoints
 const loginRateLimit = createRateLimiter(
@@ -184,6 +184,7 @@ export const adminAPI = {
 	// Jadwal Piket CRUD
 	getJadwalPiket: () => api.get('/admin/jadwal-piket'),
 	createJadwalPiket: (data) => api.post('/admin/jadwal-piket', data),
+	bulkCreateJadwalPiket: (data) => api.post('/admin/jadwal-piket-bulk', data),
 	updateJadwalPiket: (id, data) => api.put(`/admin/jadwal-piket/${id}`, data),
 	deleteJadwalPiket: (id) => api.delete(`/admin/jadwal-piket/${id}`),
 	deleteAllJadwalPiket: () => api.delete('/admin/jadwal-piket-delete-all'),
@@ -219,6 +220,10 @@ export const guruAPI = {
 
 // Gabungan Admin dan Guru API
 export const generalAPI = {
+	// New consolidated endpoint
+	getDashboardStats: () => api.get('/dashboard/stats'),
+	
+	// Legacy endpoints
 	totalSiswa: () => api.get('/total-siswa'),
 	siswaHadirHariIni: () => api.get('/hadir-hariini'),
 	siswaTerlambatHariIni: () => api.get('/terlambat-hariini'),

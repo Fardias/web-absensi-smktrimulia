@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => ({
       outDir: '../api-absensi-smktrimulia/public', // Output PWA files ke Laravel public
       includeAssets: ['vite.svg', 'images/**/*', 'image/**/*'],
       manifest: {
-        name: 'SISENUS - Absensi SMK Trimulia',
-        short_name: 'SISENUS',
+        name: 'SATRIA - Sistem Absensi Trimulia Jakarta',
+        short_name: 'SATRIA',
         description: 'Sistem Absensi Siswa SMK Trimulia',
         theme_color: '#ffffff',
         background_color: '#ffffff',

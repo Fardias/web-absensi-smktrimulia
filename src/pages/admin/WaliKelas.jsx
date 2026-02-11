@@ -94,11 +94,11 @@ const WaliKelas = () => {
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <h4 class="font-semibold text-blue-800 mb-2">📋 Informasi Login:</h4>
                 <div class="space-y-2 text-sm">
-                  <div class="flex justify-between">
+                  <div class="flex space-x-1">
                     <span class="text-gray-600">Username:</span>
                     <span class="font-mono bg-gray-100 px-2 py-1 rounded">${payload.username}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div class="flex space-x-1">
                     <span class="text-gray-600">Password:</span>
                     <span class="font-mono bg-gray-100 px-2 py-1 rounded">${generatedPassword}</span>
                   </div>

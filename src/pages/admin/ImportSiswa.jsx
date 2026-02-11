@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { CloudUpload, CheckCircle, XCircle, Download, Eye, FileSpreadsheet, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CloudUpload, CheckCircle, XCircle, Download, Eye, FileSpreadsheet, FileText, Clock } from "lucide-react";
 import { adminAPI } from "../../services/api";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
@@ -13,22 +13,37 @@ const ImportSiswa = () => {
     const [showPreview, setShowPreview] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const [estimatedTime, setEstimatedTime] = useState(0);
 
     // Template data with preview images and download links
     const templates = [
         {
             id: 'excel',
-            name: 'Template Excel (.xls)',
+            name: 'Template Excel (.xlsx)',
             description: '',
             icon: FileSpreadsheet,
             color: 'text-green-600',
             bgColor: 'bg-green-50',
             borderColor: 'border-green-200',
             previewImage: '/images/preview.png',
-            downloadUrl: '/templates/template-siswa.xls',
-            format: '.xls'
+            downloadUrl: '/templates/template-siswa.xlsx',
+            format: '.xlsx'
         }
     ];
+
+    // Timer effect untuk menghitung waktu upload
+    useEffect(() => {
+        let interval;
+        if (uploading) {
+            interval = setInterval(() => {
+                setElapsedTime(prev => prev + 1);
+            }, 1000);
+        } else {
+            setElapsedTime(0);
+        }
+        return () => clearInterval(interval);
+    }, [uploading]);
 
     const handleTemplatePreview = (template) => {
         setSelectedTemplate(template);
@@ -105,9 +120,10 @@ const ImportSiswa = () => {
                         defval: "",
                     });
 
-                    const startRowIndex = 14;
+                    const startRowIndex = 1;
                     let hasDataRow = false;
                     let emptyNisCount = 0;
+                    let totalRows = 0;
 
                     for (let i = startRowIndex; i < rows.length; i++) {
                         const row = rows[i];
@@ -115,7 +131,7 @@ const ImportSiswa = () => {
                             continue;
                         }
 
-                        const nis = String(row[1] ?? "").trim();
+                        const nis = String(row[0] ?? "").trim();
                         const nama = String(row[2] ?? "").trim();
 
                         if (!nis && !nama) {
@@ -123,11 +139,16 @@ const ImportSiswa = () => {
                         }
 
                         hasDataRow = true;
+                        totalRows++;
 
                         if (!nis) {
                             emptyNisCount++;
                         }
                     }
+
+                    // Estimasi waktu: ~0.5 detik per baris data
+                    const estimated = Math.ceil(totalRows * 0.5);
+                    setEstimatedTime(estimated);
 
                     if (!hasDataRow) {
                         Swal.fire({
@@ -224,8 +245,45 @@ const ImportSiswa = () => {
                 setSuccess(false);
             }
         } catch (err) {
-            console.error(err);
-            setMessage("Gagal mengunggah file.");
+            console.error('Import error:', err);
+            console.error('Error response:', err.response?.data);
+            
+            const errorData = err.response?.data;
+            let errorMessage = "Gagal mengunggah file.";
+            
+            if (errorData?.errors) {
+                errorMessage = errorData.errors;
+                console.error('Detailed error:', errorData.errors);
+            } else if (errorData?.responseMessage) {
+                errorMessage = errorData.responseMessage;
+            }
+            
+            // Tampilkan error detail dengan SweetAlert
+            Swal.fire({
+                icon: "error",
+                title: "Gagal Import Data",
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3 text-red-600">${errorMessage}</p>
+                        ${errorData?.errors ? `
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-yellow-800 mb-2">💡 Solusi:</h4>
+                                <ul class="text-sm text-yellow-700 space-y-1">
+                                    <li>• Pastikan nama sheet Excel sesuai format: <strong>X/XI/XII NAMA_JURUSAN</strong></li>
+                                    <li>• Contoh: "X TKJ", "XI Multimedia", "XII Rekayasa Perangkat Lunak"</li>
+                                    <li>• Pastikan jurusan sudah terdaftar di sistem</li>
+                                    <li>• Periksa menu Kelola Jurusan untuk melihat jurusan yang tersedia</li>
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                `,
+                confirmButtonText: 'Mengerti',
+                confirmButtonColor: '#dc2626',
+                width: 600
+            });
+            
+            setMessage(errorMessage);
             setSuccess(false);
         } finally {
             setUploading(false);
@@ -240,7 +298,7 @@ const ImportSiswa = () => {
                 <h1 className="text-3xl font-bold text-[#003366] mb-2">
                     Import Data Siswa
                 </h1>
-                <p className="text-gray-500">Upload file Excel (.xlsx / .xls) sesuai dengan template yang disediakan</p>
+                <p className="text-gray-500">Upload file Excel sesuai dengan template yang disediakan</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -370,11 +428,30 @@ const ImportSiswa = () => {
 
                             {/* Progress Bar */}
                             {uploading && (
-                                <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
-                                    <div
-                                        className="bg-[#003366] h-2 transition-all duration-700 ease-in-out"
-                                        style={{ width: `${progress}%` }}
-                                    ></div>
+                                <div className="space-y-3">
+                                    <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
+                                        <div
+                                            className="bg-[#003366] h-2 transition-all duration-700 ease-in-out"
+                                            style={{ width: `${progress}%` }}
+                                        ></div>
+                                    </div>
+                                    
+                                    {/* Timer dan Estimasi */}
+                                    <div className="flex items-center justify-between text-sm">
+                                        <div className="flex items-center gap-2 text-gray-600">
+                                            <Clock className="w-4 h-4" />
+                                            <span>Waktu: {elapsedTime}s</span>
+                                        </div>
+                                        {estimatedTime > 0 && (
+                                            <span className="text-gray-500">
+                                                Est. {estimatedTime}s
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    <p className="text-center text-sm text-gray-600">
+                                        Sedang memproses data... Mohon tunggu
+                                    </p>
                                 </div>
                             )}
 
@@ -477,7 +554,8 @@ const ImportSiswa = () => {
                                     <ul className="text-sm text-blue-700 space-y-1">
                                         <li>• Jangan mengubah nama kolom header</li>
                                         <li>• Pastikan tidak ada baris kosong di tengah data</li>
-                                        <li>• NIS harus unik (tidak boleh sama)</li>
+                                        <li>• NIS dan NISN harus unik (tidak boleh sama)</li>
+                                        <li>• NISN akan terdaftar sebagai password siswa</li>
                                         <li>• Kelas harus sudah terdaftar di sistem</li>
                                     </ul>
                                 </div>

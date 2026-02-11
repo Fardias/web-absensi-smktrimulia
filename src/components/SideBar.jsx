@@ -55,16 +55,14 @@ export default function SideBar({ defaultCollapsed = false, onToggle, isMobileOp
         item.children &&
         item.children.some((child) => location.pathname === child.href)
     );
-    if (activeParent) {
+    if (activeParent && !openMenus.has(activeParent.key)) {
       setOpenMenus((prev) => {
-        // Jika sudah terbuka, jangan update agar tidak memicu render ulang
-        if (prev.has(activeParent.key)) return prev;
         const next = new Set(prev);
         next.add(activeParent.key);
         return next;
       });
     }
-  }, [location.pathname, items]);
+  }, [location.pathname]); // Remove items dependency to prevent re-render
 
   const toggleSidebar = () => {
     setCollapsed((prev) => {
@@ -124,9 +122,9 @@ export default function SideBar({ defaultCollapsed = false, onToggle, isMobileOp
         {!collapsed && (
           <div>
             <h1 className="font-bold text-base whitespace-nowrap">
-              SMK TRIMULIA JAKARTA
+              SATRIA
             </h1>
-            <p className="text-sm">SISENUS - Sistem Absensi Radius</p>
+            <p className="text-sm">Sistem Absensi Trimulia Jakarta</p>
           </div>
         )}
       </div>

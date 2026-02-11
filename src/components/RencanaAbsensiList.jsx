@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { guruAPI } from "../services/api";
 
 const RencanaAbsensiList = ({ data, onUpdated }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  
   // Group data by tanggal
   const grouped = data.reduce((acc, curr) => {
     if (!acc[curr.tanggal]) acc[curr.tanggal] = [];
@@ -45,11 +47,37 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
     return sortedGroups.filter(([tgl]) => String(tgl) >= todayStr);
   }, [sortedGroups, todayStr]);
 
+  // Filter berdasarkan search query (hari atau tanggal)
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return upcomingGroups;
+    
+    const query = searchQuery.toLowerCase();
+    return upcomingGroups.filter(([tanggal]) => {
+      const dateObj = new Date(tanggal);
+      const dayName = dateObj.toLocaleDateString("id-ID", { weekday: "long" }).toLowerCase();
+      const fullDate = dateObj.toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).toLowerCase();
+      const shortDate = tanggal; // format YYYY-MM-DD
+      
+      return dayName.includes(query) || 
+             fullDate.includes(query) || 
+             shortDate.includes(query);
+    });
+  }, [upcomingGroups, searchQuery]);
+
   const pageSize = 7;
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(upcomingGroups.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredGroups.length / pageSize));
   const startIndex = (currentPage - 1) * pageSize;
-  const paginatedGroups = upcomingGroups.slice(startIndex, startIndex + pageSize);
+  const paginatedGroups = filteredGroups.slice(startIndex, startIndex + pageSize);
+
+  // Reset ke halaman 1 ketika search query berubah
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const formatDateFull = (tanggal) => {
     return new Date(tanggal).toLocaleDateString("id-ID", {
@@ -88,7 +116,41 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
 
   return (
     <div className="space-y-6">
-      {paginatedGroups.map(([tanggal, records]) => (
+      {/* Search Filter */}
+      <div className="bg-white shadow-md rounded-xl p-4 border border-gray-100">
+        <div className="flex items-center gap-3">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Cari berdasarkan hari atau tanggal..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <p className="mt-2 text-sm text-gray-600">
+            Ditemukan {filteredGroups.length} hasil untuk "{searchQuery}"
+          </p>
+        )}
+      </div>
+
+      {paginatedGroups.length === 0 ? (
+        <p className="text-gray-600 text-center py-10 bg-gray-50 rounded-lg">
+          {searchQuery ? `Tidak ada hasil untuk "${searchQuery}"` : "Belum ada data rencana absensi."}
+        </p>
+      ) : (
+        paginatedGroups.map(([tanggal, records]) => (
         <div
           key={tanggal}
           className="bg-white shadow-md rounded-2xl p-6 hover:shadow-lg transition border border-gray-100"
@@ -139,7 +201,9 @@ const RencanaAbsensiList = ({ data, onUpdated }) => {
             ))}
           </div>
         </div>
-      ))}
+      ))
+      )}
+      
       <div className="flex items-center justify-center mt-6 space-x-4"
       >
         <button
