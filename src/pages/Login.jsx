@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Loading, LoadingButton } from '../components';
+import { LoadingButton, HelpChat } from '../components';
 import { validateForm, validators } from '../utils/validation';
 
 const Login = () => {
@@ -125,6 +125,9 @@ const Login = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Help Chat Component */}
+            <HelpChat />
         </div>
     );
 };

@@ -12,5 +12,6 @@ export { default as RencanaAbsensiList } from './RencanaAbsensiList';
 export { default as BottomNavbar } from './BottomNavbar';
 export { default as DataTable } from './DataTable';
 export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as HelpChat } from './HelpChat';
 export * from './LoadingSkeleton';
 export * from './OptimizedComponents';
